@@ -6,8 +6,8 @@ on:
       - "v*"
 
 jobs:
-  build:
-    name: Build release artifacts
+  build-macos:
+    name: Build macOS and portable artifacts
     runs-on: macos-14
 
     steps:
@@ -38,3 +38,24 @@ jobs:
             dist/shuhe-riji-macos-app.zip
             dist/shuhe-riji-macos.dmg
             dist/shuhe-riji-windows-portable.zip
+
+  build-windows-exe:
+    name: Build Windows EXE artifact
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build Windows EXE
+        shell: pwsh
+        run: .\scripts\build_windows_exe.ps1 -Output dist
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/shuhe-riji-windows-exe.zip
