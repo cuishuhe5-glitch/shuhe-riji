@@ -101,19 +101,19 @@ RELEASE_INFO = {
             "name": "macOS DMG",
             "filename": "shuhe-riji-macos.dmg",
             "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.0/shuhe-riji-macos.dmg",
-            "sha256": "603ab1de3de41ec9fa625f0c6364306c4afd32e8d8e7e6a8d593148b5930802b",
+            "sha256": "",
         },
         {
             "name": "macOS 独立版",
             "filename": "shuhe-riji-macos-app.zip",
             "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.0/shuhe-riji-macos-app.zip",
-            "sha256": "d0ee63bcdb3774a3c1d35cbbe61e3122f7795f0208c1167bef5cf71d603dfb97",
+            "sha256": "",
         },
         {
             "name": "Windows 便携版",
             "filename": "shuhe-riji-windows-portable.zip",
             "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.0/shuhe-riji-windows-portable.zip",
-            "sha256": "ecc2293be71f6f64de573d8992055683cb851f56e8441c5080d34bb206dd3cd9",
+            "sha256": "",
         },
         {
             "name": "校验文件",
@@ -123,6 +123,80 @@ RELEASE_INFO = {
         },
     ],
 }
+RELEASE_REPO = "cuishuhe5-glitch/shuhe-riji"
+
+
+def _version_parts(version: str | None) -> tuple[int, ...]:
+    if not version:
+        return ()
+    return tuple(int(part) for part in re.findall(r"\d+", version))
+
+
+def _is_newer_version(latest: str | None, current: str | None) -> bool:
+    latest_parts = _version_parts(latest)
+    current_parts = _version_parts(current)
+    return bool(latest_parts and current_parts and latest_parts > current_parts)
+
+
+def _release_check() -> dict[str, Any]:
+    current_version = RELEASE_INFO["version"]
+    checked_at = datetime.now().isoformat(timespec="seconds")
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "ShuheRiji/0.1",
+    }
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    base = {
+        "ok": False,
+        "current_version": current_version,
+        "current_url": RELEASE_INFO["url"],
+        "latest_version": None,
+        "latest_url": None,
+        "update_available": False,
+        "checked_at": checked_at,
+        "assets": [],
+    }
+    try:
+        response = requests.get(f"https://api.github.com/repos/{RELEASE_REPO}/releases/latest", headers=headers, timeout=8)
+        if response.status_code == 404:
+            return {
+                **base,
+                "message": "没有权限读取 GitHub Release，或仓库仍是私有状态；下载入口仍可使用当前发布包。",
+            }
+        response.raise_for_status()
+        payload = response.json()
+    except requests.Timeout:
+        return {**base, "message": "连接 GitHub 超时，请稍后再试。"}
+    except requests.RequestException as exc:
+        status = getattr(exc.response, "status_code", None)
+        detail = f"GitHub 返回 {status}" if status else "无法连接 GitHub"
+        return {**base, "message": f"{detail}，请稍后再试。"}
+    except ValueError:
+        return {**base, "message": "GitHub 返回内容无法解析，请稍后再试。"}
+
+    latest_version = payload.get("tag_name") or payload.get("name") or ""
+    assets = [
+        {
+            "name": asset.get("label") or asset.get("name") or "下载",
+            "filename": asset.get("name") or "",
+            "url": asset.get("browser_download_url") or "",
+            "size": asset.get("size") or 0,
+        }
+        for asset in payload.get("assets", [])
+        if isinstance(asset, dict)
+    ]
+    return {
+        **base,
+        "ok": True,
+        "message": "检查完成",
+        "latest_version": latest_version,
+        "latest_url": payload.get("html_url") or RELEASE_INFO["url"],
+        "update_available": _is_newer_version(latest_version, current_version),
+        "assets": assets,
+    }
 
 
 class Recorder:
@@ -1548,6 +1622,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send_json({"logs": _logs_snapshot()})
         elif parsed.path == "/api/health":
             self._send_json({"health": _health()})
+        elif parsed.path == "/api/release/check":
+            self._send_json({"release_check": _release_check()})
         elif parsed.path == "/api/model-config":
             self._send_json({"model_config": _model_config()})
         elif parsed.path == "/api/autostart":
