@@ -465,8 +465,12 @@
 	                <div class="help-card wide">
 	                  <div class="mini-head">
 	                    <strong>下载安装</strong>
-	                    <a class="text-button" id="releasePageLink" href="#" target="_blank" rel="noreferrer">打开发布页</a>
+	                    <div class="mini-actions">
+	                      <button class="text-button" id="checkReleaseUpdate" type="button">检查更新</button>
+	                      <a class="text-button" id="releasePageLink" href="#" target="_blank" rel="noreferrer">打开发布页</a>
+	                    </div>
 	                  </div>
+	                  <p class="release-check-status" id="releaseCheckStatus">当前安装包信息来自本地发布清单。</p>
 	                  <div class="release-grid" id="releaseGrid"></div>
 	                </div>
 	                <div class="help-card wide">

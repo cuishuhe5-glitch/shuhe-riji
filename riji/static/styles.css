@@ -1164,6 +1164,21 @@ select {
   gap: 8px;
 }
 
+.release-check-status {
+  margin: -2px 0 10px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.release-check-status.good {
+  color: #0f766e;
+}
+
+.release-check-status.warn {
+  color: #b45309;
+}
+
 .release-item {
   min-width: 0;
   display: grid;

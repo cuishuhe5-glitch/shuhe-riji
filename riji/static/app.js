@@ -329,6 +329,11 @@ function renderReleaseInfo(release) {
   const page = $("#releasePageLink");
   page.href = release.url || "#";
   page.textContent = release.version ? `打开 ${release.version}` : "打开发布页";
+  const status = $("#releaseCheckStatus");
+  if (status && !status.dataset.checked) {
+    status.textContent = `当前发布版本 ${release.version || "-"}，可直接下载安装包。`;
+    status.className = "release-check-status";
+  }
   const assets = release.assets || [];
   grid.innerHTML = assets.length
     ? assets
@@ -344,6 +349,50 @@ function renderReleaseInfo(release) {
         })
         .join("")
     : `<div class="empty release-empty">还没有发布包。</div>`;
+}
+
+function renderReleaseCheck(result) {
+  const status = $("#releaseCheckStatus");
+  if (!status || !result) return;
+  status.dataset.checked = "true";
+  if (!result.ok) {
+    status.textContent = `暂时无法检查更新：${result.message || "未知原因"}`;
+    status.className = "release-check-status warn";
+    return;
+  }
+  const current = result.current_version || "-";
+  const latest = result.latest_version || "-";
+  const checked = result.checked_at ? ` · ${result.checked_at}` : "";
+  if (result.update_available) {
+    status.textContent = `发现新版本 ${latest}，当前是 ${current}${checked}`;
+    status.className = "release-check-status good";
+    const page = $("#releasePageLink");
+    if (page && result.latest_url) {
+      page.href = result.latest_url;
+      page.textContent = `打开 ${latest}`;
+    }
+    return;
+  }
+  status.textContent = `当前已是最新版本 ${current}${checked}`;
+  status.className = "release-check-status good";
+}
+
+async function checkReleaseUpdate() {
+  const button = $("#checkReleaseUpdate");
+  if (button) {
+    button.disabled = true;
+    button.textContent = "检查中";
+  }
+  try {
+    const data = await api("/api/release/check");
+    renderReleaseCheck(data.release_check);
+    toast(data.release_check?.ok ? "更新检查完成" : "暂时无法检查更新");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "检查更新";
+    }
+  }
 }
 
 function renderPermissions(permissions) {
@@ -2291,6 +2340,7 @@ function bindEvents() {
   $("#helpOpenSettings").addEventListener("click", () => {
     document.querySelector('[data-section="settings"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
+  $("#checkReleaseUpdate").addEventListener("click", () => checkReleaseUpdate().catch((error) => toast(error.message)));
   $("#createBackup").addEventListener("click", () => createBackup());
   $("#testModelConnection").addEventListener("click", () => testModelConnection());
   $("#exportDayActivities").addEventListener("click", () => exportActivities("day"));
