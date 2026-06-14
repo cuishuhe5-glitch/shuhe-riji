@@ -8,6 +8,7 @@ import shutil
 import stat
 import subprocess
 import sys
+import zipfile
 from pathlib import Path
 from textwrap import dedent
 
@@ -86,6 +87,31 @@ def install_app(
     return destination
 
 
+def build_windows_portable(output_dir: str | Path | None = None) -> Path:
+    root = Path(__file__).resolve().parents[1]
+    out = Path(output_dir) if output_dir else DEFAULT_OUTPUT_DIR
+    package_dir = out / "shuhe-riji-windows-portable"
+    zip_path = out / "shuhe-riji-windows-portable.zip"
+    app_dir = package_dir / "app"
+    if package_dir.exists():
+        shutil.rmtree(package_dir)
+    if zip_path.exists():
+        zip_path.unlink()
+    app_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(root / "riji", app_dir / "riji", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    for filename in ["requirements.txt", "README.md"]:
+        source = root / filename
+        if source.exists():
+            shutil.copy2(source, app_dir / filename)
+    (package_dir / "start-shuhe-riji.cmd").write_text(_windows_launcher_script(), encoding="utf-8")
+    (package_dir / "configure-model.cmd").write_text(_windows_env_script(), encoding="utf-8")
+    (package_dir / "README-Windows.txt").write_text(_windows_readme(), encoding="utf-8")
+    with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+        for path in package_dir.rglob("*"):
+            archive.write(path, path.relative_to(out))
+    return zip_path
+
+
 def write_env_template(
     path: str | Path | None = None,
     *,
@@ -121,6 +147,74 @@ def write_env_template(
     )
     target.chmod(0o600)
     return target
+
+
+def _windows_launcher_script() -> str:
+    return dedent(
+        r"""\
+        @echo off
+        chcp 65001 >nul
+        setlocal
+        cd /d "%~dp0app"
+        if not exist ".venv\Scripts\python.exe" (
+          echo [书赫日报助手] 首次启动，正在创建本地 Python 环境...
+          py -3 -m venv .venv
+          if errorlevel 1 (
+            echo 未找到 Python。请先安装 Python 3.11+，并勾选 Add python.exe to PATH。
+            pause
+            exit /b 1
+          )
+          ".venv\Scripts\python.exe" -m pip install --upgrade pip
+          ".venv\Scripts\python.exe" -m pip install -r requirements.txt
+          if errorlevel 1 (
+            echo 依赖安装失败，请检查网络或手动运行 pip install -r requirements.txt。
+            pause
+            exit /b 1
+          )
+        )
+        if exist "%USERPROFILE%\.xiaohei-riji\env.cmd" call "%USERPROFILE%\.xiaohei-riji\env.cmd"
+        start "书赫日报助手" http://127.0.0.1:8765/
+        ".venv\Scripts\python.exe" -m riji panel --host 127.0.0.1 --port 8765 --no-open
+        endlocal
+        """
+    )
+
+
+def _windows_env_script() -> str:
+    return dedent(
+        r"""\
+        @echo off
+        chcp 65001 >nul
+        setlocal
+        set CONFIG_DIR=%USERPROFILE%\.xiaohei-riji
+        if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%"
+        echo 正在写入 %CONFIG_DIR%\env.cmd
+        > "%CONFIG_DIR%\env.cmd" echo @echo off
+        >> "%CONFIG_DIR%\env.cmd" echo set RIJI_LLM_PROVIDER=openai
+        >> "%CONFIG_DIR%\env.cmd" echo set RIJI_OPENAI_BASE_URL=http://localhost:55021/v1
+        >> "%CONFIG_DIR%\env.cmd" echo set RIJI_OPENAI_MODEL=gpt-5.5
+        >> "%CONFIG_DIR%\env.cmd" echo rem set RIJI_OPENAI_API_KEY=请在这里填写你的 key
+        echo 已生成。请用记事本打开并填写 RIJI_OPENAI_API_KEY。
+        notepad "%CONFIG_DIR%\env.cmd"
+        endlocal
+        """
+    )
+
+
+def _windows_readme() -> str:
+    return dedent(
+        """\
+        书赫日报助手 Windows 便携版
+
+        1. 先安装 Python 3.11 或更新版本，并勾选 Add python.exe to PATH。
+        2. 双击 configure-model.cmd，填写 RIJI_OPENAI_API_KEY。
+        3. 双击 start-shuhe-riji.cmd。
+        4. 浏览器会打开 http://127.0.0.1:8765/。
+
+        数据默认保存在：%USERPROFILE%\\.xiaohei-riji
+        截图采集使用 mss，前台窗口标题通过 Windows API 获取。
+        """
+    )
 
 
 def _shell_quote(value: str) -> str:

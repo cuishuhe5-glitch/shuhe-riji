@@ -80,6 +80,7 @@ python -m riji autostart uninstall
 python -m riji write-env
 python -m riji package-app --write-env
 python -m riji package-app --portable  # 生成可拷贝到其他 Mac 的独立版
+python -m riji package-windows         # 生成 Windows 便携 zip 包
 
 # 2.5) 安装到应用目录（默认 ~/Applications，不需要管理员权限）
 python -m riji install-app --write-env
@@ -110,6 +111,14 @@ $env:RIJI_OPENAI_API_KEY = "你的本地网关 key"
 ```
 
 Windows 上 `desktop` 会启动本地面板并打开浏览器；截图采集使用 `mss`，前台窗口标题通过 Win32 API 获取。开机自启会写入当前用户的 Startup 文件夹。
+
+也可以在 macOS 或 Windows 上生成便携包：
+
+```bash
+python -m riji package-windows --output dist
+```
+
+生成的 `shuhe-riji-windows-portable.zip` 解压后包含 `configure-model.cmd` 和 `start-shuhe-riji.cmd`。首次启动会在包内创建 `.venv` 并安装依赖。
 
 双击 `.app` 默认打开独立桌面窗口；如果想生成菜单栏常驻版本，可加 `--mode menubar`。菜单栏里可以直接「开始/暂停记录」「立即记录当前屏幕」「打开报告目录」「打开数据目录」。
 
