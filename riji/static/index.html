@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>书赫日报助手</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark">书</div>
+          <div>
+            <h1>书赫日报助手</h1>
+            <p>本地 AI 工作记录</p>
+          </div>
+        </div>
+
+        <nav class="nav">
+          <button class="nav-item active" data-view="overview">
+            <span class="icon">⌂</span><span>今日概览</span>
+          </button>
+          <button class="nav-item" data-view="trends">
+            <span class="icon">↗</span><span>趋势</span>
+          </button>
+          <button class="nav-item" data-view="heatmap">
+            <span class="icon">▥</span><span>时段热力图</span>
+          </button>
+          <button class="nav-item" data-view="timeline">
+            <span class="icon">≡</span><span>时间线</span>
+          </button>
+          <button class="nav-item" data-view="apps">
+            <span class="icon">▦</span><span>应用记录</span>
+          </button>
+          <button class="nav-item" data-view="agent">
+            <span class="icon">◎</span><span>接入 Agent</span>
+          </button>
+          <button class="nav-item" data-view="privacy">
+            <span class="icon">◇</span><span>隐私保护</span>
+          </button>
+          <button class="nav-item" data-view="help">
+            <span class="icon">?</span><span>帮助</span>
+          </button>
+          <button class="nav-item" data-view="report">
+            <span class="icon">✎</span><span>报告</span>
+          </button>
+          <button class="nav-item" data-view="reports-history">
+            <span class="icon">◷</span><span>历史报告</span>
+          </button>
+          <button class="nav-item" data-view="settings">
+            <span class="icon">⚙</span><span>设置</span>
+          </button>
+        </nav>
+
+        <section class="day-nav">
+          <div class="mini-head">
+            <strong>历史日期</strong>
+            <button class="text-button" id="refreshDays">刷新</button>
+          </div>
+          <div class="day-list" id="dayList"></div>
+        </section>
+
+        <div class="sidebar-card">
+          <span class="status-dot" id="sideDot"></span>
+          <div>
+            <strong id="sideStatus">读取状态中</strong>
+            <p id="sideMessage">正在连接本地面板</p>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <div>
+            <p class="page-label">Dashboard</p>
+            <h2>今天的工作流</h2>
+          </div>
+          <div class="top-actions">
+            <label class="date-control">
+              <span>日期</span>
+              <input id="dateInput" type="date" />
+            </label>
+            <div class="provider" id="providerStatus">Hermes 本地网关</div>
+            <button class="button subtle" id="captureNowButton">立即记录</button>
+            <button class="button primary" id="recordButton">开始记录</button>
+          </div>
+        </header>
+
+        <section class="content-grid">
+          <div class="left-column">
+            <section class="panel overview-panel" data-section="overview">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">今日概览</p>
+                  <h3 id="overviewTitle">暂无记录</h3>
+                </div>
+                <button class="button subtle" id="refreshButton">刷新</button>
+              </div>
+
+              <div class="summary-grid">
+                <div class="metric">
+                  <span>记录片段</span>
+                  <strong id="totalCount">0</strong>
+                  <small>每条约等于一次有效屏幕变化</small>
+                </div>
+                <div class="metric">
+                  <span>主要分类</span>
+                  <strong id="topCategory">暂无</strong>
+                  <small id="topCategoryMeta">等待记录</small>
+                </div>
+                <div class="metric">
+                  <span>主要应用</span>
+                  <strong id="topApp">暂无</strong>
+                  <small id="topAppMeta">等待记录</small>
+                </div>
+              </div>
+
+              <div class="quick-start-card" id="quickStartCard">
+                <div class="quick-start-head">
+                  <div>
+                    <strong id="quickStartTitle">准备开始记录</strong>
+                    <p id="quickStartText">权限和模型就绪后，可以先记录一次当前屏幕，确认日报素材能正常进入时间线。</p>
+                  </div>
+                  <span id="quickStartBadge">待开始</span>
+                </div>
+                <div class="quick-start-steps">
+                  <div class="quick-step" id="quickPermissionStep">
+                    <span></span>
+                    <div>
+                      <strong>权限</strong>
+                      <p id="quickPermissionText">检测中</p>
+                    </div>
+                  </div>
+                  <div class="quick-step" id="quickModelStep">
+                    <span></span>
+                    <div>
+                      <strong>模型</strong>
+                      <p id="quickModelText">检测中</p>
+                    </div>
+                  </div>
+                  <div class="quick-step" id="quickRecordStep">
+                    <span></span>
+                    <div>
+                      <strong>记录</strong>
+                      <p id="quickRecordText">尚未开始</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="quick-start-actions">
+                  <button class="button primary compact-button" id="quickCaptureNow" type="button">立即记录一次</button>
+                  <button class="button subtle compact-button" id="quickStartRecording" type="button">开始后台记录</button>
+                  <button class="button subtle compact-button" id="quickOpenHelp" type="button">查看帮助</button>
+                </div>
+              </div>
+
+              <div class="productivity-card">
+                <div class="productivity-score">
+                  <span>专注分</span>
+                  <strong id="productivityScore">0</strong>
+                  <small id="productivityLabel">暂无数据</small>
+                </div>
+                <div class="productivity-main">
+                  <div class="productivity-stats">
+                    <span>工作占比 <strong id="productivityWorkPercent">0%</strong></span>
+                    <span>最长专注 <strong id="productivityLongest">暂无</strong></span>
+                    <span>休息片段 <strong id="productivityRestSegments">0</strong></span>
+                  </div>
+                  <p id="productivitySuggestion">开始记录后会根据当天活动给出效率洞察。</p>
+                </div>
+              </div>
+
+              <div class="chart-block">
+                <div class="donut" id="donutChart">
+                  <div><strong id="donutTotal">0</strong><span>条</span></div>
+                </div>
+                <div class="legend" id="categoryLegend"></div>
+              </div>
+
+              <div class="app-usage-block">
+                <div class="mini-head">
+                  <strong>应用用时</strong>
+                  <span id="appUsageMeta">按时间线估算</span>
+                </div>
+                <div class="app-usage-list" id="appUsageList"></div>
+              </div>
+
+              <div class="activity-rhythm-block">
+                <div class="mini-head">
+                  <strong>小时分布</strong>
+                  <span id="activityRhythmMeta">按有效记录估算</span>
+                </div>
+                <div class="activity-rhythm" id="activityRhythm"></div>
+              </div>
+            </section>
+
+            <section class="panel trends-panel" data-section="trends">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">趋势</p>
+                  <h3>近 30 天工作节奏</h3>
+                </div>
+                <span class="trend-range" id="trendRange">-</span>
+              </div>
+
+              <div class="trend-metrics">
+                <div class="metric compact-metric">
+                  <span>活跃天数</span>
+                  <strong id="trendActiveDays">0</strong>
+                  <small id="trendAverage">日均 0 条</small>
+                </div>
+                <div class="metric compact-metric">
+                  <span>工作占比</span>
+                  <strong id="trendWorkPercent">0%</strong>
+                  <small>按工作分类估算</small>
+                </div>
+                <div class="metric compact-metric">
+                  <span>高频应用</span>
+                  <strong id="trendTopApp">暂无</strong>
+                  <small id="trendTopCategory">暂无分类</small>
+                </div>
+              </div>
+
+              <div class="trend-chart" id="trendChart"></div>
+              <div class="calendar-heatmap-block">
+                <div class="mini-head">
+                  <strong>月历热力</strong>
+                  <span id="calendarHeatmapMeta">按记录量着色</span>
+                </div>
+                <div class="calendar-heatmap" id="calendarHeatmap"></div>
+              </div>
+            </section>
+
+            <section class="panel time-heatmap-panel" data-section="heatmap">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">时段热力图</p>
+                  <h3>最近时段记录</h3>
+                </div>
+                <span class="section-meta" id="timeHeatmapMeta">按小时统计</span>
+              </div>
+              <div class="time-heatmap" id="timeHeatmap"></div>
+              <div class="time-heatmap-axis">
+                <span>0:00</span>
+                <span>3:00</span>
+                <span>6:00</span>
+                <span>9:00</span>
+                <span>12:00</span>
+                <span>15:00</span>
+                <span>18:00</span>
+                <span>21:00</span>
+              </div>
+            </section>
+
+            <section class="panel timeline-panel" data-section="timeline">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">时间线</p>
+                  <h3>屏幕活动明细</h3>
+                </div>
+                <div class="segmented">
+                  <button class="active" data-filter="all">全部</button>
+                  <button data-filter="work">工作</button>
+                  <button data-filter="rest">休息</button>
+                </div>
+              </div>
+              <div class="search-panel">
+                <div class="search-grid">
+                  <label>
+                    <span>关键词</span>
+                    <input id="searchQuery" type="search" placeholder="摘要 / 应用 / 窗口" />
+                  </label>
+                  <label>
+                    <span>分类</span>
+                    <select id="searchCategory">
+                      <option value="">全部分类</option>
+                    </select>
+                  </label>
+                  <label>
+                    <span>开始</span>
+                    <input id="searchFrom" type="date" />
+                  </label>
+                  <label>
+                    <span>结束</span>
+                    <input id="searchTo" type="date" />
+                  </label>
+                  <button class="button primary" id="runSearch">搜索</button>
+                  <button class="button subtle" id="clearSearch">清空</button>
+                </div>
+                <div class="search-results" id="searchResults"></div>
+              </div>
+              <form class="manual-card" id="manualActivityForm">
+                <div class="manual-head">
+                  <div>
+                    <strong>补记活动</strong>
+                    <span>手动补上一段没有被截图识别到的工作。</span>
+                  </div>
+                  <button class="button subtle compact-button" id="toggleManualActivity" type="button">展开</button>
+                </div>
+                <div class="manual-body" id="manualActivityBody">
+                  <div class="manual-grid">
+                    <label>
+                      <span>日期</span>
+                      <input id="manualDay" type="date" />
+                    </label>
+                    <label>
+                      <span>时间</span>
+                      <input id="manualTime" type="time" />
+                    </label>
+                    <label>
+                      <span>分类</span>
+                      <select id="manualCategory"></select>
+                    </label>
+                    <label>
+                      <span>应用</span>
+                      <input id="manualApp" placeholder="例如 Safari / Cursor" />
+                    </label>
+                  </div>
+                  <label class="manual-summary">
+                    <span>摘要</span>
+                    <textarea id="manualSummary" rows="2" placeholder="例如整理日报助手的搜索和导出功能"></textarea>
+                  </label>
+                  <label class="manual-summary">
+                    <span>窗口标题</span>
+                    <input id="manualWindow" placeholder="可选" />
+                  </label>
+                  <div class="manual-actions">
+                    <button class="button primary" id="saveManualActivity" type="submit">保存补记</button>
+                    <button class="button subtle" id="resetManualActivity" type="button">清空</button>
+                  </div>
+                </div>
+              </form>
+              <div class="timeline" id="timeline"></div>
+            </section>
+
+            <section class="panel apps-panel" data-section="apps">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">应用记录</p>
+                  <h3>应用使用明细</h3>
+                </div>
+                <span class="section-meta" id="appRecordsMeta">按时间线估算</span>
+              </div>
+              <div class="app-records-table" id="appRecordsTable"></div>
+            </section>
+
+            <section class="panel agent-panel" data-section="agent">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">接入 Agent</p>
+                  <h3>本地模型网关</h3>
+                </div>
+                <span class="section-meta" id="agentStatusText">检测中</span>
+              </div>
+              <div class="agent-grid">
+                <div class="agent-card">
+                  <span>后端</span>
+                  <strong id="agentProvider">-</strong>
+                </div>
+                <div class="agent-card">
+                  <span>模型</span>
+                  <strong id="agentModel">-</strong>
+                </div>
+                <div class="agent-card wide">
+                  <span>网关地址</span>
+                  <strong id="agentBaseUrl">-</strong>
+                </div>
+                <div class="agent-card">
+                  <span>API Key</span>
+                  <strong id="agentKeyStatus">-</strong>
+                </div>
+              </div>
+              <div class="agent-actions">
+                <button class="button primary" id="testAgentConnection">测试连接</button>
+                <button class="button subtle" id="openAgentSettings">打开模型设置</button>
+              </div>
+              <div class="agent-context-card">
+                <div class="mini-head">
+                  <strong>项目上下文</strong>
+                  <button class="text-button" id="saveAgentContext" type="button">保存</button>
+                </div>
+                <textarea id="projectPathsInput" rows="3" placeholder="/Users/shuhe/项目/claude/xiaohei-riji"></textarea>
+                <div class="agent-context-status-grid">
+                  <div>
+                    <span>状态</span>
+                    <strong id="agentContextStatus">未配置</strong>
+                  </div>
+                  <div>
+                    <span>目录</span>
+                    <strong id="agentContextPaths">0 个</strong>
+                  </div>
+                  <div>
+                    <span>候选文件</span>
+                    <strong id="agentContextFiles">0 个</strong>
+                  </div>
+                </div>
+                <p class="path-note" id="agentContextNote">每行一个项目目录；追问日报助手会读取少量安全文本文件作为本地上下文。</p>
+              </div>
+              <p class="path-note" id="agentTestStatus">AI 请求直连本地/服务商网关，不经过中转服务器。</p>
+            </section>
+
+            <section class="panel privacy-panel" data-section="privacy">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">隐私保护</p>
+                  <h3>本地数据与安全</h3>
+                </div>
+                <span class="section-meta" id="privacyStatusText">检测中</span>
+              </div>
+              <div class="privacy-grid">
+                <div class="privacy-card">
+                  <span>数据存储</span>
+                  <strong id="privacyDataStatus">本地 SQLite</strong>
+                  <p id="privacyDataMeta">-</p>
+                </div>
+                <div class="privacy-card">
+                  <span>截图留存</span>
+                  <strong id="privacyShotsStatus">-</strong>
+                  <p id="privacyShotsMeta">-</p>
+                </div>
+                <div class="privacy-card">
+                  <span>API Key</span>
+                  <strong id="privacyKeyStatus">-</strong>
+                  <p id="privacyKeyMeta">-</p>
+                </div>
+                <div class="privacy-card">
+                  <span>AI 请求</span>
+                  <strong id="privacyNetworkStatus">直连网关</strong>
+                  <p id="privacyNetworkMeta">-</p>
+                </div>
+              </div>
+              <div class="privacy-actions">
+                <button class="button subtle" id="privacyClearShots">清理截图</button>
+                <button class="button subtle" id="privacyCreateBackup">本地备份</button>
+                <button class="button subtle" id="privacyOpenData">打开数据目录</button>
+              </div>
+              <p class="path-note" id="privacyActionStatus">工作记录、报告和聊天历史只保存在本机数据库。</p>
+            </section>
+
+            <section class="panel help-panel" data-section="help">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">帮助</p>
+                  <h3>书赫日报助手使用指南</h3>
+                </div>
+                <span class="section-meta" id="helpHealthStatus">检测中</span>
+              </div>
+              <div class="help-grid">
+                <div class="help-card">
+                  <strong>快速开始</strong>
+                  <ol class="help-steps">
+                    <li><span>1</span><p>授权屏幕录制和辅助功能，确保本地记录可以正常采集。</p></li>
+                    <li><span>2</span><p>点击开始记录，或在设置里开启启动后自动记录。</p></li>
+                    <li><span>3</span><p>在报告页生成日报，也可以打开自动日报定时归档。</p></li>
+                  </ol>
+                </div>
+                <div class="help-card">
+                  <strong>当前状态</strong>
+                  <div class="help-status-list">
+                    <div><span>权限</span><b id="helpPermissionStatus">-</b></div>
+                    <div><span>模型</span><b id="helpModelStatus">-</b></div>
+                    <div><span>隐私</span><b id="helpPrivacyStatus">-</b></div>
+                  </div>
+                </div>
+                <div class="help-card wide">
+                  <strong>工作原理</strong>
+                  <div class="workflow-strip">
+                    <div>
+                      <span>采集</span>
+                      <p>后台定时观察屏幕变化，并记录前台应用与窗口标题。</p>
+                    </div>
+                    <div>
+                      <span>理解</span>
+                      <p>把有效画面交给 AI 识别活动类型、工作内容和上下文摘要。</p>
+                    </div>
+                    <div>
+                      <span>成稿</span>
+                      <p>按日报、周报或月报模板汇总时间线，生成可编辑报告。</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="help-card wide">
+                  <strong>隐私边界</strong>
+                  <div class="privacy-boundary">
+                    <span>本地数据库</span>
+                    <span>截图默认即删</span>
+                    <span>Keychain 存密钥</span>
+                    <span>直连模型网关</span>
+                  </div>
+                  <p class="path-note">默认只保留文字化活动记录、报告和追问历史；截图不进入长期留存。</p>
+                </div>
+                <div class="help-card wide">
+                  <strong>常用排查</strong>
+                  <div class="help-actions">
+                    <button class="button subtle compact-button" id="helpOpenScreenSettings">屏幕录制</button>
+                    <button class="button subtle compact-button" id="helpOpenAccessibilitySettings">辅助功能</button>
+                    <button class="button subtle compact-button" id="helpTestAgent">测试模型</button>
+                    <button class="button subtle compact-button" id="helpOpenDataDir">数据目录</button>
+                    <button class="button subtle compact-button" id="helpOpenLogsDir">日志目录</button>
+                    <button class="button subtle compact-button" id="helpOpenSettings">打开设置</button>
+                  </div>
+                  <p class="path-note" id="helpStatus">如果日报为空，优先检查权限、是否正在记录，以及模型网关是否可连通。</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel reports-history-panel" data-section="reports-history">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">历史报告</p>
+                  <h3>已生成报告</h3>
+                </div>
+                <div class="mini-actions">
+                  <button class="text-button" id="historyArchiveAllReports">归档全部</button>
+                  <button class="text-button" id="historyRefreshReports">刷新</button>
+                </div>
+              </div>
+              <div class="history-report-table" id="historyReportTable"></div>
+            </section>
+          </div>
+
+          <aside class="right-column">
+            <section class="panel report-panel" data-section="report">
+              <div class="section-head compact">
+                <div>
+                  <p class="eyebrow">AI 报告</p>
+                  <h3>日报预览</h3>
+                </div>
+              </div>
+
+              <div class="report-controls">
+                <select id="kindSelect">
+                  <option value="day">日报</option>
+                  <option value="week">周报</option>
+                  <option value="month">月报</option>
+                </select>
+                <select id="styleSelect"></select>
+              </div>
+              <p class="style-hint" id="styleHint">选择报告模板后会显示要求。</p>
+
+              <div class="report-instruction-card">
+                <div class="mini-head">
+                  <strong>报告要求</strong>
+                  <button class="text-button" id="clearReportInstruction" type="button">清空</button>
+                </div>
+                <textarea id="reportInstructionInput" rows="2" placeholder="例如：写给老板看，突出产出和风险；明日计划要具体到动作。"></textarea>
+              </div>
+
+              <div class="day-note-card">
+                <div class="mini-head">
+                  <strong>今日备注 / 明日计划</strong>
+                  <button class="text-button" id="saveDayNote">保存</button>
+                </div>
+                <textarea id="dayNoteInput" rows="3" placeholder="写下今天想强调的产出、阻塞、明天计划；生成报告时会一起参考。"></textarea>
+                <p class="path-note" id="dayNoteStatus">尚未保存备注。</p>
+              </div>
+
+              <div class="report-preview" id="reportPreview" contenteditable="true" spellcheck="false">选择日期后点击生成，报告会在本地网关完成。</div>
+              <div class="report-status-bar">
+                <span id="reportCurrentMeta">未生成报告</span>
+                <span id="reportWordCount">0 字</span>
+                <strong id="reportSaveState">未生成</strong>
+              </div>
+
+              <div class="button-row">
+                <button class="button primary" id="generateReport">生成</button>
+                <button class="button subtle" id="saveReportEdits">保存修改</button>
+                <button class="button subtle" id="copyReport">复制</button>
+                <button class="button subtle" id="downloadReport">导出</button>
+                <button class="button subtle" id="archiveReport">归档</button>
+              </div>
+
+              <div class="report-history">
+                <div class="mini-head">
+                  <strong>历史报告</strong>
+                  <div class="mini-actions">
+                    <button class="text-button" id="archiveAllReports">归档全部</button>
+                    <button class="text-button" id="refreshReports">刷新</button>
+                  </div>
+                </div>
+                <div class="report-list" id="reportList"></div>
+              </div>
+
+              <div class="chat-card">
+                <div class="mini-head">
+                  <strong>追问日报助手</strong>
+                  <select id="chatScope">
+                    <option value="day">当天</option>
+                    <option value="week">近 7 天</option>
+                    <option value="month">近 30 天</option>
+                  </select>
+                </div>
+                <div class="chat-list" id="chatList"></div>
+                <div class="chat-input-row">
+                  <textarea id="chatQuestion" rows="2" placeholder="例如：今天主要卡在哪？有哪些可以写进日报的产出？"></textarea>
+                  <button class="button primary" id="sendChatQuestion">发送</button>
+                </div>
+                <p class="path-note" id="chatStatus">聊天记录只保存在本地数据库。</p>
+              </div>
+            </section>
+
+            <section class="panel settings-panel" data-section="settings">
+              <div class="section-head compact">
+                <div>
+                  <p class="eyebrow">隐私与本地</p>
+                  <h3>权限与记录</h3>
+                </div>
+              </div>
+              <div class="setting-list">
+                <div class="health-grid" id="healthGrid"></div>
+                <div class="model-test-card">
+                  <div>
+                    <strong>模型连通性</strong>
+                    <p>轻量检查本地模型网关是否可访问，不会生成报告或记录截图。</p>
+                  </div>
+                  <button class="button subtle compact-button" id="testModelConnection">测试连接</button>
+                  <p class="path-note" id="modelTestStatus">尚未测试。</p>
+                </div>
+                <div class="model-config-card">
+                  <div class="mini-head">
+                    <strong>模型网关配置</strong>
+                    <button class="text-button" id="saveModelConfig" type="button">保存</button>
+                  </div>
+                  <label class="field-row">
+                    <span>模型后端</span>
+                    <select id="modelProviderInput">
+                      <option value="openai">OpenAI-compatible / Hermes</option>
+                      <option value="ollama">Ollama</option>
+                    </select>
+                  </label>
+                  <label class="field-row">
+                    <span>网关地址</span>
+                    <input id="modelBaseUrlInput" placeholder="http://localhost:55021/v1" />
+                  </label>
+                  <label class="field-row">
+                    <span>模型名</span>
+                    <input id="modelNameInput" placeholder="gpt-5.5" />
+                  </label>
+                  <label class="field-row">
+                    <span>API Key</span>
+                    <input id="modelApiKeyInput" type="password" placeholder="留空则沿用已保存 key" autocomplete="off" />
+                  </label>
+                  <p class="path-note" id="modelConfigStatus">网关配置保存到本机 env.sh，API Key 优先保存到 macOS 钥匙串，不会在面板回显。</p>
+                </div>
+
+                <div class="permission-grid">
+                  <div class="permission-card">
+                    <span id="screenPermissionDot" class="mini-dot"></span>
+                    <div>
+                      <strong>屏幕录制</strong>
+                      <p id="screenPermissionText">检测中</p>
+                    </div>
+                    <button class="button subtle compact-button" id="openScreenSettings">设置</button>
+                  </div>
+                  <div class="permission-card">
+                    <span id="accessibilityPermissionDot" class="mini-dot"></span>
+                    <div>
+                      <strong>辅助功能</strong>
+                      <p id="accessibilityPermissionText">检测中</p>
+                    </div>
+                    <button class="button subtle compact-button" id="openAccessibilitySettings">设置</button>
+                  </div>
+                </div>
+
+                <div class="autostart-card">
+                  <div>
+                    <span id="autostartDot" class="mini-dot"></span>
+                    <div>
+                      <strong id="autostartStatus">开机自启检测中</strong>
+                      <p id="autostartMeta">用于保持菜单栏助手常驻。</p>
+                    </div>
+                  </div>
+                  <div class="autostart-actions">
+                    <button class="button subtle compact-button" id="enableAutostart">启用</button>
+                    <button class="button subtle compact-button" id="disableAutostart">关闭</button>
+                  </div>
+                  <p class="path-note" id="autostartPath">-</p>
+                </div>
+                <div class="setting-row">
+                  <span>启动后自动记录</span>
+                  <label class="switch">
+                    <input id="autoRecordEnabled" type="checkbox" />
+                    <span></span>
+                  </label>
+                </div>
+                <p class="path-note">开启后，桌面窗口或菜单栏助手启动时会自动进入后台记录状态。</p>
+                <div class="auto-report-card">
+                  <div class="mini-head">
+                    <strong>自动日报</strong>
+                    <label class="switch">
+                      <input id="autoReportEnabled" type="checkbox" />
+                      <span></span>
+                    </label>
+                  </div>
+                  <div class="auto-report-grid">
+                    <label class="field-row">
+                      <span>生成时间</span>
+                      <input id="autoReportTime" type="time" />
+                    </label>
+                    <label class="field-row">
+                      <span>报告模板</span>
+                      <select id="autoReportStyle"></select>
+                    </label>
+                  </div>
+                  <div class="auto-report-status-grid">
+                    <div>
+                      <span>状态</span>
+                      <strong id="autoReportEnabledText">未启用</strong>
+                    </div>
+                    <div>
+                      <span>计划</span>
+                      <strong id="autoReportPlanText">-</strong>
+                    </div>
+                    <div>
+                      <span>上次</span>
+                      <strong id="autoReportLastText">未生成</strong>
+                    </div>
+                    <div>
+                      <span>运行</span>
+                      <strong id="autoReportRunText">待命</strong>
+                    </div>
+                  </div>
+                  <div class="autostart-actions">
+                    <button class="button subtle compact-button" id="saveAutoReport" type="button">保存</button>
+                    <button class="button subtle compact-button" id="runAutoReportNow" type="button">立即生成</button>
+                  </div>
+                  <p class="path-note" id="autoReportStatus">未启用自动日报。</p>
+                </div>
+
+                <div class="setting-row">
+                  <span>隐私模式</span>
+                  <label class="switch">
+                    <input id="privacyModeInput" type="checkbox" />
+                    <span></span>
+                  </label>
+                </div>
+                <p class="path-note">开启后截图仅用于当次 AI 分析，分析完成不留存，并自动清理历史截图文件。</p>
+
+                <div class="setting-row">
+                  <span>截图留存</span>
+                  <label class="switch">
+                    <input id="keepShotsInput" type="checkbox" />
+                    <span></span>
+                  </label>
+                </div>
+                <label class="field-row">
+                  <span>截图保留天数</span>
+                  <input id="shotRetentionInput" type="number" min="0" max="3650" step="1" />
+                </label>
+                <label class="field-row">
+                  <span>采集间隔（秒）</span>
+                  <input id="intervalInput" type="number" min="5" max="3600" step="5" />
+                </label>
+                <label class="field-row">
+                  <span>闲置暂停（秒）</span>
+                  <input id="idlePauseInput" type="number" min="5" max="3600" step="5" />
+                </label>
+                <label class="field-row">
+                  <span>采集范围</span>
+                  <select id="captureScopeInput">
+                    <option value="primary">主显示器</option>
+                    <option value="all">全部显示器</option>
+                  </select>
+                </label>
+                <div class="display-card">
+                  <div class="mini-head">
+                    <strong>已连接显示器</strong>
+                    <span id="displayCount">-</span>
+                  </div>
+                  <div class="display-list" id="displayList"></div>
+                </div>
+                <label class="field-row">
+                  <span>排除应用</span>
+                  <textarea id="ignoreAppsInput" rows="3" placeholder="1Password, Keychain Access"></textarea>
+                </label>
+                <label class="field-row">
+                  <span>敏感关键词</span>
+                  <textarea id="ignoreKeywordsInput" rows="3" placeholder="密码, 验证码, 银行"></textarea>
+                </label>
+                <label class="field-row">
+                  <span>活动分类</span>
+                  <textarea id="activityCategoriesInput" rows="4" placeholder="编码开发, 会议沟通, 文档写作, 其他"></textarea>
+                </label>
+                <label class="field-row">
+                  <span>工作分类</span>
+                  <textarea id="workCategoriesInput" rows="3" placeholder="编码开发, 会议沟通, 文档写作"></textarea>
+                </label>
+                <label class="field-row">
+                  <span>自定义报告模板</span>
+                  <textarea id="customReportStylesInput" rows="4" placeholder="老板汇报=突出产出、风险、需要支持的事项&#10;周会=按项目列出进展、阻塞和下周计划"></textarea>
+                </label>
+                <button class="button primary wide" id="saveSettings">保存设置</button>
+                <div class="setting-row">
+                  <span>设置文件</span>
+                  <strong id="settingsPath">-</strong>
+                </div>
+                <div class="setting-row">
+                  <span>截图文件</span>
+                  <strong id="shotStorage">-</strong>
+                </div>
+                <div class="setting-row">
+                  <span>活动记录</span>
+                  <strong id="activityStorage">-</strong>
+                </div>
+                <button class="button subtle wide" id="clearShots">清理截图文件</button>
+                <div class="desktop-app-card">
+                  <div>
+                    <strong>桌面应用</strong>
+                    <p>打开已安装的书赫日报助手，或查看本机应用目录。</p>
+                  </div>
+                  <div class="desktop-app-status-grid">
+                    <div>
+                      <span>安装状态</span>
+                      <strong id="desktopAppInstallStatus">-</strong>
+                    </div>
+                    <div>
+                      <span>运行形态</span>
+                      <strong id="desktopAppMode">-</strong>
+                    </div>
+                    <div>
+                      <span>包标识</span>
+                      <strong id="desktopAppBundle">-</strong>
+                    </div>
+                    <div>
+                      <span>应用路径</span>
+                      <strong id="desktopAppPath">-</strong>
+                    </div>
+                  </div>
+                  <p class="path-note" id="desktopAppUpdated">-</p>
+                  <div class="desktop-app-actions">
+                    <button class="button primary" id="openDesktopApp">打开应用</button>
+                    <button class="button subtle" id="openApplicationsDir">应用目录</button>
+                  </div>
+                </div>
+                <div class="backup-card">
+                  <div>
+                    <strong>本地备份</strong>
+                    <p>导出数据库、设置、报告和日志，必要时可同时包含截图。</p>
+                  </div>
+                  <label class="backup-check">
+                    <input id="backupIncludeShots" type="checkbox" checked />
+                    <span>包含截图文件</span>
+                  </label>
+                  <div class="backup-actions">
+                    <button class="button primary" id="createBackup">生成备份</button>
+                    <button class="button subtle" id="openBackupsDir">打开备份目录</button>
+                  </div>
+                  <p class="path-note" id="backupStatus">尚未生成备份。</p>
+                </div>
+                <div class="export-card">
+                  <div>
+                    <strong>结构化导出</strong>
+                    <p>把活动记录导出为 CSV，把历史报告导出为 JSON，方便二次分析。</p>
+                  </div>
+                  <div class="export-actions">
+                    <button class="button subtle" id="exportDayActivities">导出当天活动</button>
+                    <button class="button subtle" id="exportAllActivities">导出全部活动</button>
+                    <button class="button subtle" id="exportReports">导出报告</button>
+                  </div>
+                  <div class="export-actions single">
+                    <button class="button subtle" id="openExportsDir">打开导出目录</button>
+                  </div>
+                  <p class="path-note" id="exportStatus">尚未导出。</p>
+                </div>
+                <div class="folder-actions">
+                  <button class="button subtle" id="openDataDir">打开数据目录</button>
+                  <button class="button subtle" id="openReportsDir">打开报告目录</button>
+                  <button class="button subtle" id="openLogsDir">打开日志目录</button>
+                </div>
+                <div class="setting-row">
+                  <span>模型后端</span>
+                  <strong id="modelProvider">-</strong>
+                </div>
+                <div class="setting-row">
+                  <span>视觉模型</span>
+                  <strong id="visionModel">-</strong>
+                </div>
+                <div class="setting-row path-row">
+                  <span>数据目录</span>
+                  <strong id="dataDir">-</strong>
+                </div>
+                <div class="log-panel">
+                  <div class="mini-head">
+                    <strong>运行日志</strong>
+                    <button class="text-button" id="refreshLogs">刷新</button>
+                  </div>
+                  <p class="path-note" id="logsPath">-</p>
+                  <div class="log-list" id="logList">
+                    <div class="empty log-empty">点击刷新查看本地日志。</div>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <div class="detail-modal" id="detailModal" aria-hidden="true">
+      <div class="detail-backdrop" id="detailBackdrop"></div>
+      <section class="detail-sheet" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+        <div class="detail-head">
+          <div>
+            <p class="eyebrow">活动详情</p>
+            <h3 id="detailTitle">记录详情</h3>
+          </div>
+          <div class="detail-actions">
+            <button class="button subtle compact-button" id="copyDetail" type="button">复制素材</button>
+            <button class="detail-close" id="detailClose" type="button" aria-label="关闭">×</button>
+          </div>
+        </div>
+        <div class="detail-body" id="detailBody"></div>
+      </section>
+    </div>
+    <script src="/static/app.js"></script>
+  </body>
+</html>

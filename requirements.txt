@@ -1,0 +1,8 @@
+mss>=9.0.1          # 跨平台截图（Mac/Windows/Linux）
+Pillow>=10.0.0     # 图像处理 + 变化检测
+requests>=2.31.0   # 调用本地 Ollama HTTP API
+urllib3<2           # 兼容 macOS 自带 Python 3.9 / LibreSSL
+pyobjc-core<11; sys_platform == "darwin"             # macOS 原生窗口
+pyobjc-framework-Cocoa<11; sys_platform == "darwin"
+pyobjc-framework-WebKit<11; sys_platform == "darwin"
+rumps>=0.4.0; sys_platform == "darwin"               # macOS 菜单栏常驻
