@@ -320,6 +320,30 @@ function renderHelp(data) {
     ? `${model.provider || "-"} · ${model.model || "-"}`
     : "未就绪";
   $("#helpPrivacyStatus").textContent = privacyOk ? "隐私模式正常" : "需要检查截图留存";
+  renderReleaseInfo(data.release);
+}
+
+function renderReleaseInfo(release) {
+  const grid = $("#releaseGrid");
+  if (!grid || !release) return;
+  const page = $("#releasePageLink");
+  page.href = release.url || "#";
+  page.textContent = release.version ? `打开 ${release.version}` : "打开发布页";
+  const assets = release.assets || [];
+  grid.innerHTML = assets.length
+    ? assets
+        .map((asset) => {
+          const sha = asset.sha256 ? `${asset.sha256.slice(0, 12)}...${asset.sha256.slice(-8)}` : "见 SHA256SUMS";
+          return `
+            <a class="release-item" href="${escapeHtml(asset.url || "#")}" target="_blank" rel="noreferrer">
+              <span>${escapeHtml(asset.name || asset.filename || "下载")}</span>
+              <strong>${escapeHtml(asset.filename || "-")}</strong>
+              <small>SHA256 ${escapeHtml(sha)}</small>
+            </a>
+          `;
+        })
+        .join("")
+    : `<div class="empty release-empty">还没有发布包。</div>`;
 }
 
 function renderPermissions(permissions) {

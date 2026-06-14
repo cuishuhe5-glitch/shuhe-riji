@@ -1158,6 +1158,54 @@ select {
   white-space: nowrap;
 }
 
+.release-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.release-item {
+  min-width: 0;
+  display: grid;
+  gap: 5px;
+  padding: 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+}
+
+.release-item:hover {
+  border-color: rgba(15, 118, 110, 0.42);
+  box-shadow: 0 8px 20px rgba(17, 26, 24, 0.07);
+}
+
+.release-item span,
+.release-item strong,
+.release-item small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.release-item span {
+  color: #0f766e;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.release-item strong {
+  color: var(--ink);
+  font-size: 12px;
+}
+
+.release-item small {
+  color: var(--muted);
+  font-size: 11px;
+}
+
 .workflow-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3061,10 +3109,11 @@ select {
 	  .agent-actions,
 	  .agent-context-status-grid,
 	  .privacy-grid,
-  .privacy-actions,
-  .help-grid,
-  .help-actions,
-  .workflow-strip,
+	  .privacy-actions,
+	  .help-grid,
+	  .help-actions,
+	  .release-grid,
+	  .workflow-strip,
   .privacy-boundary,
   .desktop-app-actions,
   .backup-actions,
