@@ -93,6 +93,30 @@ PROJECT_CONTEXT_SECRET_HINTS = {
     "credential",
     "private",
 }
+RELEASE_INFO = {
+    "version": "v0.1.0",
+    "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.0",
+    "assets": [
+        {
+            "name": "macOS 独立版",
+            "filename": "shuhe-riji-macos-app.zip",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.0/shuhe-riji-macos-app.zip",
+            "sha256": "fc766810b6c0c24748d097decc1f1fadf0d33711e3e46ba7924d7a1dffc4fc72",
+        },
+        {
+            "name": "Windows 便携版",
+            "filename": "shuhe-riji-windows-portable.zip",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.0/shuhe-riji-windows-portable.zip",
+            "sha256": "aec3048920d393ab5caed2c5e11ade869b79c6a111d821280b0431e18af5718a",
+        },
+        {
+            "name": "校验文件",
+            "filename": "SHA256SUMS",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.0/SHA256SUMS",
+            "sha256": "",
+        },
+    ],
+}
 
 
 class Recorder:
@@ -400,6 +424,7 @@ def _summary(day: str) -> dict[str, Any]:
         "health": _health(),
         "desktop_app": _desktop_app_status(),
         "project_context": _project_context_status(runtime),
+        "release": RELEASE_INFO,
     }
 
 
