@@ -36,10 +36,12 @@ def build(output_dir: str | Path | None = None, mode: str = "desktop", portable:
     resources.mkdir(parents=True, exist_ok=True)
 
     launcher = macos / "shuhe-riji"
+    launcher_script = resources / "launcher.zsh"
     if portable:
         _copy_portable_payload(root, resources)
-    launcher.write_text(_launcher_script(root, mode, portable=portable), encoding="utf-8")
-    launcher.chmod(launcher.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    launcher_script.write_text(_launcher_script(root, mode, portable=portable), encoding="utf-8")
+    launcher_script.chmod(launcher_script.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+    _write_native_launcher(launcher)
 
     icon_path = resources / "AppIcon.icns"
     _write_icon(icon_path)
@@ -245,6 +247,53 @@ def _windows_readme() -> str:
 
 def _shell_quote(value: str) -> str:
     return "'" + str(value).replace("'", "'\"'\"'") + "'"
+
+
+def _write_native_launcher(target: Path) -> None:
+    compiler = shutil.which("clang") or shutil.which("cc")
+    if compiler is None:
+        raise RuntimeError("当前系统缺少 clang/cc，无法生成可双击启动的 macOS 应用。")
+    source = target.with_suffix(".c")
+    source.write_text(
+        dedent(
+            r"""\
+            #include <limits.h>
+            #include <stdio.h>
+            #include <stdlib.h>
+            #include <string.h>
+            #include <unistd.h>
+
+            int main(int argc, char *argv[]) {
+                char exe_path[PATH_MAX];
+                if (realpath(argv[0], exe_path) == NULL) {
+                    perror("realpath");
+                    return 1;
+                }
+                char *macos_dir = strrchr(exe_path, '/');
+                if (macos_dir == NULL) {
+                    fprintf(stderr, "Cannot resolve executable directory\n");
+                    return 1;
+                }
+                *macos_dir = '\0';
+
+                char script_path[PATH_MAX];
+                int written = snprintf(script_path, sizeof(script_path), "%s/../Resources/launcher.zsh", exe_path);
+                if (written < 0 || written >= (int)sizeof(script_path)) {
+                    fprintf(stderr, "Launcher path is too long\n");
+                    return 1;
+                }
+
+                execl("/bin/zsh", "zsh", script_path, (char *)NULL);
+                perror("execl");
+                return 1;
+            }
+            """
+        ),
+        encoding="utf-8",
+    )
+    subprocess.run([compiler, str(source), "-o", str(target)], check=True)
+    source.unlink(missing_ok=True)
+    target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
 
 def _launcher_script(root: Path, mode: str, portable: bool = False) -> str:
