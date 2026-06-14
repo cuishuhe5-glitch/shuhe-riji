@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DIST = ROOT / "dist"
 MAC_APP = DIST / "书赫日报助手.app"
 MAC_ZIP = DIST / "shuhe-riji-macos-app.zip"
+MAC_DMG = DIST / "shuhe-riji-macos.dmg"
 WIN_ZIP = DIST / "shuhe-riji-windows-portable.zip"
 CHECKSUMS = DIST / "SHA256SUMS"
 
@@ -23,9 +24,11 @@ def main() -> None:
     DIST.mkdir(parents=True, exist_ok=True)
     _run([sys.executable, "-m", "riji", "package-app", "--output", str(DIST), "--mode", "desktop", "--portable"])
     _zip_mac_app()
+    _run([sys.executable, "-m", "riji", "package-dmg", "--output", str(DIST), "--mode", "desktop"])
     _run([sys.executable, "-m", "riji", "package-windows", "--output", str(DIST)])
-    _write_checksums([MAC_ZIP, WIN_ZIP])
+    _write_checksums([MAC_ZIP, MAC_DMG, WIN_ZIP])
     print(f"macOS:   {MAC_ZIP}")
+    print(f"DMG:     {MAC_DMG}")
     print(f"Windows: {WIN_ZIP}")
     print(f"SHA256:  {CHECKSUMS}")
 

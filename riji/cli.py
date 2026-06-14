@@ -105,6 +105,12 @@ def _cmd_package_windows(args: argparse.Namespace) -> None:
     print(f"已生成 Windows 便携包：{zip_path}")
 
 
+def _cmd_package_dmg(args: argparse.Namespace) -> None:
+    from . import packager
+    dmg_path = packager.build_dmg(output_dir=args.output, mode=args.mode, portable=args.portable)
+    print(f"已生成 macOS DMG：{dmg_path}")
+
+
 def _cmd_write_env(_args: argparse.Namespace) -> None:
     from . import packager
     path = packager.write_env_template(
@@ -165,6 +171,17 @@ def main() -> None:
     wp = sub.add_parser("package-windows", help="生成 Windows 便携 zip 包")
     wp.add_argument("--output", default="/Users/shuhe/临时文件")
     wp.set_defaults(func=_cmd_package_windows)
+
+    dmgp = sub.add_parser("package-dmg", help="生成 macOS DMG 安装镜像")
+    dmgp.add_argument("--output", default="/Users/shuhe/临时文件")
+    dmgp.add_argument("--mode", choices=["desktop", "menubar", "panel"], default="desktop")
+    dmgp.add_argument(
+        "--portable",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="把源码和当前依赖打进 DMG 内的 .app",
+    )
+    dmgp.set_defaults(func=_cmd_package_dmg)
 
     ep = sub.add_parser("write-env", help="生成 Finder/自启使用的本地环境变量文件")
     ep.add_argument("--api-key", help="保存到 macOS 钥匙串；非 macOS 可手动写入 env.sh")
