@@ -5,6 +5,7 @@
 - macOS: `书赫日报助手.app`
 - macOS DMG: `shuhe-riji-macos.dmg`
 - Windows: `shuhe-riji-windows-portable.zip`
+- Windows EXE: `shuhe-riji-windows-exe.zip`（在 Windows 环境或 GitHub Actions 中生成）
 
 一键生成本地发布产物：
 
@@ -48,6 +49,16 @@ python -m riji package-windows --output dist
 
 Windows 便携版首次启动会在解压目录下创建 `.venv` 并安装依赖。
 
+## Windows EXE 版
+
+在 Windows 机器或 GitHub Actions Windows runner 上运行：
+
+```powershell
+.\scripts\build_windows_exe.ps1 -Output dist
+```
+
+生成 `dist/shuhe-riji-windows-exe.zip`。它包含 PyInstaller 生成的 `书赫日报助手.exe` 目录包，用户无需手动创建 `.venv`。
+
 ## GitHub Release
 
 当前 GitHub token 没有 `workflow` scope，因此 CI 文件暂存于 `docs/github-actions-ci.yml`。如果要启用 GitHub Actions：
@@ -65,3 +76,4 @@ git push
 - `dist/书赫日报助手.app` 压缩后的 zip 或 DMG
 - `dist/shuhe-riji-macos.dmg`
 - `dist/shuhe-riji-windows-portable.zip`
+- `dist/shuhe-riji-windows-exe.zip`
