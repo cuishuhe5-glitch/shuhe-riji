@@ -34,6 +34,10 @@ jobs:
           python -m riji --version
           python -m riji panel --help
           python -m riji desktop --help
+          python -m riji package-windows --help
+
+      - name: Build Windows portable package
+        run: python -m riji package-windows --output dist
 
       - name: Import platform helpers
         run: |

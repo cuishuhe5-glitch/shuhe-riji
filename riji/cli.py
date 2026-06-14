@@ -99,6 +99,12 @@ def _cmd_install_app(args: argparse.Namespace) -> None:
     print(f"已安装应用：{app_path}")
 
 
+def _cmd_package_windows(args: argparse.Namespace) -> None:
+    from . import packager
+    zip_path = packager.build_windows_portable(output_dir=args.output)
+    print(f"已生成 Windows 便携包：{zip_path}")
+
+
 def _cmd_write_env(_args: argparse.Namespace) -> None:
     from . import packager
     path = packager.write_env_template(
@@ -155,6 +161,10 @@ def main() -> None:
     ip.add_argument("--no-replace", action="store_true", help="目标存在时不覆盖")
     ip.add_argument("--write-env", action="store_true", help="同时生成 ~/.xiaohei-riji/env.sh 模板")
     ip.set_defaults(func=_cmd_install_app)
+
+    wp = sub.add_parser("package-windows", help="生成 Windows 便携 zip 包")
+    wp.add_argument("--output", default="/Users/shuhe/临时文件")
+    wp.set_defaults(func=_cmd_package_windows)
 
     ep = sub.add_parser("write-env", help="生成 Finder/自启使用的本地环境变量文件")
     ep.add_argument("--api-key", help="保存到 macOS 钥匙串；非 macOS 可手动写入 env.sh")
