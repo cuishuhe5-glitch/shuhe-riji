@@ -87,6 +87,32 @@ def install_app(
     return destination
 
 
+def build_dmg(output_dir: str | Path | None = None, mode: str = "desktop", portable: bool = True) -> Path:
+    if shutil.which("hdiutil") is None:
+        raise RuntimeError("当前系统缺少 hdiutil，无法生成 macOS DMG。")
+    out = Path(output_dir) if output_dir else DEFAULT_OUTPUT_DIR
+    app = build(output_dir=out, mode=mode, portable=portable)
+    dmg_path = out / "shuhe-riji-macos.dmg"
+    if dmg_path.exists():
+        dmg_path.unlink()
+    subprocess.run(
+        [
+            "hdiutil",
+            "create",
+            "-volname",
+            APP_NAME,
+            "-srcfolder",
+            str(app),
+            "-ov",
+            "-format",
+            "UDZO",
+            str(dmg_path),
+        ],
+        check=True,
+    )
+    return dmg_path
+
+
 def build_windows_portable(output_dir: str | Path | None = None) -> Path:
     root = Path(__file__).resolve().parents[1]
     out = Path(output_dir) if output_dir else DEFAULT_OUTPUT_DIR

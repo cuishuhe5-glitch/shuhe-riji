@@ -25,6 +25,7 @@ jobs:
       - name: Build macOS app
         run: |
           python -m riji package-app --output dist --mode desktop --portable
+          python -m riji package-dmg --output dist --mode desktop
           ditto -c -k --keepParent "dist/书赫日报助手.app" "dist/shuhe-riji-macos-app.zip"
 
       - name: Build Windows portable package
@@ -35,4 +36,5 @@ jobs:
         with:
           files: |
             dist/shuhe-riji-macos-app.zip
+            dist/shuhe-riji-macos.dmg
             dist/shuhe-riji-windows-portable.zip

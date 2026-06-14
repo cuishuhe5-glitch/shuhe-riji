@@ -3,6 +3,7 @@
 ## 产物
 
 - macOS: `书赫日报助手.app`
+- macOS DMG: `shuhe-riji-macos.dmg`
 - Windows: `shuhe-riji-windows-portable.zip`
 
 一键生成本地发布产物：
@@ -14,15 +15,17 @@ python scripts/release_local.py
 输出：
 
 - `dist/shuhe-riji-macos-app.zip`
+- `dist/shuhe-riji-macos.dmg`
 - `dist/shuhe-riji-windows-portable.zip`
 
 ## macOS 独立版
 
 ```bash
 python -m riji package-app --output dist --mode desktop --portable
+python -m riji package-dmg --output dist --mode desktop
 ```
 
-生成后把 `dist/书赫日报助手.app` 发给同架构 macOS 用户。首次运行仍需要用户授权：
+生成后优先把 `dist/shuhe-riji-macos.dmg` 发给同架构 macOS 用户。首次运行仍需要用户授权：
 
 - 屏幕录制
 - 辅助功能
@@ -60,4 +63,5 @@ git push
 发布 Release 时上传：
 
 - `dist/书赫日报助手.app` 压缩后的 zip 或 DMG
+- `dist/shuhe-riji-macos.dmg`
 - `dist/shuhe-riji-windows-portable.zip`

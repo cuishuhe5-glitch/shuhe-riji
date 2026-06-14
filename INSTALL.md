@@ -6,9 +6,9 @@ https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.0
 
 ## macOS
 
-1. 下载 `shuhe-riji-macos-app.zip`。
-2. 解压后得到 `书赫日报助手.app`。
-3. 拖到 `Applications` 或 `~/Applications`。
+1. 优先下载 `shuhe-riji-macos.dmg`。
+2. 打开 DMG 后，把 `书赫日报助手.app` 拖到 `Applications` 或 `~/Applications`。
+3. 如果下载的是 `shuhe-riji-macos-app.zip`，先解压再拖动 `.app`。
 4. 首次启动后，在系统设置里授权屏幕录制和辅助功能。
 5. 打开设置页，确认模型网关和 API Key。
 

@@ -80,6 +80,7 @@ python -m riji autostart uninstall
 python -m riji write-env
 python -m riji package-app --write-env
 python -m riji package-app --portable  # 生成可拷贝到其他 Mac 的独立版
+python -m riji package-dmg             # 生成 macOS DMG
 python -m riji package-windows         # 生成 Windows 便携 zip 包
 
 # 2.5) 安装到应用目录（默认 ~/Applications，不需要管理员权限）
