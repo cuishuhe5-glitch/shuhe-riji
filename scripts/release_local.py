@@ -5,6 +5,7 @@ from __future__ import annotations
 import shutil
 import subprocess
 import sys
+import hashlib
 from pathlib import Path
 
 
@@ -13,6 +14,7 @@ DIST = ROOT / "dist"
 MAC_APP = DIST / "书赫日报助手.app"
 MAC_ZIP = DIST / "shuhe-riji-macos-app.zip"
 WIN_ZIP = DIST / "shuhe-riji-windows-portable.zip"
+CHECKSUMS = DIST / "SHA256SUMS"
 
 
 def main() -> None:
@@ -22,8 +24,10 @@ def main() -> None:
     _run([sys.executable, "-m", "riji", "package-app", "--output", str(DIST), "--mode", "desktop", "--portable"])
     _zip_mac_app()
     _run([sys.executable, "-m", "riji", "package-windows", "--output", str(DIST)])
+    _write_checksums([MAC_ZIP, WIN_ZIP])
     print(f"macOS:   {MAC_ZIP}")
     print(f"Windows: {WIN_ZIP}")
+    print(f"SHA256:  {CHECKSUMS}")
 
 
 def _zip_mac_app() -> None:
@@ -40,6 +44,14 @@ def _zip_mac_app() -> None:
 
 def _run(args: list[str]) -> None:
     subprocess.run(args, cwd=ROOT, check=True)
+
+
+def _write_checksums(paths: list[Path]) -> None:
+    lines = []
+    for path in paths:
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        lines.append(f"{digest}  {path.name}")
+    CHECKSUMS.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":
