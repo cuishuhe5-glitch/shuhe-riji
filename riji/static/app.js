@@ -815,8 +815,8 @@ function renderRequestLogs(requestLogs) {
 function renderStyles(styles) {
   const select = $("#styleSelect");
   const autoSelect = $("#autoReportStyle");
-  const previous = normalizeStyleName(select.value) || "标准";
-  const autoPrevious = normalizeStyleName(autoSelect.value || state.data?.auto_report?.style) || "标准";
+  const previous = normalizeStyleName(select.value) || "标准日报";
+  const autoPrevious = normalizeStyleName(autoSelect.value || state.data?.auto_report?.style) || "标准日报";
   select.innerHTML = "";
   autoSelect.innerHTML = "";
   for (const style of styles) {
@@ -826,7 +826,7 @@ function renderStyles(styles) {
     select.appendChild(option);
     autoSelect.appendChild(option.cloneNode(true));
   }
-  select.value = styles.includes(previous) ? previous : styles[0] || "标准";
+  select.value = styles.includes(previous) ? previous : styles[0] || "标准日报";
   autoSelect.value = styles.includes(autoPrevious) ? autoPrevious : select.value;
   renderReportKindTabs();
   renderStyleHint();
@@ -1022,6 +1022,7 @@ function focusReportInstruction() {
   const card = $("#reportInstructionCard");
   const input = $("#reportInstructionInput");
   if (!card || !input) return;
+  card.hidden = false;
   card.scrollIntoView({ behavior: "smooth", block: "center" });
   card.classList.add("is-focused");
   input.focus();
@@ -1151,10 +1152,10 @@ function renderAutoReport(autoReport) {
   $("#autoReportEnabled").checked = Boolean(autoReport.enabled);
   $("#autoReportTime").value = autoReport.time || "18:30";
   if ($("#autoReportStyle").children.length) {
-    $("#autoReportStyle").value = normalizeStyleName(autoReport.style) || "标准";
+    $("#autoReportStyle").value = normalizeStyleName(autoReport.style) || "标准日报";
   }
   $("#autoReportEnabledText").textContent = autoReport.enabled ? "已启用" : "未启用";
-  $("#autoReportPlanText").textContent = `${autoReport.time || "18:30"} · ${autoReport.style || "标准"}`;
+  $("#autoReportPlanText").textContent = `${autoReport.time || "18:30"} · ${autoReport.style || "标准日报"}`;
   $("#autoReportLastText").textContent = autoReport.last_day || "未生成";
   $("#autoReportRunText").textContent = autoReport.last_error ? "异常" : autoReport.running ? "运行中" : "待命";
   $("#autoReportRunText").className = autoReport.last_error ? "bad" : autoReport.running ? "good" : "";
@@ -2085,7 +2086,6 @@ function renderHistoryReportEmpty(reports) {
       <span>◷</span>
       <strong>${title}</strong>
       <p>${text}</p>
-      <button class="button primary compact-button" type="button" data-history-generate>去生成报告</button>
     </div>
   `;
 }
@@ -2214,6 +2214,8 @@ function setReportPreview(text, { reportId = state.reportId, dirty = false, meta
   state.reportId = reportId || null;
   state.reportMeta = meta || null;
   state.reportDirty = dirty;
+  const card = $("#generatedReportCard");
+  if (card) card.hidden = false;
   $("#reportPreview").textContent = state.reportText || "报告内容为空。";
   renderReportEditState();
 }
@@ -2236,7 +2238,7 @@ function renderReportEditState() {
   const kind = meta.kind || reportKindLabel($("#kindSelect")?.value);
   const day = meta.day || state.date;
   const range = meta.range || reportRangeLabel(day, kind);
-  const style = meta.style || $("#styleSelect")?.value || "标准";
+  const style = meta.style || $("#styleSelect")?.value || "标准日报";
   const generated = Boolean(state.reportId);
   $("#reportCurrentMeta").textContent = generated ? `${range} · ${kind} · ${style}` : "未生成报告";
   $("#reportWordCount").textContent = `${generated ? reportCharCount(text) : 0} 字`;
@@ -2457,7 +2459,33 @@ async function clearRequestLogs() {
 }
 
 function normalizeStyleName(style) {
-  return String(style || "").trim().toLowerCase() === "okr" ? "OKR" : style;
+  const value = String(style || "").trim();
+  const aliases = {
+    okr: "标准日报",
+    标准: "标准日报",
+    简洁: "简洁日报",
+    技术: "技术日报",
+    项目: "项目日报",
+    成果导向: "成果导向日报",
+    会议驱动: "会议驱动日报",
+    三句话: "三句话日报",
+    老板一分钟: "老板一分钟日报",
+    top3: "TOP3日报",
+    TOP3: "TOP3日报",
+    项目推进: "项目推进快照",
+    开发者: "开发者日报",
+    产品运营: "运营增长日报",
+    设计工作: "设计工作日报",
+    工作成果: "工作成果日报",
+    周会风格: "周会风格日报",
+    一句话: "一句话日报",
+    运营增长: "运营增长日报",
+    管理者: "管理者日报",
+    周会同步: "周会同步版",
+    下班发送: "下班发送版",
+    详细工作: "较详细工作日报",
+  };
+  return aliases[value] || aliases[value.toLowerCase()] || value;
 }
 
 function reportKindLabel(kind) {
@@ -2507,7 +2535,7 @@ function syncReportConfigSummary() {
   const kindValue = $("#kindSelect")?.value || "day";
   const kind = reportKindLabel(kindValue);
   const range = currentReportRangeLabel(kindValue);
-  const template = $("#styleSelect")?.value || "标准";
+  const template = $("#styleSelect")?.value || "标准日报";
   const hasInstruction = Boolean($("#reportInstructionInput")?.value.trim());
   const instruction = hasInstruction ? "已加自定义指令" : "未加自定义指令";
   el.textContent = `当前配置：${kind} · ${range} · ${template} · ${instruction}`;
@@ -3125,7 +3153,7 @@ async function generateReport() {
     toast("报告生成失败");
   } finally {
     button.disabled = false;
-    button.textContent = "生成";
+    button.textContent = "开始生成报告";
   }
 }
 
@@ -3617,7 +3645,7 @@ function downloadReport() {
   const link = document.createElement("a");
   const meta = state.reportMeta || {};
   const kind = meta.kind || reportKindLabel($("#kindSelect").value);
-  const style = meta.style || $("#styleSelect").value || "标准";
+  const style = meta.style || $("#styleSelect").value || "标准日报";
   const day = meta.day || state.date;
   const range = meta.range || reportRangeLabel(day, kind);
   link.href = url;
@@ -3844,12 +3872,9 @@ function bindEvents() {
     renderReportHistoryTable(state.data?.reports || []);
   });
   $("#historyReportTable").addEventListener("click", (event) => {
-    const generateButton = event.target.closest("[data-history-generate]");
     const loadButton = event.target.closest("[data-report-load]");
     const deleteButton = event.target.closest("[data-history-report-delete]");
-    if (generateButton) {
-      navigateTo("report");
-    } else if (deleteButton) {
+    if (deleteButton) {
       deleteReport(deleteButton.dataset.historyReportDelete).catch((error) => toast(error.message));
     } else if (loadButton) {
       loadReport(loadButton.dataset.reportLoad).catch((error) => toast(error.message));
