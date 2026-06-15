@@ -23,6 +23,9 @@ const state = {
   filter: "all",
   timelineRange: "today",
   appChartMode: "bar",
+  appPeriod: "day",
+  appUsage: null,
+  appUsageMeta: { days: 1, start_day: "", end_day: "", period: "day" },
   showPreviousRhythm: false,
   settingsTouched: false,
   dayNoteTouched: false,
@@ -189,7 +192,11 @@ function render() {
   renderTrends(data.trends);
   renderTimeHeatmap(data.time_heatmap);
   renderAppUsage(data.app_usage || []);
-  renderAppRecords(data.app_usage || []);
+  if (state.appPeriod === "day") {
+    state.appUsage = data.app_usage || [];
+    state.appUsageMeta = { days: 1, start_day: data.day, end_day: data.day, period: "day" };
+  }
+  renderAppRecords(state.appUsage || data.app_usage || [], state.appUsageMeta);
   renderActivityRhythm(data.segments || data.items || [], data.time_heatmap);
   renderTimeline(data.segments || data.items);
   renderSearchResults();
@@ -991,14 +998,18 @@ function renderAppUsage(appUsage) {
     : `<div class="empty app-usage-empty">还没有应用用时统计。</div>`;
 }
 
-function renderAppRecords(appUsage) {
+function renderAppRecords(appUsage, meta = state.appUsageMeta) {
   const table = $("#appRecordsTable");
   if (!table) return;
   const total = appUsage.reduce((sum, item) => sum + (Number(item.minutes) || 0), 0);
-  $("#appRecordsMeta").textContent = total ? `${appUsage.length} 个应用 · 约 ${formatDuration(total)}` : "按时间线估算";
+  const days = Math.max(1, Number(meta?.days) || 1);
+  const periodLabel = appPeriodLabel(meta?.period || state.appPeriod);
+  const rangeLabel = meta?.start_day && meta?.end_day && meta.start_day !== meta.end_day ? `${meta.start_day} 至 ${meta.end_day}` : meta?.end_day || state.date;
+  $("#appRecordsMeta").textContent = total ? `${periodLabel} · ${appUsage.length} 个应用 · 约 ${formatDuration(total)}` : `${periodLabel} · 按时间线估算`;
+  if ($("#appDetailMeta")) $("#appDetailMeta").textContent = `${rangeLabel} · Top ${Math.min(20, appUsage.length)}`;
   if ($("#appTotalCount")) $("#appTotalCount").textContent = appUsage.length;
   if ($("#appTotalTime")) $("#appTotalTime").textContent = total ? formatDuration(total) : "0秒";
-  if ($("#appDailyAverage")) $("#appDailyAverage").textContent = total ? formatDuration(total) : "0秒";
+  if ($("#appDailyAverage")) $("#appDailyAverage").textContent = total ? formatDuration(Math.max(1, Math.round(total / days))) : "0秒";
   renderAppPageChart(appUsage);
   table.innerHTML = appUsage.length
     ? `
@@ -1027,6 +1038,37 @@ function renderAppRecords(appUsage) {
         .join("")}
     `
     : `<div class="empty app-record-empty">还没有应用记录。开始记录后会按应用汇总。</div>`;
+}
+
+function appPeriodLabel(period) {
+  return { day: "今日", week: "本周", month: "本月", custom: "自定义" }[period] || "当前";
+}
+
+function setAppPeriodActive(period = state.appPeriod) {
+  $$(".app-periods [data-app-period]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.appPeriod === period);
+  });
+}
+
+async function loadAppUsage(period = "day") {
+  const params = new URLSearchParams({ date: state.date, period });
+  if (period === "custom") {
+    params.set("from", $("#timelineFromDate")?.value || state.date);
+    params.set("to", $("#timelineToDate")?.value || state.date);
+  }
+  const result = await api(`/api/app-usage?${params.toString()}`);
+  const summary = result.app_usage_summary || {};
+  state.appPeriod = summary.period || period;
+  state.appUsage = summary.app_usage || [];
+  state.appUsageMeta = {
+    days: summary.days || 1,
+    start_day: summary.start_day || state.date,
+    end_day: summary.end_day || state.date,
+    period: state.appPeriod,
+  };
+  setAppPeriodActive(state.appPeriod);
+  renderAppRecords(state.appUsage, state.appUsageMeta);
+  toast(`已显示${appPeriodLabel(state.appPeriod)}应用记录`);
 }
 
 function renderAppPageChart(appUsage) {
@@ -2727,6 +2769,9 @@ function selectDay(day) {
   state.date = day;
   state.dayNoteTouched = false;
   state.reportRangeTouched = false;
+  state.appPeriod = "day";
+  state.appUsage = null;
+  state.appUsageMeta = { days: 1, start_day: day, end_day: day, period: "day" };
   $("#dateInput").value = day;
   loadSummary().catch((error) => toast(error.message));
 }
@@ -2969,6 +3014,9 @@ function bindEvents() {
     state.date = event.target.value;
     state.dayNoteTouched = false;
     state.reportRangeTouched = false;
+    state.appPeriod = "day";
+    state.appUsage = null;
+    state.appUsageMeta = { days: 1, start_day: state.date, end_day: state.date, period: "day" };
     loadSummary().catch((error) => toast(error.message));
   });
   $("#refreshButton").addEventListener("click", () => loadSummary().then(() => toast("已刷新")));
@@ -3173,16 +3221,11 @@ function bindEvents() {
   $$(".app-chart-modes [data-app-chart-mode]").forEach((button) => {
     button.addEventListener("click", () => {
       state.appChartMode = button.dataset.appChartMode || "bar";
-      renderAppPageChart(state.data?.app_usage || []);
+      renderAppPageChart(state.appUsage || state.data?.app_usage || []);
     });
   });
   $$(".app-periods [data-app-period]").forEach((button) => {
-    button.addEventListener("click", () => {
-      $$(".app-periods [data-app-period]").forEach((item) => item.classList.toggle("active", item === button));
-      const labels = { day: "今日", week: "本周", month: "本月", custom: "自定义" };
-      const label = labels[button.dataset.appPeriod] || "当前";
-      toast(button.dataset.appPeriod === "day" ? "已显示今日应用记录" : `${label}筛选入口已选中，当前仍展示今日明细`);
-    });
+    button.addEventListener("click", () => loadAppUsage(button.dataset.appPeriod || "day").catch((error) => toast(error.message)));
   });
   $("#toggleManualActivity").addEventListener("click", toggleManualActivity);
   $("#manualActivityForm").addEventListener("submit", saveManualActivity);
