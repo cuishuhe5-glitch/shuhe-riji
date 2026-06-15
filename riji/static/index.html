@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-overview-easy-copy" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260616-text-record-modal" />
   </head>
   <body>
     <div class="shell">
@@ -53,17 +53,17 @@
           <button class="nav-item" data-view="privacy">
             <span class="icon">◇</span><span>隐私保护</span>
           </button>
-          <button class="nav-item" data-view="support">
-            <span class="icon">☏</span><span>客服</span>
-          </button>
-          <button class="nav-item" data-view="notifications">
-            <span class="icon">!</span><span>通知中心</span>
+          <button class="nav-item" data-view="settings">
+            <span class="icon">⚙</span><span>设置</span>
           </button>
           <button class="nav-item" data-view="help">
             <span class="icon">?</span><span>帮助</span>
           </button>
-          <button class="nav-item" data-view="settings">
-            <span class="icon">⚙</span><span>设置</span>
+          <button class="nav-item" data-view="support">
+            <span class="icon">☏</span><span>客服</span>
+          </button>
+          <button class="nav-item" data-view="notifications" hidden>
+            <span class="icon">!</span><span>通知中心</span>
           </button>
         </nav>
 
@@ -88,9 +88,9 @@
         <header class="topbar">
           <div>
             <p class="page-label">今日工作</p>
-            <h2>告别加班写周报</h2>
+            <h2>今日工作</h2>
           </div>
-          <div class="top-actions">
+          <div class="top-actions" hidden>
             <label class="date-control">
               <span>日期</span>
               <input id="dateInput" type="date" />
@@ -246,7 +246,7 @@
                   <strong>已连接显示器</strong>
                   <div class="display-head-actions">
                     <span id="overviewDisplayCount">-</span>
-                    <button class="text-button" id="overviewOpenDisplaySettings" type="button">调整范围</button>
+                    <button class="text-button" id="overviewOpenDisplaySettings" type="button" hidden>调整范围</button>
                   </div>
                 </div>
                 <div class="display-list" id="overviewDisplayList"></div>
@@ -359,8 +359,8 @@
             <section class="panel timeline-panel" data-section="timeline">
               <div class="section-head">
                 <div>
-                  <p class="eyebrow">工作时间线</p>
-                  <h3>查看全天工作活动轨迹，了解时间都花在了哪里</h3>
+                  <h3>工作时间线</h3>
+                  <p>查看全天工作活动轨迹，了解时间都花在了哪里</p>
                 </div>
               </div>
               <div class="timeline-toolbar">
@@ -388,7 +388,7 @@
                   <strong id="timelineActivePeriod">暂无</strong>
                   <span>活跃时段</span>
                 </div>
-                <div class="segmented timeline-type-filter" hidden>
+                <div class="segmented timeline-type-filter" hidden aria-hidden="true">
                   <button class="active" data-filter="all">全部</button>
                   <button data-filter="work">工作</button>
                   <button data-filter="rest">休息</button>
@@ -579,10 +579,9 @@
             <section class="panel agent-panel" data-section="agent">
               <div class="section-head">
                 <div>
-                  <p class="eyebrow">接入 Agent</p>
-                  <h3>本地 HTTP 服务运行中</h3>
+                  <h3>接入 Agent</h3>
                 </div>
-                <span class="section-meta" id="agentStatusText">检测中</span>
+                <span class="section-meta" id="agentStatusText" hidden>检测中</span>
               </div>
               <div class="agent-service-card">
                 <div class="agent-service-main">
@@ -613,9 +612,9 @@
                     <button class="text-button" id="copyAgentDocs" type="button">一键复制</button>
                   </div>
                 </div>
-                <p class="path-note">把下面这段发给 Hermes、Claude、Codex 或其他 Agent，它会先读取实时 API 文档，再调用本地日报数据。</p>
+                <p class="path-note" hidden>把下面这段发给 Hermes、Claude、Codex 或其他 Agent，它会先读取实时 API 文档，再调用本地日报数据。</p>
                 <pre id="agentDocsPreview">正在读取本地 API 文档...</pre>
-                <p class="agent-doc-hint">复制上方文本，发送给你的 Hermes / Claude / Codex 或其他 Agent，它会自动读取本地 API 文档并完成接入。</p>
+                <p class="agent-doc-hint">复制上方文本，发送给你的龙虾/Hermes/任意Agent，它会自动读取本地 API 文档并完成 skill 接入。</p>
               </div>
               <div class="agent-grid" hidden>
                 <div class="agent-card">
@@ -827,7 +826,7 @@
                   <p class="eyebrow">帮助</p>
                   <h3>书赫日报助手使用指南</h3>
                 </div>
-                <span class="section-meta" id="helpHealthStatus">检测中</span>
+                <span class="section-meta" id="helpHealthStatus" hidden>检测中</span>
               </div>
               <div class="help-grid">
                 <div class="help-card">
@@ -838,7 +837,7 @@
                     <li><span>3</span><p>在报告页生成日报，也可以打开自动日报定时归档。</p></li>
                   </ol>
                 </div>
-	                <div class="help-card">
+	                <div class="help-card" hidden>
 	                  <strong>当前状态</strong>
 	                  <div class="help-status-list">
 	                    <div><span>权限</span><b id="helpPermissionStatus">-</b></div>
@@ -916,7 +915,7 @@
                 <div class="history-filter-tools">
                   <input id="historySearchInput" type="search" placeholder="搜索报告..." />
                   <button class="button subtle compact-button history-clear-filter" id="historyClearFilters" type="button" hidden>清空筛选</button>
-                  <button class="button subtle compact-button" id="historyRefreshReports" type="button">刷新</button>
+                  <button class="button subtle compact-button history-refresh-icon" id="historyRefreshReports" type="button" aria-label="刷新历史报告" title="刷新">↻</button>
                   <button class="text-button history-open-dir" id="historyOpenReportsDir" type="button" hidden>打开目录</button>
                 </div>
               </div>
@@ -1502,13 +1501,74 @@
         </div>
       </section>
     </div>
+    <div class="detail-modal add-record-modal" id="addRecordModal" aria-hidden="true">
+      <div class="detail-backdrop" id="addRecordBackdrop"></div>
+      <section class="detail-sheet add-record-sheet" role="dialog" aria-modal="true" aria-labelledby="addRecordTitle">
+        <div class="add-record-head">
+          <div>
+            <h3 id="addRecordTitle">添加记录</h3>
+            <p>请选择记录方式</p>
+          </div>
+          <button class="detail-close" id="addRecordClose" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="add-record-options">
+          <button class="add-record-option" id="addRecordImage" type="button">
+            <span>▧</span>
+            <strong>传图记录</strong>
+          </button>
+          <button class="add-record-option" id="addRecordText" type="button">
+            <span>▤</span>
+            <strong>文本记录</strong>
+          </button>
+        </div>
+      </section>
+    </div>
+    <div class="detail-modal text-record-modal" id="textRecordModal" aria-hidden="true">
+      <div class="detail-backdrop" id="textRecordBackdrop"></div>
+      <section class="detail-sheet text-record-sheet" role="dialog" aria-modal="true" aria-labelledby="textRecordTitle">
+        <div class="text-record-head">
+          <div>
+            <h3 id="textRecordTitle">文本记录</h3>
+            <p>填写标题和记录内容，保存后将出现在工作时间线中</p>
+          </div>
+          <button class="detail-close" id="textRecordClose" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="text-record-body">
+          <label>
+            <span>标题（可选）</span>
+            <input id="textRecordTitleInput" placeholder="输入标题..." />
+          </label>
+          <label>
+            <span>记录内容</span>
+            <div class="text-record-toolbar" aria-label="文本编辑工具">
+              <button type="button" data-text-record-format="bold">加粗</button>
+              <button type="button" data-text-record-format="italic">斜体</button>
+              <button type="button" data-text-record-format="underline">下划线</button>
+              <button type="button" data-text-record-format="strike">删除线</button>
+              <button type="button" data-text-record-format="unordered">无序列表</button>
+              <button type="button" data-text-record-format="ordered">有序列表</button>
+              <button type="button" data-text-record-format="divider">分割线</button>
+              <button type="button" data-text-record-format="h1">标题 1</button>
+              <button type="button" data-text-record-format="h2">标题 2</button>
+              <button type="button" data-text-record-format="h3">标题 3</button>
+              <button type="button" data-text-record-format="paragraph">正文</button>
+            </div>
+            <textarea id="textRecordContent" placeholder="输入工作内容..."></textarea>
+          </label>
+        </div>
+        <div class="text-record-actions">
+          <button class="button subtle" id="textRecordCancel" type="button">取消</button>
+          <button class="button primary" id="textRecordSave" type="button" disabled>保存</button>
+        </div>
+      </section>
+    </div>
     <div class="detail-modal template-detail-modal" id="templateDetailModal" aria-hidden="true">
       <div class="detail-backdrop" id="templateDetailBackdrop"></div>
       <section class="detail-sheet template-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="templateDetailTitle">
         <div class="detail-head">
           <div>
-            <p class="eyebrow">模板详情</p>
             <h3 id="templateDetailTitle">模板详情</h3>
+            <p id="templateDetailSummary">-</p>
             <span id="templateDetailMeta">-</span>
           </div>
           <button class="detail-close" id="templateDetailClose" type="button" aria-label="关闭">×</button>
@@ -1516,6 +1576,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-overview-weekly-copy"></script>
+    <script src="/static/app.js?v=20260616-text-record-modal"></script>
   </body>
 </html>
