@@ -3872,12 +3872,9 @@ function bindEvents() {
     renderReportHistoryTable(state.data?.reports || []);
   });
   $("#historyReportTable").addEventListener("click", (event) => {
-    const generateButton = event.target.closest("[data-history-generate]");
     const loadButton = event.target.closest("[data-report-load]");
     const deleteButton = event.target.closest("[data-history-report-delete]");
-    if (generateButton) {
-      navigateTo("report");
-    } else if (deleteButton) {
+    if (deleteButton) {
       deleteReport(deleteButton.dataset.historyReportDelete).catch((error) => toast(error.message));
     } else if (loadButton) {
       loadReport(loadButton.dataset.reportLoad).catch((error) => toast(error.message));
