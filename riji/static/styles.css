@@ -1333,7 +1333,7 @@ select {
 
 .report-filter-bar {
   display: grid;
-  grid-template-columns: auto minmax(220px, 1fr) auto auto;
+  grid-template-columns: auto minmax(320px, 1fr);
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
@@ -1341,6 +1341,15 @@ select {
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: var(--surface-soft);
+}
+
+.history-filter-tools {
+  justify-self: end;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(220px, 360px) auto auto auto;
+  align-items: center;
+  gap: 8px;
 }
 
 .history-clear-filter:disabled {
@@ -5265,6 +5274,7 @@ select {
   .app-summary-grid,
   .app-custom-range,
   .report-filter-bar,
+  .history-filter-tools,
   .report-date-filter-bar,
   .report-config-grid,
   .report-date-range,
@@ -5291,7 +5301,7 @@ select {
 	  .plan-grid,
 	  .share-grid,
 	  .support-grid,
-	  .support-actions,
+  .support-actions,
 	  .privacy-grid,
 	  .privacy-actions,
 	  .help-grid,
