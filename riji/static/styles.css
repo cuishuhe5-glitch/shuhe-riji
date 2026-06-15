@@ -775,6 +775,12 @@ select {
   padding-top: 4px;
 }
 
+.productivity-card[hidden],
+.chart-block[hidden],
+.app-usage-block[hidden] {
+  display: none;
+}
+
 .donut {
   width: 172px;
   height: 172px;
@@ -2803,6 +2809,14 @@ select {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.5;
+}
+
+.heatmap-range-status[hidden] {
+  display: none;
+}
+
+.heatmap-peak-hour[hidden] {
+  display: none;
 }
 
 .segmented {
