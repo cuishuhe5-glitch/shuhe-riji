@@ -365,12 +365,11 @@ function renderOverviewDisplays(displays) {
             <div class="overview-display-body">
               <div class="overview-display-title">
                 <strong>${escapeHtml(item.name)}</strong>
-                <span>${escapeHtml(displayStatusLabel(item, selected))}</span>
+                <span>${displaySelected(item, selected) ? "✓" : ""}</span>
               </div>
               <div class="overview-display-facts">
                 <span>${escapeHtml(displayResolutionLabel(item))}</span>
-                <span>${escapeHtml(`坐标 ${item.left}, ${item.top}`)}</span>
-                <span>${escapeHtml(displayCaptureHint(item, selected, physical.length))}</span>
+                <span>${escapeHtml(item.primary ? "主显示器" : "扩展显示器")}</span>
               </div>
             </div>
           </div>
@@ -1117,7 +1116,9 @@ function renderOverview(data) {
         )
         .join("")
     : `<div class="empty">还没有可统计的活动。<br />点击开始记录，或先用命令行导入几条记录。</div>`;
-  $("#workOverviewEmpty").hidden = Number(data.total || 0) > 0;
+  const hasOverviewRecords = Number(data.total || 0) > 0;
+  $("#workOverviewEmpty").hidden = hasOverviewRecords;
+  if ($("#summaryGrid")) $("#summaryGrid").hidden = !hasOverviewRecords;
   renderTodayStatus(data);
   renderQuickStart(data);
 }
@@ -1407,7 +1408,7 @@ function renderActivityRhythm(items, heatmap = state.data?.time_heatmap) {
     renderOverviewHeatmapRhythm(heatmap);
     return;
   }
-  chart.classList.remove("is-heatmap");
+  chart.classList.remove("is-heatmap", "is-cells");
   const buckets = Array.from({ length: 24 }, (_, hour) => ({
     hour,
     count: 0,
@@ -1430,24 +1431,16 @@ function renderActivityRhythm(items, heatmap = state.data?.time_heatmap) {
   const activeHours = buckets.filter((bucket) => bucket.count > 0).length;
   const total = buckets.reduce((sum, bucket) => sum + bucket.count, 0);
   $("#activityRhythmMeta").textContent = total ? `${activeHours} 个活跃小时 · ${total} 条记录` : "按有效记录估算";
-  if (!total) {
-    chart.innerHTML = `<div class="empty rhythm-empty">还没有小时分布数据。</div>`;
-    return;
-  }
+  chart.classList.add("is-cells");
   chart.innerHTML = buckets
     .map((bucket) => {
-      const height = max ? Math.max(8, Math.round((bucket.count / max) * 100)) : 0;
-      const workPercent = bucket.count ? Math.round((bucket.work / bucket.count) * 100) : 0;
-      const restPercent = bucket.count ? 100 - workPercent : 0;
       const topCategory = [...bucket.categories.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "无记录";
       const label = `${String(bucket.hour).padStart(2, "0")}:00`;
+      const level = max ? Math.max(1, Math.min(5, Math.ceil((bucket.count / max) * 5))) : 0;
       return `
         <div class="rhythm-hour" title="${label} · ${bucket.count} 条 · ${topCategory}">
-          <div class="rhythm-track">
-            <span class="rhythm-work" style="height:${height ? Math.max(2, Math.round((height * workPercent) / 100)) : 0}%"></span>
-            <span class="rhythm-rest" style="height:${height ? Math.max(2, Math.round((height * restPercent) / 100)) : 0}%"></span>
-          </div>
-          <small>${bucket.hour % 3 === 0 ? String(bucket.hour).padStart(2, "0") : ""}</small>
+          <span class="overview-heat-cell level-${level}">${bucket.count ? escapeHtml(String(bucket.count)) : ""}</span>
+          <small>${bucket.hour % 3 === 0 ? `${bucket.hour}:00` : ""}</small>
         </div>
       `;
     })

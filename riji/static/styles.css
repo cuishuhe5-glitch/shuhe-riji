@@ -556,6 +556,10 @@ select {
   margin-bottom: 16px;
 }
 
+.summary-grid[hidden] {
+  display: none;
+}
+
 .work-hero {
   display: grid;
   grid-template-columns: minmax(138px, 0.35fr) minmax(0, 1fr);
@@ -2408,6 +2412,15 @@ select {
   gap: 8px;
 }
 
+.activity-rhythm.is-cells {
+  height: auto;
+  align-items: stretch;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
 .rhythm-hour {
   height: 100%;
   min-width: 0;
@@ -2415,6 +2428,13 @@ select {
   grid-template-rows: minmax(0, 1fr) 16px;
   gap: 5px;
   align-items: end;
+}
+
+.activity-rhythm.is-cells .rhythm-hour {
+  height: auto;
+  grid-template-rows: 31px 18px;
+  gap: 8px;
+  align-items: stretch;
 }
 
 .rhythm-track {
