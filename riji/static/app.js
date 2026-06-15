@@ -1022,6 +1022,7 @@ function focusReportInstruction() {
   const card = $("#reportInstructionCard");
   const input = $("#reportInstructionInput");
   if (!card || !input) return;
+  card.hidden = false;
   card.scrollIntoView({ behavior: "smooth", block: "center" });
   card.classList.add("is-focused");
   input.focus();
@@ -2214,6 +2215,8 @@ function setReportPreview(text, { reportId = state.reportId, dirty = false, meta
   state.reportId = reportId || null;
   state.reportMeta = meta || null;
   state.reportDirty = dirty;
+  const card = $("#generatedReportCard");
+  if (card) card.hidden = false;
   $("#reportPreview").textContent = state.reportText || "报告内容为空。";
   renderReportEditState();
 }
@@ -3125,7 +3128,7 @@ async function generateReport() {
     toast("报告生成失败");
   } finally {
     button.disabled = false;
-    button.textContent = "生成";
+    button.textContent = "开始生成报告";
   }
 }
 

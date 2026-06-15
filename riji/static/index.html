@@ -1009,7 +1009,7 @@
                     <div class="template-grid" id="templateGrid"></div>
                   </section>
 
-                  <section class="report-instruction-card" id="reportInstructionCard">
+                  <section class="report-instruction-card" id="reportInstructionCard" hidden>
                     <div class="mini-head">
                       <strong>报告要求</strong>
                       <span>自定义指令</span>
@@ -1017,7 +1017,7 @@
                     <textarea id="reportInstructionInput" rows="2" placeholder="例如：写给老板看，突出产出和风险；明日计划要具体到动作。"></textarea>
                   </section>
 
-                  <section class="day-note-card">
+                  <section class="day-note-card" hidden>
                     <div class="mini-head">
                       <strong>今日备注 / 明日计划</strong>
                       <button class="text-button" id="saveDayNote">保存</button>
@@ -1026,7 +1026,7 @@
                     <p class="path-note" id="dayNoteStatus">尚未保存备注。</p>
                   </section>
 
-                  <section class="generated-report-card">
+                  <section class="generated-report-card" id="generatedReportCard" hidden>
                     <div class="mini-head">
                       <strong>生成结果</strong>
                       <span id="reportWordCount">0 字</span>
@@ -1056,7 +1056,7 @@
                 </div>
               </div>
 
-              <div class="report-history">
+              <div class="report-history" hidden>
                 <div class="mini-head">
                   <strong>历史报告</strong>
                   <div class="mini-actions">
@@ -1067,7 +1067,7 @@
                 <div class="report-list" id="reportList"></div>
               </div>
 
-              <div class="chat-card">
+              <div class="chat-card" hidden>
                 <div class="mini-head">
                   <strong>追问日报助手</strong>
                   <select id="chatScope">
@@ -1516,6 +1516,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-overview-easy-copy"></script>
+    <script src="/static/app.js?v=20260615-report-workbench-quiet"></script>
   </body>
 </html>

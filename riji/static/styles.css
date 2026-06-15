@@ -4045,6 +4045,14 @@ select {
   background: var(--surface-soft);
 }
 
+.report-instruction-card[hidden],
+.day-note-card[hidden],
+.generated-report-card[hidden],
+.report-history[hidden],
+.chat-card[hidden] {
+  display: none;
+}
+
 .report-instruction-card.is-focused {
   border-color: #54c7a5;
   background: #f2fbf7;
