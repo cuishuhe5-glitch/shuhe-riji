@@ -2805,6 +2805,10 @@ select {
   line-height: 1.5;
 }
 
+.heatmap-range-status[hidden] {
+  display: none;
+}
+
 .segmented {
   display: inline-flex;
   height: 32px;

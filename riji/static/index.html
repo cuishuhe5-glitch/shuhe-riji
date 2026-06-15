@@ -327,13 +327,13 @@
                     <span>日均记录</span>
                   </div>
                 </div>
-                <span id="heatmapSlogan">每一分钟的努力，都值得被看见</span>
+                <span id="heatmapSlogan">你今天的时间，花在了哪里？</span>
               </div>
               <section class="heatmap-card">
                 <div class="mini-head">
                   <div>
                     <strong>时段记录</strong>
-                    <span class="heatmap-peak-hour" id="heatmapPeakHour">暂无活跃时段</span>
+                    <span class="heatmap-peak-hour" id="heatmapPeakHour" hidden>暂无活跃时段</span>
                   </div>
                   <div class="heatmap-legend">
                     <span>少</span>
@@ -342,7 +342,7 @@
                   </div>
                 </div>
                 <div class="time-heatmap" id="timeHeatmap"></div>
-                <p class="heatmap-range-status" id="heatmapRangeStatus">默认显示近 7 天工作热力。</p>
+                <p class="heatmap-range-status" id="heatmapRangeStatus" hidden>默认显示近 7 天工作热力。</p>
                 <div class="time-heatmap-axis">
                   <span>0:00</span>
                   <span>3:00</span>
@@ -1516,6 +1516,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-timeline-panel-clean"></script>
+    <script src="/static/app.js?v=20260615-heatmap-copy-clean"></script>
   </body>
 </html>
