@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-report" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-history" />
   </head>
   <body>
     <div class="shell">
@@ -817,9 +817,6 @@
                   <p class="eyebrow">历史报告</p>
                   <h3>查看和管理所有 AI 生成的报告，支持按类型筛选和关键词搜索</h3>
                 </div>
-                <div class="mini-actions">
-                  <button class="text-button" id="historyRefreshReports">刷新</button>
-                </div>
               </div>
               <div class="report-filter-bar">
                 <div class="segmented" id="historyKindFilter">
@@ -829,20 +826,27 @@
                   <button type="button" data-report-kind="月报">月报</button>
                 </div>
                 <input id="historySearchInput" type="search" placeholder="搜索报告..." />
-                <button class="button subtle compact-button" id="historyArchiveAllReports">归档全部</button>
+                <button class="button subtle compact-button" id="historyRefreshReports">刷新</button>
               </div>
               <div class="report-date-filter-bar">
                 <span>日期</span>
                 <div class="segmented" id="historyRangeFilter">
-                  <button class="active" type="button" data-report-range="all">全部日期</button>
                   <button type="button" data-report-range="week">本周</button>
                   <button type="button" data-report-range="month">本月</button>
                   <button type="button" data-report-range="7">最近 7 天</button>
                   <button type="button" data-report-range="30">最近 30 天</button>
                 </div>
-                <span id="historyFilterMeta">-</span>
+                <input id="historyFromDate" type="date" />
+                <span>至</span>
+                <input id="historyToDate" type="date" />
               </div>
-              <div class="history-report-table" id="historyReportTable"></div>
+              <div class="history-report-card">
+                <div class="mini-head">
+                  <strong>报告列表</strong>
+                  <span id="historyFilterMeta">共 0 份</span>
+                </div>
+                <div class="history-report-table" id="historyReportTable"></div>
+              </div>
             </section>
           </div>
 
@@ -1359,6 +1363,6 @@
         <div class="detail-body" id="detailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-report"></script>
+    <script src="/static/app.js?v=20260615-history"></script>
   </body>
 </html>
