@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-heatmap" />
   </head>
   <body>
     <div class="shell">
@@ -272,21 +272,57 @@
               <div class="section-head">
                 <div>
                   <p class="eyebrow">时段热力图</p>
-                  <h3>最近时段记录</h3>
+                  <h3>查看多时段工作热力分布，直观了解工作节奏</h3>
                 </div>
-                <span class="section-meta" id="timeHeatmapMeta">按小时统计</span>
+                <div class="heatmap-toolbar">
+                  <button class="button subtle compact-button" id="refreshHeatmap" type="button">生成热力图</button>
+                  <input id="heatmapFromDate" type="date" />
+                  <span>至</span>
+                  <input id="heatmapToDate" type="date" />
+                </div>
               </div>
-              <div class="time-heatmap" id="timeHeatmap"></div>
-              <div class="time-heatmap-axis">
-                <span>0:00</span>
-                <span>3:00</span>
-                <span>6:00</span>
-                <span>9:00</span>
-                <span>12:00</span>
-                <span>15:00</span>
-                <span>18:00</span>
-                <span>21:00</span>
+              <div class="heatmap-summary-card">
+                <div class="heatmap-metrics">
+                  <div>
+                    <strong id="heatmapTotalRecords">0</strong>
+                    <span>记录条数</span>
+                  </div>
+                  <div>
+                    <strong id="heatmapFocusTime">0min</strong>
+                    <span>专注时长</span>
+                  </div>
+                  <div>
+                    <strong id="heatmapActiveDays">0</strong>
+                    <span>活跃天数</span>
+                  </div>
+                  <div>
+                    <strong id="heatmapDailyAverage">0</strong>
+                    <span>日均记录</span>
+                  </div>
+                </div>
+                <span id="heatmapSlogan">专注工作本身，剩下的交给书赫</span>
               </div>
+              <section class="heatmap-card">
+                <div class="mini-head">
+                  <strong>时段记录</strong>
+                  <div class="heatmap-legend">
+                    <span>少</span>
+                    <i></i><i></i><i></i><i></i><i></i>
+                    <span>多</span>
+                  </div>
+                </div>
+                <div class="time-heatmap" id="timeHeatmap"></div>
+                <div class="time-heatmap-axis">
+                  <span>0:00</span>
+                  <span>3:00</span>
+                  <span>6:00</span>
+                  <span>9:00</span>
+                  <span>12:00</span>
+                  <span>15:00</span>
+                  <span>18:00</span>
+                  <span>21:00</span>
+                </div>
+              </section>
             </section>
 
             <section class="panel timeline-panel" data-section="timeline">
@@ -326,8 +362,12 @@
               <section class="timeline-category-card">
                 <div class="mini-head">
                   <strong>分类时长分布</strong>
-                  <span id="timelineCategoryMeta">按时间段估算</span>
+                  <label class="inline-check">
+                    <input id="showTimelineCategory" type="checkbox" checked />
+                    <span>显示分类时长分布</span>
+                  </label>
                 </div>
+                <p class="path-note" id="timelineCategoryMeta">按时间段估算</p>
                 <div class="timeline-category-chart" id="timelineCategoryChart"></div>
               </section>
               <div class="search-panel">
@@ -1308,6 +1348,6 @@
         <div class="detail-body" id="detailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v=20260615-heatmap"></script>
   </body>
 </html>
