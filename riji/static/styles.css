@@ -968,6 +968,39 @@ select {
   margin-bottom: 16px;
 }
 
+.app-custom-range {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: -4px 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.app-custom-range[hidden] {
+  display: none;
+}
+
+.app-custom-range input {
+  width: 142px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #fff;
+  color: var(--ink);
+  outline: 0;
+}
+
+.app-custom-range span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
 .app-chart-card {
   min-height: 340px;
 }
@@ -4751,6 +4784,7 @@ select {
   .heatmap-metrics,
   .category-duration-row,
   .app-summary-grid,
+  .app-custom-range,
   .report-filter-bar,
   .report-date-filter-bar,
   .report-config-grid,

@@ -28,6 +28,7 @@ const state = {
   appPeriod: "day",
   appUsage: null,
   appUsageMeta: { days: 1, start_day: "", end_day: "", period: "day" },
+  appCustomRange: { from: "", to: "" },
   heatmapRange: { from: "", to: "" },
   showPreviousRhythm: false,
   settingsTouched: false,
@@ -1090,6 +1091,7 @@ function renderAppRecords(appUsage, meta = state.appUsageMeta) {
   if ($("#appTotalCount")) $("#appTotalCount").textContent = appUsage.length;
   if ($("#appTotalTime")) $("#appTotalTime").textContent = total ? formatDuration(total) : "0秒";
   if ($("#appDailyAverage")) $("#appDailyAverage").textContent = total ? formatDuration(Math.max(1, Math.round(total / days))) : "0秒";
+  syncAppCustomRange(meta);
   renderAppPageChart(appUsage);
   table.innerHTML = appUsage.length
     ? `
@@ -1128,13 +1130,38 @@ function setAppPeriodActive(period = state.appPeriod) {
   $$(".app-periods [data-app-period]").forEach((button) => {
     button.classList.toggle("active", button.dataset.appPeriod === period);
   });
+  $("#appCustomRange")?.toggleAttribute("hidden", period !== "custom");
+}
+
+function syncAppCustomRange(meta = state.appUsageMeta) {
+  const fromInput = $("#appFromDate");
+  const toInput = $("#appToDate");
+  if (!fromInput || !toInput) return;
+  const from = meta?.period === "custom" ? meta.start_day : state.appCustomRange.from || addDays(state.date, -6);
+  const to = meta?.period === "custom" ? meta.end_day : state.appCustomRange.to || state.date;
+  fromInput.value = from || addDays(state.date, -6);
+  toInput.value = to || state.date;
+  if (meta?.period === "custom") {
+    state.appCustomRange = { from: fromInput.value, to: toInput.value };
+  }
+}
+
+function readAppCustomRange() {
+  let from = $("#appFromDate")?.value || state.appCustomRange.from || addDays(state.date, -6);
+  let to = $("#appToDate")?.value || state.appCustomRange.to || state.date;
+  if (from > to) [from, to] = [to, from];
+  state.appCustomRange = { from, to };
+  if ($("#appFromDate")) $("#appFromDate").value = from;
+  if ($("#appToDate")) $("#appToDate").value = to;
+  return state.appCustomRange;
 }
 
 async function loadAppUsage(period = "day") {
   const params = new URLSearchParams({ date: state.date, period });
   if (period === "custom") {
-    params.set("from", $("#timelineFromDate")?.value || state.date);
-    params.set("to", $("#timelineToDate")?.value || state.date);
+    const range = readAppCustomRange();
+    params.set("from", range.from);
+    params.set("to", range.to);
   }
   const result = await api(`/api/app-usage?${params.toString()}`);
   const summary = result.app_usage_summary || {};
@@ -3238,6 +3265,7 @@ function bindEvents() {
     state.appPeriod = "day";
     state.appUsage = null;
     state.appUsageMeta = { days: 1, start_day: state.date, end_day: state.date, period: "day" };
+    state.appCustomRange = { from: addDays(state.date, -6), to: state.date };
     loadSummary().catch((error) => toast(error.message));
   });
   $("#refreshButton").addEventListener("click", () => loadSummary().then(() => toast("已刷新")));
@@ -3472,6 +3500,13 @@ function bindEvents() {
   $$(".app-periods [data-app-period]").forEach((button) => {
     button.addEventListener("click", () => loadAppUsage(button.dataset.appPeriod || "day").catch((error) => toast(error.message)));
   });
+  $("#appFromDate").addEventListener("change", (event) => {
+    state.appCustomRange.from = event.target.value;
+  });
+  $("#appToDate").addEventListener("change", (event) => {
+    state.appCustomRange.to = event.target.value;
+  });
+  $("#applyAppRange").addEventListener("click", () => loadAppUsage("custom").catch((error) => toast(error.message)));
   $("#toggleManualActivity").addEventListener("click", toggleManualActivity);
   $("#manualActivityForm").addEventListener("submit", saveManualActivity);
   $("#resetManualActivity").addEventListener("click", () => resetManualActivity(true));
