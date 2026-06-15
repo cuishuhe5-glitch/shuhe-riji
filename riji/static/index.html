@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-heatmap-range" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-app-custom-range" />
   </head>
   <body>
     <div class="shell">
@@ -490,6 +490,12 @@
                   <button type="button" data-app-period="month">本月</button>
                   <button type="button" data-app-period="custom">自定义</button>
                 </div>
+              </div>
+              <div class="app-custom-range" id="appCustomRange" hidden>
+                <input id="appFromDate" type="date" />
+                <span>至</span>
+                <input id="appToDate" type="date" />
+                <button class="button subtle compact-button" id="applyAppRange" type="button">应用</button>
               </div>
               <div class="app-summary-grid">
                 <div class="metric">
@@ -1452,6 +1458,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-heatmap-range"></script>
+    <script src="/static/app.js?v=20260615-app-custom-range"></script>
   </body>
 </html>
