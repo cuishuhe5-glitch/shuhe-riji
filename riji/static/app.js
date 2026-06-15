@@ -358,19 +358,36 @@ function renderOverviewDisplays(displays) {
     ? physical
         .map(
           (item) => `
-          <div class="display-item overview-display-item ${item.scope === selected || (selected === "all" && item.primary) ? "selected" : ""}">
+          <div class="display-item overview-display-item ${displaySelected(item, selected) ? "selected" : ""}">
             <div class="display-index">${item.index}</div>
-            <div>
-              <strong>${escapeHtml(item.name)}</strong>
-              <span>${escapeHtml(`${item.width} × ${item.height}`)}${item.primary ? " · 主显示器" : ""}</span>
-              ${renderDisplayMetaChips(item, item.scope === selected || selected === "all")}
-              <small>${escapeHtml(`${displayCaptureHint(item, selected, physical.length)} · 坐标 ${item.left}, ${item.top}`)}</small>
+            <div class="overview-display-body">
+              <div class="overview-display-title">
+                <strong>${escapeHtml(item.name)}</strong>
+                <span>${escapeHtml(displayStatusLabel(item, selected))}</span>
+              </div>
+              <div class="overview-display-facts">
+                <span>${escapeHtml(`${item.width} × ${item.height}`)}</span>
+                <span>${escapeHtml(`坐标 ${item.left}, ${item.top}`)}</span>
+                <span>${escapeHtml(displayCaptureHint(item, selected, physical.length))}</span>
+              </div>
+              ${renderDisplayMetaChips(item, displaySelected(item, selected))}
             </div>
           </div>
         `,
         )
         .join("")
     : `<div class="empty display-empty">${escapeHtml(displays?.error || "暂未检测到显示器。")}</div>`;
+}
+
+function displaySelected(item, selected) {
+  return item.scope === selected || selected === "all";
+}
+
+function displayStatusLabel(item, selected) {
+  if (selected === "all") return "全部采集";
+  if (item.scope === selected) return "当前采集";
+  if (item.primary) return "主显示器";
+  return "未采集";
 }
 
 function renderDisplayMetaChips(item, selected = false) {
@@ -3665,6 +3682,13 @@ function bindEvents() {
   $("#captureScopeInput").addEventListener("change", () => {
     renderDisplays(state.data?.displays);
     state.settingsTouched = true;
+  });
+  $("#overviewOpenDisplaySettings").addEventListener("click", () => {
+    navigateTo("settings");
+    setTimeout(() => {
+      $("#captureScopeInput")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      $("#captureScopeInput")?.focus();
+    }, 80);
   });
   $("#displayList").addEventListener("click", (event) => {
     const button = event.target.closest("[data-display-scope]");
