@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-history-count-label" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-agent-service-pill" />
   </head>
   <body>
     <div class="shell">
@@ -593,10 +593,10 @@
                     <p>其他 Agent 可通过以下地址接入</p>
                   </div>
                 </div>
-                <button class="button subtle compact-button" id="agentOpenLogs" type="button">请求日志</button>
-                <div class="agent-service-url">
+                <div class="agent-service-actions">
+                  <button class="button subtle compact-button" id="agentOpenLogs" type="button">请求日志</button>
                   <code id="agentServiceUrl">http://127.0.0.1:8765</code>
-                  <button class="button subtle compact-button" id="copyAgentServiceUrl" type="button">复制地址</button>
+                  <button class="button subtle compact-button" id="copyAgentServiceUrl" type="button">复制</button>
                 </div>
               </div>
               <div class="agent-endpoint-card">
@@ -1515,6 +1515,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-history-count-label"></script>
+    <script src="/static/app.js?v=20260615-agent-service-pill"></script>
   </body>
 </html>
