@@ -2564,7 +2564,24 @@ select {
 .heatmap-toolbar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
+}
+
+.heatmap-quick-ranges {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.heatmap-quick-ranges .text-button {
+  white-space: nowrap;
+}
+
+.heatmap-quick-ranges .active {
+  color: var(--accent-strong);
+  font-weight: 800;
 }
 
 .heatmap-toolbar input {
