@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-timeline-actions-clean" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-timeline-filter-clean" />
   </head>
   <body>
     <div class="shell">
@@ -388,7 +388,7 @@
                   <strong id="timelineActivePeriod">暂无</strong>
                   <span>活跃时段</span>
                 </div>
-                <div class="segmented">
+                <div class="segmented timeline-type-filter" hidden>
                   <button class="active" data-filter="all">全部</button>
                   <button data-filter="work">工作</button>
                   <button data-filter="rest">休息</button>
@@ -408,7 +408,7 @@
                     </div>
                   </div>
                 </div>
-                <p class="path-note" id="timelineCategoryMeta">按时间段估算</p>
+                <p class="path-note timeline-category-meta" id="timelineCategoryMeta" hidden>按时间段估算</p>
                 <div class="timeline-category-chart" id="timelineCategoryChart"></div>
               </section>
               <div class="search-panel">
@@ -1516,6 +1516,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-timeline-actions-clean"></script>
+    <script src="/static/app.js?v=20260615-timeline-filter-clean"></script>
   </body>
 </html>
