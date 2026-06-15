@@ -3620,6 +3620,34 @@ select {
   background: var(--surface-soft);
 }
 
+.report-config-card .mini-head strong,
+.template-picker-card .mini-head strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.report-config-card .mini-head strong::before,
+.template-picker-card .mini-head strong::before {
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 6px;
+  background: #e8f8ef;
+  color: var(--accent-strong);
+  font-size: 12px;
+  line-height: 1;
+}
+
+.report-config-card .mini-head strong::before {
+  content: "✣";
+}
+
+.template-picker-card .mini-head strong::before {
+  content: "▧";
+}
+
 .template-picker-card .mini-head span,
 .template-preview-card .mini-head span {
   color: var(--muted);
