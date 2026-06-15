@@ -1530,6 +1530,7 @@ function renderTimeHeatmap(heatmap) {
   state.heatmapRange = { from: start, to: end };
   if ($("#heatmapFromDate")) $("#heatmapFromDate").value = start;
   if ($("#heatmapToDate")) $("#heatmapToDate").value = end;
+  syncHeatmapQuickRanges();
   if ($("#heatmapTotalRecords")) $("#heatmapTotalRecords").textContent = total;
   if ($("#heatmapFocusTime")) $("#heatmapFocusTime").textContent = total ? formatDuration(workMinutes) : "0min";
   if ($("#heatmapActiveDays")) $("#heatmapActiveDays").textContent = activeDays;
@@ -1600,6 +1601,34 @@ function readHeatmapRange() {
   let to = $("#heatmapToDate")?.value || fallbackTo;
   if (from > to) [from, to] = [to, from];
   return { from, to };
+}
+
+function setHeatmapQuickRange(days) {
+  const length = Math.max(1, Number(days) || 7);
+  const to = state.date || localDateString();
+  const from = addDays(to, -(length - 1));
+  state.heatmapRange = { from, to };
+  if ($("#heatmapFromDate")) $("#heatmapFromDate").value = from;
+  if ($("#heatmapToDate")) $("#heatmapToDate").value = to;
+  syncHeatmapQuickRanges();
+  setHeatmapPendingRangeStatus(from, to);
+}
+
+function syncHeatmapQuickRanges() {
+  const from = $("#heatmapFromDate")?.value || state.heatmapRange.from || "";
+  const to = $("#heatmapToDate")?.value || state.heatmapRange.to || "";
+  $$(".heatmap-quick-ranges [data-heatmap-range]").forEach((button) => {
+    const days = Math.max(1, Number(button.dataset.heatmapRange) || 0);
+    const active = Boolean(days && to && from === addDays(to, -(days - 1)));
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
+  });
+}
+
+function setHeatmapPendingRangeStatus(from, to) {
+  const status = $("#heatmapRangeStatus");
+  if (!status) return;
+  status.textContent = `待生成区间：${from} 至 ${to} · 点击“生成热力图”刷新`;
 }
 
 async function refreshHeatmapRange() {
@@ -3840,10 +3869,15 @@ function bindEvents() {
   $("#heatmapFromDate").addEventListener("change", (event) => {
     state.heatmapRange.from = event.target.value;
     syncHeatmapRangeStatus();
+    syncHeatmapQuickRanges();
   });
   $("#heatmapToDate").addEventListener("change", (event) => {
     state.heatmapRange.to = event.target.value;
     syncHeatmapRangeStatus();
+    syncHeatmapQuickRanges();
+  });
+  $$(".heatmap-quick-ranges [data-heatmap-range]").forEach((button) => {
+    button.addEventListener("click", () => setHeatmapQuickRange(button.dataset.heatmapRange));
   });
   $("#timelineExportData").addEventListener("click", (event) => exportTimelineActivities(event.currentTarget));
   $("#copyTimelineLog").addEventListener("click", () => copyTimelineLog().catch((error) => toast(error.message)));
