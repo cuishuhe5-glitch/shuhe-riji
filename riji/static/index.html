@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-agent-logs" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-report-range" />
   </head>
   <body>
     <div class="shell">
@@ -879,15 +879,34 @@
                   <section class="report-config-card">
                     <div class="mini-head">
                       <strong>报告配置</strong>
-                      <span>选择要生成的报告周期</span>
+                      <span>配置周期、范围与模板</span>
                     </div>
-                    <div class="report-kind-tabs" id="reportKindTabs">
-                      <button class="active" type="button" data-kind-value="day">日报</button>
-                      <button type="button" data-kind-value="week">周报</button>
-                      <button type="button" data-kind-value="month">月报</button>
+                    <div class="report-config-grid">
+                      <div class="report-config-block">
+                        <div class="config-label">
+                          <strong>报告类型</strong>
+                          <span>选择要生成的报告周期</span>
+                        </div>
+                        <div class="report-kind-tabs" id="reportKindTabs">
+                          <button class="active" type="button" data-kind-value="day">日报</button>
+                          <button type="button" data-kind-value="week">周报</button>
+                          <button type="button" data-kind-value="month">月报</button>
+                        </div>
+                      </div>
+                      <div class="report-config-block">
+                        <div class="config-label">
+                          <strong>时间范围</strong>
+                          <span>默认根据报告类型确定，可手动修改</span>
+                        </div>
+                        <div class="report-date-range">
+                          <input id="reportStartDate" type="date" aria-label="报告开始日期" />
+                          <span>至</span>
+                          <input id="reportEndDate" type="date" aria-label="报告结束日期" />
+                        </div>
+                      </div>
                     </div>
                     <div class="report-controls">
-                      <select id="kindSelect" aria-label="报告类型">
+                      <select id="kindSelect" aria-label="报告类型" hidden>
                         <option value="day">日报</option>
                         <option value="week">周报</option>
                         <option value="month">月报</option>
@@ -1397,6 +1416,6 @@
         </div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-agent-logs"></script>
+    <script src="/static/app.js?v=20260615-report-range"></script>
   </body>
 </html>

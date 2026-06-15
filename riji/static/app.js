@@ -29,6 +29,7 @@ const state = {
   summarySeq: 0,
   logs: null,
   requestLogs: null,
+  reportRangeTouched: false,
   search: {
     query: "",
     category: "",
@@ -735,6 +736,7 @@ function renderReportKindTabs() {
   $$("#reportKindTabs [data-kind-value]").forEach((button) => {
     button.classList.toggle("active", button.dataset.kindValue === value);
   });
+  syncReportDateRange();
   renderTemplateSelection();
 }
 
@@ -797,8 +799,7 @@ function templateSourceLabel(item) {
 function renderTemplatePreview(item, selected) {
   if (!item && !selected) return `<div class="empty">选择模板后查看结构。</div>`;
   const kind = reportKindLabel($("#kindSelect")?.value || "day");
-  const start = $("#reportStartDate")?.value || reportRangeForKind($("#kindSelect")?.value || "day").start;
-  const end = $("#reportEndDate")?.value || reportRangeForKind($("#kindSelect")?.value || "day").end;
+  const { start, end } = currentReportRange($("#kindSelect")?.value || "day");
   const title = item?.name || selected || "报告模板";
   const source = templateSourceLabel(item);
   const lines = String(item?.preview || state.data?.style_descriptions?.[selected] || "今日工作\n- ...\n\n进展与产出\n- ...\n\n明日计划\n- ...")
@@ -867,6 +868,7 @@ function renderOverview(data) {
   const topApp = data.top_apps[0];
   if ($("#timelineFromDate")) $("#timelineFromDate").value = state.search.from || data.day;
   if ($("#timelineToDate")) $("#timelineToDate").value = state.search.to || data.day;
+  syncReportDateRange({ force: !state.reportRangeTouched });
   $("#totalCount").textContent = data.total;
   $("#topCategory").textContent = topCategory ? topCategory.name : "暂无";
   $("#topCategoryMeta").textContent = topCategory ? `${topCategory.percent}% / ${topCategory.count} 条` : "等待记录";
@@ -1894,6 +1896,34 @@ function reportRangeForKind(kind, day = state.date) {
   return { start: day, end: day };
 }
 
+function currentReportRange(kind = $("#kindSelect")?.value || "day") {
+  const fallback = reportRangeForKind(kind);
+  const start = $("#reportStartDate")?.value || fallback.start;
+  const end = $("#reportEndDate")?.value || fallback.end;
+  return start <= end ? { start, end } : { start: end, end: start };
+}
+
+function currentReportRangeLabel(kind = $("#kindSelect")?.value || "day") {
+  const { start, end } = currentReportRange(kind);
+  return start === end ? start : `${start} ~ ${end}`;
+}
+
+function syncReportDateRange({ force = false } = {}) {
+  const startInput = $("#reportStartDate");
+  const endInput = $("#reportEndDate");
+  if (!startInput || !endInput) return;
+  if (state.reportRangeTouched && !force) return;
+  const range = reportRangeForKind($("#kindSelect")?.value || "day");
+  startInput.value = range.start;
+  endInput.value = range.end;
+}
+
+function handleReportKindChange() {
+  state.reportRangeTouched = false;
+  syncReportDateRange({ force: true });
+  renderReportKindTabs();
+}
+
 function safeDownloadName(value) {
   return String(value || "书赫报告")
     .replace(/[\\/:*?"<>|]+/g, "-")
@@ -2423,6 +2453,7 @@ async function generateReport() {
   const button = $("#generateReport");
   const kind = $("#kindSelect").value;
   const style = $("#styleSelect").value;
+  const { start, end } = currentReportRange(kind);
   button.disabled = true;
   button.textContent = "生成中";
   setReportPreview("正在调用本地模型生成报告...", { reportId: null, dirty: false, meta: null });
@@ -2430,7 +2461,9 @@ async function generateReport() {
     const result = await api("/api/report", {
       method: "POST",
       body: JSON.stringify({
-        date: state.date,
+        date: end,
+        start_date: start,
+        end_date: end,
         kind,
         style,
         instruction: $("#reportInstructionInput").value,
@@ -2439,7 +2472,7 @@ async function generateReport() {
     setReportPreview(result.text || "模型没有返回内容。", {
       reportId: result.report_id || null,
       dirty: false,
-      meta: result.report_id ? { day: state.date, range: reportRangeLabel(state.date, kind), kind: reportKindLabel(kind), style } : null,
+      meta: result.report_id ? { day: end, range: currentReportRangeLabel(kind), kind: reportKindLabel(kind), style } : null,
     });
     state.data.reports = result.reports || state.data.reports || [];
     renderReports(state.data.reports);
@@ -2654,6 +2687,7 @@ function selectDay(day) {
   if (!day || day === state.date) return;
   state.date = day;
   state.dayNoteTouched = false;
+  state.reportRangeTouched = false;
   $("#dateInput").value = day;
   loadSummary().catch((error) => toast(error.message));
 }
@@ -2668,7 +2702,9 @@ async function loadReport(id) {
   });
   if (report.day) {
     state.date = report.day;
+    state.reportRangeTouched = false;
     $("#dateInput").value = report.day;
+    syncReportDateRange({ force: true });
     loadSummary().catch((error) => toast(error.message));
   }
   const kindValue = reportKindValue(report.kind);
@@ -2895,6 +2931,7 @@ function bindEvents() {
   $("#dateInput").addEventListener("change", (event) => {
     state.date = event.target.value;
     state.dayNoteTouched = false;
+    state.reportRangeTouched = false;
     loadSummary().catch((error) => toast(error.message));
   });
   $("#refreshButton").addEventListener("click", () => loadSummary().then(() => toast("已刷新")));
@@ -2918,12 +2955,22 @@ function bindEvents() {
   $("#settingsCaptureNow").addEventListener("click", () => captureNow().catch((error) => toast(error.message)));
   $("#generateReport").addEventListener("click", generateReport);
   $("#styleSelect").addEventListener("change", renderStyleHint);
-  $("#kindSelect").addEventListener("change", renderReportKindTabs);
+  $("#kindSelect").addEventListener("change", handleReportKindChange);
   $("#reportKindTabs").addEventListener("click", (event) => {
     const button = event.target.closest("[data-kind-value]");
     if (!button) return;
     $("#kindSelect").value = button.dataset.kindValue;
-    renderReportKindTabs();
+    handleReportKindChange();
+  });
+  $("#reportStartDate").addEventListener("change", () => {
+    state.reportRangeTouched = true;
+    renderTemplateSelection();
+  });
+  $("#reportEndDate").addEventListener("change", (event) => {
+    state.reportRangeTouched = true;
+    state.date = event.target.value || state.date;
+    $("#dateInput").value = state.date;
+    renderTemplateSelection();
   });
   $("#templateGrid").addEventListener("click", (event) => {
     const button = event.target.closest("[data-template-name]");

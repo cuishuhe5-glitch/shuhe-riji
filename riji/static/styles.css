@@ -2981,8 +2981,12 @@ select {
 
 .report-controls {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
+}
+
+.report-controls select[hidden] {
+  display: none;
 }
 
 .report-top-actions {
@@ -3008,6 +3012,56 @@ select {
 .report-kind-tabs {
   display: flex;
   gap: 10px;
+}
+
+.report-config-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) minmax(260px, 1.05fr);
+  gap: 18px;
+  align-items: end;
+}
+
+.report-config-block {
+  display: grid;
+  gap: 10px;
+}
+
+.config-label {
+  display: grid;
+  gap: 4px;
+}
+
+.config-label strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.config-label span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.report-date-range {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.report-date-range span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.report-date-range input {
+  height: 38px;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: #26342f;
 }
 
 .report-kind-tabs button {
@@ -4448,6 +4502,8 @@ select {
   .app-summary-grid,
   .report-filter-bar,
   .report-date-filter-bar,
+  .report-config-grid,
+  .report-date-range,
   .report-workspace,
   .template-grid,
   .search-grid,

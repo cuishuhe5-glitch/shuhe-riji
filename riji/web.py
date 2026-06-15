@@ -572,6 +572,8 @@ def _agent_docs() -> str:
 ```json
 {{
   "date": "2026-06-15",
+  "start_date": "2026-06-09",
+  "end_date": "2026-06-15",
   "kind": "day",
   "style": "成果导向",
   "instruction": "写给老板看，突出产出和风险"
@@ -673,6 +675,23 @@ def _report_source_rows(day: str, kind: str) -> tuple[str, str, list[db.sqlite3.
         start = end - timedelta(days=29)
         return start.strftime("%Y-%m-%d"), day, db.activities_between(start.strftime("%Y-%m-%d"), day)
     return day, day, db.activities_for_day(day)
+
+
+def _normalize_report_range(day: str, kind: str, start_value: Any = None, end_value: Any = None) -> tuple[str, str]:
+    def clean(value: Any, fallback: str) -> str:
+        text = str(value or fallback).strip()
+        try:
+            datetime.strptime(text, "%Y-%m-%d")
+        except ValueError:
+            return fallback
+        return text
+
+    fallback_start, fallback_end, _rows = _report_source_rows(day, kind)
+    start_day = clean(start_value, fallback_start)
+    end_day = clean(end_value, fallback_end)
+    if start_day > end_day:
+        start_day, end_day = end_day, start_day
+    return start_day, end_day
 
 
 def _chat_context(rows: list[db.sqlite3.Row], label: str) -> str:
@@ -1886,9 +1905,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
             instruction = str(body.get("instruction") or "").strip()
             day = body.get("date") or date.today().strftime("%Y-%m-%d")
             try:
-                start_day, end_day, rows = _report_source_rows(day, kind)
+                start_day, end_day = _normalize_report_range(day, kind, body.get("start_date"), body.get("end_date"))
+                rows = db.activities_for_day(end_day) if start_day == end_day else db.activities_between(start_day, end_day)
                 if not rows:
-                    label = day if start_day == end_day else f"{start_day} ~ {end_day}"
+                    label = end_day if start_day == end_day else f"{start_day} ~ {end_day}"
                     report_name = {"day": "日报", "week": "周报", "month": "月报"}.get(kind, "报告")
                     self._send_json(
                         {
@@ -1900,28 +1920,24 @@ class DashboardHandler(BaseHTTPRequestHandler):
                         }
                     )
                     return
-                if kind == "week":
-                    text = report.weekly_report(
-                        day,
-                        style=style,
-                        instruction=instruction,
-                        custom_styles=runtime["custom_report_styles"],
-                    )
-                elif kind == "month":
-                    text = report.monthly_report(
-                        day,
+                report_name = {"day": "日报", "week": "周报", "month": "月报"}.get(kind, "报告")
+                if kind == "day" and start_day == end_day:
+                    text = report.daily_report(
+                        end_day,
                         style=style,
                         instruction=instruction,
                         custom_styles=runtime["custom_report_styles"],
                     )
                 else:
-                    text = report.daily_report(
-                        day,
+                    text = report.range_report(
+                        start_day,
+                        end_day,
+                        report_name,
                         style=style,
                         instruction=instruction,
                         custom_styles=runtime["custom_report_styles"],
                     )
-                report_id = db.add_report(day=day, kind={"day": "日报", "week": "周报", "month": "月报"}.get(kind, kind), style=style, body=text)
+                report_id = db.add_report(day=end_day, kind=report_name, style=style, body=text)
                 self._send_json({"ok": True, "text": text, "report_id": report_id, "reports": _reports_list()})
             except Exception as exc:
                 self._send_json({"ok": False, "error": str(exc)}, status=500)
