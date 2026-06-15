@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-overview-brand" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-timeline-category-mode" />
   </head>
   <body>
     <div class="shell">
@@ -376,10 +376,16 @@
               <section class="timeline-category-card">
                 <div class="mini-head">
                   <strong>分类时长分布</strong>
-                  <label class="inline-check">
-                    <input id="showTimelineCategory" type="checkbox" checked />
-                    <span>显示分类时长分布</span>
-                  </label>
+                  <div class="timeline-category-actions">
+                    <label class="inline-check">
+                      <input id="showTimelineCategory" type="checkbox" checked />
+                      <span>显示分类时长分布</span>
+                    </label>
+                    <div class="segmented tiny timeline-category-modes">
+                      <button class="active" type="button" data-timeline-category-mode="bar">柱状图</button>
+                      <button type="button" data-timeline-category-mode="pie">饼图</button>
+                    </div>
+                  </div>
                 </div>
                 <p class="path-note" id="timelineCategoryMeta">按时间段估算</p>
                 <div class="timeline-category-chart" id="timelineCategoryChart"></div>
@@ -1422,6 +1428,6 @@
         </div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-overview-brand"></script>
+    <script src="/static/app.js?v=20260615-timeline-category-mode"></script>
   </body>
 </html>
