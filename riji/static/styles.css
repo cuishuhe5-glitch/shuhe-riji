@@ -356,7 +356,7 @@ select {
 }
 
 .top-actions[hidden] {
-  display: none;
+  display: none !important;
 }
 
 .date-control {
