@@ -2361,8 +2361,18 @@ function syncReportConfigSummary() {
   const kind = reportKindLabel(kindValue);
   const range = currentReportRangeLabel(kindValue);
   const template = $("#styleSelect")?.value || "标准";
-  const instruction = $("#reportInstructionInput")?.value.trim() ? "已加自定义指令" : "未加自定义指令";
+  const hasInstruction = Boolean($("#reportInstructionInput")?.value.trim());
+  const instruction = hasInstruction ? "已加自定义指令" : "未加自定义指令";
   el.textContent = `当前配置：${kind} · ${range} · ${template} · ${instruction}`;
+  syncReportInstructionButton(hasInstruction);
+}
+
+function syncReportInstructionButton(hasInstruction = Boolean($("#reportInstructionInput")?.value.trim())) {
+  const button = $("#clearReportInstruction");
+  if (!button) return;
+  button.textContent = hasInstruction ? "已加指令" : "自定义指令";
+  button.classList.toggle("has-report-instruction", hasInstruction);
+  button.setAttribute("aria-pressed", hasInstruction ? "true" : "false");
 }
 
 function syncReportDateRange({ force = false } = {}) {
