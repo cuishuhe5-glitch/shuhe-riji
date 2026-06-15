@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-report-preview-sidebar" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-display-overview-focus" />
   </head>
   <body>
     <div class="shell">
@@ -244,7 +244,10 @@
               <div class="display-card overview-display-card">
                 <div class="mini-head">
                   <strong>已连接显示器</strong>
-                  <span id="overviewDisplayCount">-</span>
+                  <div class="display-head-actions">
+                    <span id="overviewDisplayCount">-</span>
+                    <button class="text-button" id="overviewOpenDisplaySettings" type="button">调整范围</button>
+                  </div>
                 </div>
                 <div class="display-list" id="overviewDisplayList"></div>
               </div>
@@ -1503,6 +1506,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-report-preview-sidebar"></script>
+    <script src="/static/app.js?v=20260615-display-overview-focus"></script>
   </body>
 </html>
