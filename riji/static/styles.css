@@ -3366,7 +3366,8 @@ select {
   position: relative;
   min-width: 0;
   display: grid;
-  gap: 5px;
+  grid-template-rows: auto minmax(32px, 1fr) auto;
+  gap: 7px;
   min-height: 124px;
   padding: 14px;
   border: 1px solid var(--line-soft);
@@ -3390,8 +3391,8 @@ select {
 }
 
 .template-card strong,
-.template-card small,
-.template-card em {
+.template-card em,
+.template-card-audience {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3406,12 +3407,17 @@ select {
 .template-card small {
   color: var(--muted);
   font-size: 11px;
+  line-height: 1.45;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
 .template-card-foot {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   margin-top: 4px;
 }
@@ -3425,6 +3431,12 @@ select {
   font-size: 11px;
   font-style: normal;
   font-weight: 800;
+}
+
+.template-card-audience {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .template-detail-button {
