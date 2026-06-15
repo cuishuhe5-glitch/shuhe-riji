@@ -888,6 +888,16 @@ function closeTemplateDetail() {
   state.templateDetailItem = null;
 }
 
+function focusReportInstruction() {
+  const card = $("#reportInstructionCard");
+  const input = $("#reportInstructionInput");
+  if (!card || !input) return;
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("is-focused");
+  input.focus();
+  toast("已定位到自定义指令");
+}
+
 function renderSearchControls(categories) {
   const select = $("#searchCategory");
   if (!select) return;
@@ -3224,8 +3234,9 @@ function bindEvents() {
   });
   $("#templateDetailClose").addEventListener("click", closeTemplateDetail);
   $("#templateDetailBackdrop").addEventListener("click", closeTemplateDetail);
-  $("#clearReportInstruction").addEventListener("click", () => {
-    $("#reportInstructionInput").focus();
+  $("#clearReportInstruction").addEventListener("click", focusReportInstruction);
+  $("#reportInstructionInput").addEventListener("input", () => {
+    $("#reportInstructionCard")?.classList.remove("is-focused");
   });
   $("#saveDayNote").addEventListener("click", () => saveDayNote().catch((error) => toast(error.message)));
   $("#dayNoteInput").addEventListener("input", () => {
