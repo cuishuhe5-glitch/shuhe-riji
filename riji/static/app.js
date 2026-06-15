@@ -131,6 +131,9 @@ function navigateTo(view, options = {}) {
       window.history[method](null, "", hash);
     }
   }
+  if (nextView === "agent") {
+    loadAgentDocs().catch(() => {});
+  }
   window.scrollTo({ top: 0, behavior: options.instant ? "auto" : "smooth" });
 }
 
@@ -501,17 +504,36 @@ function renderAgentDocs(text) {
     `本地 HTTP 服务地址：${serviceUrl}`,
     "",
     "【强制规则 — 必须遵守】",
-    `1. 每次处理用户请求前，你必须先调用 GET ${serviceUrl}/api/agent-docs 获取最新 API 文档。`,
-    `   如果只拿到了服务根地址，也可以用 GET ${serviceUrl}/?format=agent 读取同一份 Markdown 文档。`,
-    "   该接口返回的是一份 Markdown 格式的文档，其中详细说明当前所有可用接口、参数和响应结构。",
+    `1. 每次处理用户请求前，你必须先调用 GET ${serviceUrl}/ 获取最新 API 文档。`,
+    "   该接口返回的是一份 Markdown 格式的文档，其中详细说明了当前所有可用接口的路径、方法、参数、请求示例和响应示例。",
     "   绝对不可以依赖记忆中的固定 API 列表，必须以实时拉取的文档为准。",
     "",
     "2. 读取 Markdown 文档后，解析接口列表、参数定义、请求示例和响应结构，再动态选择接口并构造请求。",
     "",
-    "3. 所有能力都只读取本机数据；不要把数据库、截图或密钥发送到外部服务，除非用户明确要求。",
+    "3. 所有业务接口返回 JSON 格式；具体字段以实时 API 文档为准。",
     "",
-    "【已知能力范围】（仅供参考，实际以 GET /api/agent-docs 返回的 Markdown 文档为准）",
-    "• 今日工作、时间线、应用记录、报告历史、日报生成和项目上下文查询。",
+    "【已知能力范围】（仅供参考，实际以 GET / 返回的 Markdown 文档为准）",
+    "该服务目前通常暴露以下类型的数据查询能力：",
+    "• 工作时间线查询 - 支持按 startDate/endDate 查询指定日期范围内的工作记录。",
+    "• 工作报告查询 - 支持按 startDate/endDate 查询指定日期范围内的工作报告。",
+    "• 时段热力图查询 - 支持按 startDate/endDate 查询指定日期范围内每日的时段热力数据。",
+    "• 应用使用时长查询 - 支持按时间范围查询各应用的使用时长汇总。",
+    "",
+    "【请你执行】",
+    "请基于以上信息，自动完成以下接入任务：",
+    `1. 请求 GET ${serviceUrl}/ 拉取最新 Markdown 格式 API 文档`,
+    "2. 仔细阅读文档，解析接口列表、参数定义、请求示例和响应结构",
+    "3. 为用户创建一个名为「书赫日报助手数据查询」的 skill / tool",
+    "4. 该 skill 需支持用户通过自然语言查询以下内容：",
+    "   - 某段时间的工作时间线",
+    "   - 某段时间的工作报告",
+    "   - 某段时间的时段热力图",
+    "   - 某段时间的应用使用时长统计",
+    "",
+    "实现注意：",
+    "• 日期参数统一使用 YYYY-MM-DD 格式",
+    "• 当用户未指定日期时，默认查询今天的数据",
+    "• 本地查询不做分页，直接返回全量数据，无需处理翻页逻辑",
     "",
   ].join("\n");
   preview.textContent = text ? `${intro}${text}` : `${intro}正在读取本地 API 文档...`;
@@ -847,7 +869,6 @@ function renderStyleHint() {
   const style = $("#styleSelect").value;
   $("#styleHint").textContent = descriptions[style] || "选择报告模板后会显示要求。";
   renderTemplateSelection();
-  renderReportKindTabs();
 }
 
 function renderTemplateCatalog(catalog) {
@@ -983,21 +1004,9 @@ function openTemplateDetail(name) {
   const prompt = item.prompt || state.data?.style_descriptions?.[item.name] || "暂无模板说明。";
   const preview = item.preview || prompt;
   $("#templateDetailTitle").textContent = item.name;
-  $("#templateDetailMeta").textContent = `${source} · ${item.audience || "通用"}`;
-  $("#templateDetailBody").innerHTML = `
-    <div class="template-detail-section">
-      <strong>适用场景</strong>
-      <p>${escapeHtml(item.audience || item.group || "通用工作汇报")}</p>
-    </div>
-    <div class="template-detail-section">
-      <strong>模板说明</strong>
-      <p>${escapeHtml(prompt)}</p>
-    </div>
-    <div class="template-detail-section">
-      <strong>预览结构</strong>
-      <pre>${escapeHtml(preview)}</pre>
-    </div>
-  `;
+  $("#templateDetailSummary").textContent = prompt;
+  $("#templateDetailMeta").textContent = source;
+  $("#templateDetailBody").innerHTML = `<pre>${escapeHtml(preview)}</pre>`;
   $("#templateDetailModal").classList.add("show");
   $("#templateDetailModal").setAttribute("aria-hidden", "false");
 }
@@ -3288,6 +3297,108 @@ function toggleManualActivity() {
   }
 }
 
+function openAddRecordModal() {
+  $("#addRecordModal")?.classList.add("show");
+  $("#addRecordModal")?.setAttribute("aria-hidden", "false");
+}
+
+function closeAddRecordModal() {
+  $("#addRecordModal")?.classList.remove("show");
+  $("#addRecordModal")?.setAttribute("aria-hidden", "true");
+}
+
+function openTextManualActivity() {
+  closeAddRecordModal();
+  openTextRecordModal();
+}
+
+function openTextRecordModal() {
+  $("#textRecordModal")?.classList.add("show");
+  $("#textRecordModal")?.setAttribute("aria-hidden", "false");
+  $("#textRecordTitleInput").value = "";
+  $("#textRecordContent").value = "";
+  updateTextRecordSaveState();
+  $("#textRecordTitleInput").focus();
+}
+
+function closeTextRecordModal() {
+  $("#textRecordModal")?.classList.remove("show");
+  $("#textRecordModal")?.setAttribute("aria-hidden", "true");
+}
+
+function composeTextRecordSummary() {
+  const title = $("#textRecordTitleInput").value.trim();
+  const content = $("#textRecordContent").value.trim();
+  if (title && content) return `${title}\n\n${content}`;
+  return content;
+}
+
+function updateTextRecordSaveState() {
+  $("#textRecordSave").disabled = !$("#textRecordContent").value.trim();
+}
+
+function applyTextRecordFormat(format) {
+  const input = $("#textRecordContent");
+  const start = input.selectionStart ?? input.value.length;
+  const end = input.selectionEnd ?? start;
+  const selected = input.value.slice(start, end);
+  const fallback = selected || "内容";
+  const stripHeading = (value) => value.split("\n").map((line) => line.replace(/^#{1,6}\s+/, "")).join("\n");
+  const replacements = {
+    bold: `**${fallback}**`,
+    italic: `*${fallback}*`,
+    underline: `<u>${fallback}</u>`,
+    strike: `~~${fallback}~~`,
+    unordered: selected ? selected.split("\n").map((line) => `- ${line}`).join("\n") : "- 内容",
+    ordered: selected ? selected.split("\n").map((line, index) => `${index + 1}. ${line}`).join("\n") : "1. 内容",
+    divider: selected ? `${selected}\n\n---` : "\n---\n",
+    h1: `# ${fallback}`,
+    h2: `## ${fallback}`,
+    h3: `### ${fallback}`,
+    paragraph: stripHeading(fallback),
+  };
+  input.setRangeText(replacements[format] || fallback, start, end, "select");
+  input.focus();
+  updateTextRecordSaveState();
+}
+
+async function saveTextRecord() {
+  if (!$("#textRecordContent").value.trim()) {
+    updateTextRecordSaveState();
+    return;
+  }
+  const button = $("#textRecordSave");
+  const now = new Date();
+  button.disabled = true;
+  button.textContent = "保存中";
+  try {
+    const result = await api("/api/activities/create", {
+      method: "POST",
+      body: JSON.stringify({
+        day: state.date || localDateString(now),
+        time: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+        category: "其他",
+        summary: composeTextRecordSummary(),
+        app: "手动记录",
+        window_title: "文本记录",
+      }),
+    });
+    if (result.summary) {
+      state.data = result.summary;
+      state.date = state.data.day;
+      $("#dateInput").value = state.date;
+      render();
+    }
+    closeTextRecordModal();
+    toast("补记已保存");
+  } catch (error) {
+    toast(error.message);
+  } finally {
+    button.textContent = "保存";
+    updateTextRecordSaveState();
+  }
+}
+
 function resetManualActivity(clearSummary = true) {
   const now = new Date();
   $("#manualDay").value = state.date || localDateString(now);
@@ -3406,7 +3517,7 @@ function syncTimelineSearchStatus() {
   if (!status) return;
   const query = state.search.query || $("#timelineQuickSearch")?.value.trim() || "";
   const clearButton = $("#timelineClearSearch");
-  if (clearButton) clearButton.hidden = !Boolean(query || state.search.searched || state.search.from || state.search.to);
+  if (clearButton) clearButton.hidden = !Boolean(query || state.search.searched);
   const range = state.search.from || state.search.to ? `${state.search.from || "最早"} 至 ${state.search.to || "今天"}` : "当前日期";
   status.hidden = false;
   if (state.search.searched) {
@@ -3927,11 +4038,18 @@ function bindEvents() {
   $("#timelineExportData").addEventListener("click", (event) => exportTimelineActivities(event.currentTarget));
   $("#copyTimelineLog").addEventListener("click", () => copyTimelineLog().catch((error) => toast(error.message)));
   $("#reuseTimelineDay").addEventListener("click", reuseTimelineDayDraft);
-  $("#timelineAddRecord").addEventListener("click", () => {
-    if (!state.manualOpen) toggleManualActivity();
-    setManualRecordMode("text");
-    resetManualActivity(false);
-    $("#manualSummary").focus();
+  $("#timelineAddRecord").addEventListener("click", openAddRecordModal);
+  $("#addRecordClose").addEventListener("click", closeAddRecordModal);
+  $("#addRecordBackdrop").addEventListener("click", closeAddRecordModal);
+  $("#addRecordText").addEventListener("click", openTextManualActivity);
+  $("#addRecordImage").addEventListener("click", () => toast("传图记录入口暂未开放"));
+  $("#textRecordClose").addEventListener("click", closeTextRecordModal);
+  $("#textRecordBackdrop").addEventListener("click", closeTextRecordModal);
+  $("#textRecordCancel").addEventListener("click", closeTextRecordModal);
+  $("#textRecordSave").addEventListener("click", () => saveTextRecord().catch((error) => toast(error.message)));
+  $("#textRecordContent").addEventListener("input", updateTextRecordSaveState);
+  $$(".text-record-toolbar [data-text-record-format]").forEach((button) => {
+    button.addEventListener("click", () => applyTextRecordFormat(button.dataset.textRecordFormat));
   });
   $$(".timeline-quick-ranges [data-timeline-range]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -4146,6 +4264,8 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeTimelineDetail();
     if (event.key === "Escape") closeTemplateDetail();
+    if (event.key === "Escape") closeAddRecordModal();
+    if (event.key === "Escape") closeTextRecordModal();
   });
 
   [
