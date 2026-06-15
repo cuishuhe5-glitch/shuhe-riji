@@ -1441,6 +1441,14 @@ select {
   font-weight: 700;
 }
 
+.history-refresh-icon {
+  width: 34px;
+  min-width: 34px;
+  padding: 0;
+  font-size: 15px;
+  line-height: 1;
+}
+
 .history-report-table {
   overflow: auto;
   border: 1px solid var(--line-soft);
@@ -2314,6 +2322,10 @@ select {
   display: inline-flex;
   align-items: center;
   gap: 10px;
+}
+
+#overviewOpenDisplaySettings[hidden] {
+  display: none;
 }
 
 .activity-rhythm {

@@ -246,7 +246,7 @@
                   <strong>已连接显示器</strong>
                   <div class="display-head-actions">
                     <span id="overviewDisplayCount">-</span>
-                    <button class="text-button" id="overviewOpenDisplaySettings" type="button">调整范围</button>
+                    <button class="text-button" id="overviewOpenDisplaySettings" type="button" hidden>调整范围</button>
                   </div>
                 </div>
                 <div class="display-list" id="overviewDisplayList"></div>
@@ -916,7 +916,7 @@
                 <div class="history-filter-tools">
                   <input id="historySearchInput" type="search" placeholder="搜索报告..." />
                   <button class="button subtle compact-button history-clear-filter" id="historyClearFilters" type="button" hidden>清空筛选</button>
-                  <button class="button subtle compact-button" id="historyRefreshReports" type="button">刷新</button>
+                  <button class="button subtle compact-button history-refresh-icon" id="historyRefreshReports" type="button" aria-label="刷新历史报告" title="刷新">↻</button>
                   <button class="text-button history-open-dir" id="historyOpenReportsDir" type="button" hidden>打开目录</button>
                 </div>
               </div>
@@ -1516,6 +1516,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-overview-weekly-copy"></script>
+    <script src="/static/app.js?v=20260615-overview-display-clean"></script>
   </body>
 </html>
