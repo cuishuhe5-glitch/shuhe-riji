@@ -670,6 +670,10 @@ select {
   background: #f5fbf8;
 }
 
+.quick-start-card[hidden] {
+  display: none;
+}
+
 .quick-start-card.is-done {
   border-color: var(--line-soft);
   background: var(--surface-soft);
