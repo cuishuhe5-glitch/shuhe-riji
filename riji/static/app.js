@@ -15,8 +15,10 @@ const state = {
   agentDocs: "",
   reportFilters: {
     kind: "all",
-    range: "all",
+    range: "",
     query: "",
+    from: "",
+    to: "",
   },
   filter: "all",
   timelineRange: "today",
@@ -1460,7 +1462,7 @@ function renderReportHistoryTable(reports) {
   renderHistoryFilters();
   const filtered = filterReports(reports || []);
   const meta = $("#historyFilterMeta");
-  if (meta) meta.textContent = `显示 ${filtered.length}/${reports.length || 0} 份`;
+  if (meta) meta.textContent = filtered.length === (reports.length || 0) ? `共 ${filtered.length} 份` : `共 ${filtered.length} 份 / 全部 ${reports.length || 0} 份`;
   table.innerHTML = filtered.length
     ? `
       <div class="history-report-head">
@@ -1487,7 +1489,10 @@ function renderReportHistoryTable(reports) {
         )
         .join("")}
     `
-    : `<div class="empty report-empty">还没有历史报告。</div>`;
+    : `<div class="empty report-empty history-report-empty">
+        <strong>暂无报告记录，去生成第一份吧</strong>
+        <button class="button primary compact-button" type="button" data-history-generate>去生成报告</button>
+      </div>`;
 }
 
 function renderHistoryFilters() {
@@ -1500,33 +1505,48 @@ function renderHistoryFilters() {
   if ($("#historySearchInput") && $("#historySearchInput").value !== state.reportFilters.query) {
     $("#historySearchInput").value = state.reportFilters.query;
   }
+  if ($("#historyFromDate") && $("#historyFromDate").value !== state.reportFilters.from) {
+    $("#historyFromDate").value = state.reportFilters.from;
+  }
+  if ($("#historyToDate") && $("#historyToDate").value !== state.reportFilters.to) {
+    $("#historyToDate").value = state.reportFilters.to;
+  }
 }
 
 function filterReports(reports) {
-  const { kind, range, query } = state.reportFilters;
-  const start = reportRangeStart(range);
+  const { kind, from, to, query } = state.reportFilters;
   const needle = String(query || "").trim().toLowerCase();
   return reports.filter((item) => {
     if (kind !== "all" && item.kind !== kind) return false;
-    if (start && String(item.day || "") < start) return false;
+    if (from && String(item.day || "") < from) return false;
+    if (to && String(item.day || "") > to) return false;
     if (needle && ![item.title, item.kind, item.style, item.preview].some((value) => String(value || "").toLowerCase().includes(needle))) return false;
     return true;
   });
 }
 
-function reportRangeStart(range) {
+function historyRangeDates(range) {
   const today = new Date(`${localDateString()}T00:00:00`);
   if (range === "7" || range === "30") {
-    return localDateString(new Date(today.getTime() - (Number(range) - 1) * 86400000));
+    return {
+      from: localDateString(new Date(today.getTime() - (Number(range) - 1) * 86400000)),
+      to: localDateString(today),
+    };
   }
   if (range === "week") {
     const day = today.getDay() || 7;
-    return localDateString(new Date(today.getTime() - (day - 1) * 86400000));
+    return {
+      from: localDateString(new Date(today.getTime() - (day - 1) * 86400000)),
+      to: localDateString(today),
+    };
   }
   if (range === "month") {
-    return `${localDateString().slice(0, 7)}-01`;
+    return {
+      from: `${localDateString().slice(0, 7)}-01`,
+      to: localDateString(today),
+    };
   }
-  return "";
+  return { from: "", to: "" };
 }
 
 function renderChat(messages) {
@@ -2890,7 +2910,6 @@ function bindEvents() {
   });
   $("#refreshReports").addEventListener("click", () => refreshReports().catch((error) => toast(error.message)));
   $("#historyRefreshReports").addEventListener("click", () => refreshReports().catch((error) => toast(error.message)));
-  $("#historyArchiveAllReports").addEventListener("click", () => archiveAllReports().catch((error) => toast(error.message)));
   $("#historyKindFilter").addEventListener("click", (event) => {
     const button = event.target.closest("[data-report-kind]");
     if (!button) return;
@@ -2901,16 +2920,32 @@ function bindEvents() {
     const button = event.target.closest("[data-report-range]");
     if (!button) return;
     state.reportFilters.range = button.dataset.reportRange;
+    const dates = historyRangeDates(state.reportFilters.range);
+    state.reportFilters.from = dates.from;
+    state.reportFilters.to = dates.to;
     renderReportHistoryTable(state.data?.reports || []);
   });
   $("#historySearchInput").addEventListener("input", (event) => {
     state.reportFilters.query = event.target.value;
     renderReportHistoryTable(state.data?.reports || []);
   });
+  $("#historyFromDate").addEventListener("change", (event) => {
+    state.reportFilters.from = event.target.value;
+    state.reportFilters.range = "";
+    renderReportHistoryTable(state.data?.reports || []);
+  });
+  $("#historyToDate").addEventListener("change", (event) => {
+    state.reportFilters.to = event.target.value;
+    state.reportFilters.range = "";
+    renderReportHistoryTable(state.data?.reports || []);
+  });
   $("#historyReportTable").addEventListener("click", (event) => {
+    const generateButton = event.target.closest("[data-history-generate]");
     const loadButton = event.target.closest("[data-report-load]");
     const deleteButton = event.target.closest("[data-history-report-delete]");
-    if (deleteButton) {
+    if (generateButton) {
+      navigateTo("report");
+    } else if (deleteButton) {
       deleteReport(deleteButton.dataset.historyReportDelete).catch((error) => toast(error.message));
     } else if (loadButton) {
       loadReport(loadButton.dataset.reportLoad).catch((error) => toast(error.message));
