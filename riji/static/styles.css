@@ -47,6 +47,7 @@ select {
   flex-direction: column;
   gap: 24px;
   padding: 22px 18px;
+  overflow-y: auto;
   background: #fbfcfc;
   border-right: 1px solid var(--line);
 }
@@ -267,6 +268,8 @@ select {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+  max-width: 1180px;
+  margin: 0 auto;
 }
 
 .page-label,
@@ -383,19 +386,21 @@ select {
 
 .content-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 390px;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
   align-items: start;
+  max-width: 1180px;
+  margin: 0 auto;
 }
 
 .left-column {
-  display: grid;
-  gap: 16px;
+  display: contents;
   min-width: 0;
 }
 
 .panel {
   min-width: 0;
+  padding: 18px;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -411,9 +416,16 @@ select {
 }
 
 .right-column {
-  display: grid;
-  gap: 16px;
+  display: contents;
   min-width: 0;
+}
+
+[data-section][hidden] {
+  display: none !important;
+}
+
+[data-section].page-active {
+  width: 100%;
 }
 
 .report-panel,

@@ -32,10 +32,57 @@ const state = {
   },
   manualOpen: false,
   detailItem: null,
+  currentView: "overview",
 };
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
+
+const pageMeta = {
+  overview: { label: "今日工作", title: "你只管工作，日报交给我" },
+  trends: { label: "趋势", title: "工作趋势" },
+  heatmap: { label: "时段热力图", title: "时段热力图" },
+  timeline: { label: "工作时间线", title: "工作时间线" },
+  apps: { label: "应用记录", title: "应用记录" },
+  report: { label: "生成报告", title: "生成报告" },
+  "reports-history": { label: "历史报告", title: "历史报告" },
+  agent: { label: "接入 Agent", title: "接入 Agent" },
+  subscription: { label: "订阅", title: "订阅" },
+  invite: { label: "邀请激励", title: "邀请激励" },
+  privacy: { label: "隐私保护", title: "隐私保护" },
+  support: { label: "客服", title: "客服" },
+  notifications: { label: "通知中心", title: "通知中心" },
+  help: { label: "帮助", title: "帮助" },
+  settings: { label: "设置", title: "设置" },
+};
+
+function normalizeView(view) {
+  const name = String(view || "").replace(/^#/, "").trim();
+  return pageMeta[name] ? name : "overview";
+}
+
+function navigateTo(view, options = {}) {
+  const nextView = normalizeView(view);
+  state.currentView = nextView;
+  $$(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === nextView));
+  $$("[data-section]").forEach((section) => {
+    const active = section.dataset.section === nextView;
+    section.hidden = !active;
+    section.classList.toggle("page-active", active);
+  });
+  const meta = pageMeta[nextView] || pageMeta.overview;
+  $(".page-label").textContent = meta.label;
+  $(".topbar h2").textContent = meta.title;
+  document.body.dataset.view = nextView;
+  if (!options.skipHistory) {
+    const hash = `#${nextView}`;
+    if (window.location.hash !== hash) {
+      const method = options.replace ? "replaceState" : "pushState";
+      window.history[method](null, "", hash);
+    }
+  }
+  window.scrollTo({ top: 0, behavior: options.instant ? "auto" : "smooth" });
+}
 
 const defaultWorkCategories = [
   "编码开发",
@@ -2194,8 +2241,7 @@ function searchAppRecords(appName) {
   $("#searchCategory").value = "";
   $("#searchFrom").value = state.date;
   $("#searchTo").value = state.date;
-  $$(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === "timeline"));
-  document.querySelector('[data-section="timeline"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+  navigateTo("timeline");
   runSearch();
 }
 
@@ -2458,8 +2504,7 @@ function bindEvents() {
     }
   });
   $("#quickOpenHelp").addEventListener("click", () => {
-    $$(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === "help"));
-    document.querySelector('[data-section="help"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+    navigateTo("help");
   });
   $("#settingsCaptureNow").addEventListener("click", () => captureNow().catch((error) => toast(error.message)));
   $("#generateReport").addEventListener("click", generateReport);
@@ -2616,7 +2661,7 @@ function bindEvents() {
   $("#openApplicationsDir").addEventListener("click", () => openLocalPath("applications").catch((error) => toast(error.message)));
   $("#testAgentConnection").addEventListener("click", () => testModelConnection("#testAgentConnection", "#agentTestStatus"));
   $("#openAgentSettings").addEventListener("click", () => {
-    document.querySelector('[data-section="settings"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+    navigateTo("settings");
   });
   $("#privacyClearShots").addEventListener("click", () => clearShots().catch((error) => toast(error.message)));
   $("#privacyCreateBackup").addEventListener("click", () => createBackup().then(() => {
@@ -2629,7 +2674,7 @@ function bindEvents() {
   $("#helpOpenDataDir").addEventListener("click", () => openLocalPath("data").catch((error) => toast(error.message)));
   $("#helpOpenLogsDir").addEventListener("click", () => openLocalPath("logs").catch((error) => toast(error.message)));
   $("#helpOpenSettings").addEventListener("click", () => {
-    document.querySelector('[data-section="settings"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+    navigateTo("settings");
   });
   $("#checkReleaseUpdate").addEventListener("click", () => checkReleaseUpdate().catch((error) => toast(error.message)));
   $("#subscriptionOpenRelease").addEventListener("click", () => {
@@ -2647,7 +2692,7 @@ function bindEvents() {
     toast("下载链接已复制");
   });
   $("#supportOpenHelp").addEventListener("click", () => {
-    document.querySelector('[data-section="help"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+    navigateTo("help");
   });
   $("#supportTestAgent").addEventListener("click", () => testModelConnection("#supportTestAgent", "#supportStatus"));
   $("#supportOpenLogs").addEventListener("click", () => openLocalPath("logs").catch((error) => toast(error.message)));
@@ -2750,16 +2795,13 @@ function bindEvents() {
 
   $$(".nav-item").forEach((button) => {
     button.addEventListener("click", () => {
-      $$(".nav-item").forEach((item) => item.classList.remove("active"));
-      button.classList.add("active");
-      document.querySelector(`[data-section="${button.dataset.view}"]`)?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
+      navigateTo(button.dataset.view);
     });
   });
 }
 
+navigateTo(normalizeView(window.location.hash), { replace: true, instant: true });
 bindEvents();
+window.addEventListener("hashchange", () => navigateTo(window.location.hash, { replace: true, instant: true }));
 loadSummary().catch((error) => toast(error.message));
 window.setInterval(() => loadSummary().catch(() => {}), 15000);
