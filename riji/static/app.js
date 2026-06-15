@@ -336,7 +336,7 @@ function renderDisplays(displays) {
           (item) => `
           <button class="display-item ${item.scope === select.value ? "selected" : ""}" type="button" data-display-scope="${escapeHtml(item.scope)}">
             <strong>${escapeHtml(item.name)}</strong>
-            <span>${escapeHtml(`${item.width} × ${item.height}`)}${item.primary ? " · 主显示器" : ""}</span>
+            <span>${escapeHtml(displayResolutionLabel(item))}${item.primary ? " · 主显示器" : ""}</span>
             ${renderDisplayMetaChips(item, item.scope === select.value)}
             <small>坐标 ${escapeHtml(`${item.left}, ${item.top}`)}</small>
           </button>
@@ -366,7 +366,7 @@ function renderOverviewDisplays(displays) {
                 <span>${escapeHtml(displayStatusLabel(item, selected))}</span>
               </div>
               <div class="overview-display-facts">
-                <span>${escapeHtml(`${item.width} × ${item.height}`)}</span>
+                <span>${escapeHtml(displayResolutionLabel(item))}</span>
                 <span>${escapeHtml(`坐标 ${item.left}, ${item.top}`)}</span>
                 <span>${escapeHtml(displayCaptureHint(item, selected, physical.length))}</span>
               </div>
@@ -393,10 +393,18 @@ function renderDisplayMetaChips(item, selected = false) {
   const chips = [];
   if (item.primary) chips.push("主显示器");
   if (selected) chips.push("当前采集");
-  if (item.width && item.height) chips.push(`${item.width}×${item.height}`);
+  if (item.width && item.height) chips.push(displayResolutionLabel(item).replaceAll(" ", ""));
   return chips.length
     ? `<div class="display-meta-chips">${chips.map((chip) => `<em>${escapeHtml(chip)}</em>`).join("")}</div>`
     : "";
+}
+
+function displayResolutionLabel(item) {
+  const width = Number(item.physical_width || item.width || 0);
+  const height = Number(item.physical_height || item.height || 0);
+  const scale = Number(item.scale || 100);
+  const base = width && height ? `${width} × ${height}` : "-";
+  return scale > 100 ? `${base} · ${scale}%` : base;
 }
 
 function displayScopeSummary(items = [], selected = "primary") {
