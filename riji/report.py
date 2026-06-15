@@ -10,7 +10,7 @@ import requests
 
 from . import config, db, llm, timeline
 
-# 报告风格模板（标准/简洁/技术/OKR/复盘/管理汇报）
+# 报告风格模板（标准/简洁/技术/OKR/复盘/管理汇报等）
 STYLES = {
     "标准": "分『今日工作』『进展与产出』『明日计划』三部分，条理清晰，书面但不啰嗦。",
     "简洁": "用 3~6 条要点概括，每条一句话，不展开。",
@@ -18,6 +18,33 @@ STYLES = {
     "OKR": "按 Objective / Key Results 组织，量化产出，对齐目标。",
     "复盘": "按『事实』『判断』『问题/风险』『下一步』组织，突出可复用经验和阻塞。",
     "管理汇报": "面向上级，突出产出、进度、风险、需要支持事项，语气正式克制。",
+    "成果导向": "以业务成果和价值输出为核心，弱化流水账；先写结果，再写支撑动作、指标变化、风险和明日最重要事项。",
+    "会议驱动": "围绕会议、决策、行动项和跨部门协作展开，明确谁负责、下一步动作、截止时间和需要跟进的阻塞。",
+    "三句话": "只输出三句话：今天完成了什么、当前最重要的进展/问题、明天第一件事。",
+    "老板一分钟": "面向管理者快速阅读，控制在一分钟内读完；突出关键成果、风险、需要支持事项。",
+    "TOP3": "只保留今天最重要的三件事，每件事包含进展、价值和下一步。",
+    "项目推进": "按项目/模块组织，突出当前进度、已完成事项、风险、依赖和下一步里程碑。",
+    "开发者": "面向研发日报，突出代码、调试、架构、测试、上线、技术债和待解决问题。",
+    "产品运营": "面向产品/运营/增长岗位，突出用户反馈、需求推进、数据变化、活动执行和复盘结论。",
+    "设计工作": "面向设计工作汇报，突出方案产出、评审反馈、视觉/交互调整和后续交付。",
+}
+
+STYLE_META = {
+    "标准": {"group": "内置", "audience": "通用汇报", "preview": "今日工作\n- ...\n\n进展与产出\n- ...\n\n明日计划\n- ..."},
+    "简洁": {"group": "内置", "audience": "快速同步", "preview": "- 完成 ...\n- 推进 ...\n- 明日 ..."},
+    "技术": {"group": "岗位", "audience": "研发 / 技术团队", "preview": "技术进展\n- 模块：...\n问题与处理\n- ...\n下一步\n- ..."},
+    "OKR": {"group": "管理", "audience": "目标复盘", "preview": "Objective\n- ...\nKey Results\n- KR1: ...\n风险\n- ..."},
+    "复盘": {"group": "管理", "audience": "问题复盘", "preview": "事实\n- ...\n判断\n- ...\n问题/风险\n- ...\n下一步\n- ..."},
+    "管理汇报": {"group": "管理", "audience": "上级 / 管理层", "preview": "核心产出\n- ...\n风险与支持\n- ...\n明日重点\n- ..."},
+    "成果导向": {"group": "场景", "audience": "管理者 / 销售 / 运营", "preview": "今日核心成果\n- 成果一：...\n关键指标变化\n- ...\n风险与阻塞\n- ..."},
+    "会议驱动": {"group": "场景", "audience": "项目 / 产品 / 协作", "preview": "会议与决策\n- ...\n行动项\n- 负责人 / 截止时间\n待跟进\n- ..."},
+    "三句话": {"group": "极简", "audience": "下班快速发送", "preview": "1. 今天主要完成 ...\n2. 当前关键进展/问题是 ...\n3. 明天优先处理 ..."},
+    "老板一分钟": {"group": "极简", "audience": "老板 / 客户", "preview": "一句话总结：...\n关键成果：...\n风险/需要支持：..."},
+    "TOP3": {"group": "极简", "audience": "重点同步", "preview": "TOP1 ...\nTOP2 ...\nTOP3 ..."},
+    "项目推进": {"group": "场景", "audience": "研发 / 产品 / PMO", "preview": "项目 A\n- 进度：...\n- 风险：...\n项目 B\n- 下一步：..."},
+    "开发者": {"group": "岗位", "audience": "前端 / 后端 / AI / 运维", "preview": "代码与实现\n- ...\n调试/测试\n- ...\n技术风险\n- ..."},
+    "产品运营": {"group": "岗位", "audience": "产品 / 运营 / 增长", "preview": "需求/活动推进\n- ...\n数据与反馈\n- ...\n明日动作\n- ..."},
+    "设计工作": {"group": "岗位", "audience": "UI / 视觉 / 交互", "preview": "设计产出\n- ...\n评审反馈\n- ...\n交付计划\n- ..."},
 }
 
 STYLE_ALIASES = {
@@ -27,6 +54,25 @@ STYLE_ALIASES = {
 
 def available_styles(custom_styles: dict[str, str] | None = None) -> dict[str, str]:
     return {**STYLES, **(custom_styles or {})}
+
+
+def style_catalog(custom_styles: dict[str, str] | None = None) -> list[dict[str, str]]:
+    styles = available_styles(custom_styles)
+    catalog = []
+    for name, prompt in styles.items():
+        meta = STYLE_META.get(name, {})
+        custom = name not in STYLES
+        catalog.append(
+            {
+                "name": name,
+                "prompt": prompt,
+                "group": "自定义" if custom else meta.get("group", "内置"),
+                "audience": meta.get("audience", "自定义模板" if custom else "通用"),
+                "preview": meta.get("preview", prompt),
+                "source": "自定义" if custom else "内置",
+            }
+        )
+    return catalog
 
 
 def normalize_style(style: str | None, custom_styles: dict[str, str] | None = None) -> str:

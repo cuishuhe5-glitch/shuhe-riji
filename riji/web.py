@@ -482,6 +482,7 @@ def _summary(day: str) -> dict[str, Any]:
         "auto_report": AUTO_REPORTER.snapshot(),
         "styles": list(report.available_styles(runtime["custom_report_styles"]).keys()),
         "style_descriptions": report.available_styles(runtime["custom_report_styles"]),
+        "style_catalog": report.style_catalog(runtime["custom_report_styles"]),
         "activity_categories": runtime["activity_categories"],
         "work_categories": runtime["work_categories"],
         "displays": _displays_snapshot(runtime["capture_scope"]),
@@ -506,6 +507,82 @@ def _summary(day: str) -> dict[str, Any]:
         "project_context": _project_context_status(runtime),
         "release": RELEASE_INFO,
     }
+
+
+def _agent_docs() -> str:
+    return f"""# 书赫日报助手本地 API
+
+服务地址：`http://127.0.0.1:8765`
+
+## 使用规则
+
+1. 每次接入前先读取本文档，接口以当前返回为准。
+2. 所有接口仅访问本机数据，不需要上传用户文件。
+3. 生成报告前应先查询摘要或时间线，确认当天有记录。
+
+## 常用接口
+
+### GET /api/summary?date=YYYY-MM-DD
+
+获取某天的概览、时间线、分类、应用使用、报告模板、历史报告、隐私状态和模型状态。
+
+### GET /api/search?q=关键词&from=YYYY-MM-DD&to=YYYY-MM-DD&category=分类
+
+搜索活动记录。参数均可选，`q` 支持活动摘要、应用名和窗口标题。
+
+### POST /api/report
+
+生成日报、周报或月报。
+
+请求 JSON：
+
+```json
+{{
+  "date": "2026-06-15",
+  "kind": "day",
+  "style": "成果导向",
+  "instruction": "写给老板看，突出产出和风险"
+}}
+```
+
+`kind` 可取：`day`、`week`、`month`。
+
+### GET /api/reports
+
+读取历史报告列表。
+
+### GET /api/reports/{{id}}
+
+读取单份报告正文。
+
+### POST /api/activity
+
+手动补记一条活动。
+
+请求 JSON：
+
+```json
+{{
+  "ts": "2026-06-15T18:30:00",
+  "category": "文档写作",
+  "summary": "整理日报助手优化清单",
+  "app": "Codex",
+  "window_title": "书赫日报助手"
+}}
+```
+
+## 响应说明
+
+- 成功响应为 JSON。
+- 生成报告返回 `text`、`report_id` 和最新 `reports`。
+- 摘要接口返回 `items`、`segments`、`style_catalog`、`health`、`settings` 等字段。
+
+## 当前版本
+
+- 应用：书赫日报助手
+- Release：{RELEASE_INFO["version"]}
+- 数据目录：{config.DATA_DIR}
+"""
 
 
 def _day_note(day: str) -> dict[str, str]:
@@ -1622,6 +1699,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send_json({"logs": _logs_snapshot()})
         elif parsed.path == "/api/health":
             self._send_json({"health": _health()})
+        elif parsed.path == "/api/agent-docs":
+            self._send_text(_agent_docs(), content_type="text/markdown; charset=utf-8")
         elif parsed.path == "/api/release/check":
             self._send_json({"release_check": _release_check()})
         elif parsed.path == "/api/model-config":
@@ -1918,6 +1997,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
         payload = json.dumps(data, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Content-Length", str(len(payload)))
+        self.end_headers()
+        self.wfile.write(payload)
+
+    def _send_text(self, text: str, status: int = 200, content_type: str = "text/plain; charset=utf-8") -> None:
+        payload = text.encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
         self.wfile.write(payload)

@@ -374,6 +374,17 @@
                 <button class="button primary" id="testAgentConnection">测试连接</button>
                 <button class="button subtle" id="openAgentSettings">打开模型设置</button>
               </div>
+              <div class="agent-doc-card">
+                <div class="mini-head">
+                  <strong>Agent 接入说明</strong>
+                  <div class="mini-actions">
+                    <button class="text-button" id="refreshAgentDocs" type="button">刷新文档</button>
+                    <button class="text-button" id="copyAgentDocs" type="button">一键复制</button>
+                  </div>
+                </div>
+                <p class="path-note">把下面这段发给 Hermes、Claude、Codex 或其他 Agent，它会先读取实时 API 文档，再调用本地日报数据。</p>
+                <pre id="agentDocsPreview">正在读取本地 API 文档...</pre>
+              </div>
               <div class="agent-context-card">
                 <div class="mini-head">
                   <strong>项目上下文</strong>
@@ -433,6 +444,30 @@
                 <button class="button subtle" id="privacyClearShots">清理截图</button>
                 <button class="button subtle" id="privacyCreateBackup">本地备份</button>
                 <button class="button subtle" id="privacyOpenData">打开数据目录</button>
+              </div>
+              <div class="privacy-lifecycle">
+                <strong>数据生命周期</strong>
+                <div>
+                  <span>定时截图</span>
+                  <span>AI 识别</span>
+                  <span>保存文字记录</span>
+                  <span>删除截图</span>
+                </div>
+              </div>
+              <div class="privacy-faq">
+                <strong>常见疑问</strong>
+                <details open>
+                  <summary>截图会被长期保存吗？</summary>
+                  <p>隐私模式开启时，截图只用于当次识别，识别完成后不会进入长期留存。</p>
+                </details>
+                <details>
+                  <summary>数据会上传到云端吗？</summary>
+                  <p>活动记录、报告、聊天历史保存在本机 SQLite 数据库；AI 请求直连你配置的模型网关。</p>
+                </details>
+                <details>
+                  <summary>API Key 存在哪里？</summary>
+                  <p>macOS 上优先保存到钥匙串；面板不会回显完整密钥。</p>
+                </details>
               </div>
               <p class="path-note" id="privacyActionStatus">工作记录、报告和聊天历史只保存在本机数据库。</p>
             </section>
@@ -526,6 +561,22 @@
                   <button class="text-button" id="historyRefreshReports">刷新</button>
                 </div>
               </div>
+              <div class="report-filter-bar">
+                <div class="segmented" id="historyKindFilter">
+                  <button class="active" type="button" data-report-kind="all">全部</button>
+                  <button type="button" data-report-kind="日报">日报</button>
+                  <button type="button" data-report-kind="周报">周报</button>
+                  <button type="button" data-report-kind="月报">月报</button>
+                </div>
+                <div class="segmented" id="historyRangeFilter">
+                  <button class="active" type="button" data-report-range="all">全部日期</button>
+                  <button type="button" data-report-range="week">本周</button>
+                  <button type="button" data-report-range="month">本月</button>
+                  <button type="button" data-report-range="7">最近 7 天</button>
+                  <button type="button" data-report-range="30">最近 30 天</button>
+                </div>
+                <span id="historyFilterMeta">-</span>
+              </div>
               <div class="history-report-table" id="historyReportTable"></div>
             </section>
           </div>
@@ -548,6 +599,20 @@
                 <select id="styleSelect"></select>
               </div>
               <p class="style-hint" id="styleHint">选择报告模板后会显示要求。</p>
+              <div class="template-picker-card">
+                <div class="mini-head">
+                  <strong>选择报告模板</strong>
+                  <span id="templateCount">-</span>
+                </div>
+                <div class="template-grid" id="templateGrid"></div>
+              </div>
+              <div class="template-preview-card">
+                <div class="mini-head">
+                  <strong>模板预览</strong>
+                  <span id="templateSource">-</span>
+                </div>
+                <pre id="templatePreview">选择模板后查看结构。</pre>
+              </div>
 
               <div class="report-instruction-card">
                 <div class="mini-head">
@@ -773,6 +838,7 @@
                     <option value="all">全部显示器</option>
                   </select>
                 </label>
+                <p class="path-note">双屏办公时默认只记录主显示器；如果两块屏都承载工作，选择“全部显示器”。如副屏有微信、密码、客户敏感信息，建议只选主屏或指定某一块显示器。</p>
                 <div class="display-card">
                   <div class="mini-head">
                     <strong>已连接显示器</strong>
