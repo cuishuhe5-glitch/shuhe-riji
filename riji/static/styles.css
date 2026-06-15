@@ -2557,6 +2557,15 @@ select {
   font-weight: 700;
 }
 
+.heatmap-peak-hour {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .heatmap-legend i {
   width: 10px;
   height: 10px;
