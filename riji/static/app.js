@@ -869,7 +869,6 @@ function renderStyleHint() {
   const style = $("#styleSelect").value;
   $("#styleHint").textContent = descriptions[style] || "选择报告模板后会显示要求。";
   renderTemplateSelection();
-  renderReportKindTabs();
 }
 
 function renderTemplateCatalog(catalog) {
@@ -1005,21 +1004,9 @@ function openTemplateDetail(name) {
   const prompt = item.prompt || state.data?.style_descriptions?.[item.name] || "暂无模板说明。";
   const preview = item.preview || prompt;
   $("#templateDetailTitle").textContent = item.name;
-  $("#templateDetailMeta").textContent = `${source} · ${item.audience || "通用"}`;
-  $("#templateDetailBody").innerHTML = `
-    <div class="template-detail-section">
-      <strong>适用场景</strong>
-      <p>${escapeHtml(item.audience || item.group || "通用工作汇报")}</p>
-    </div>
-    <div class="template-detail-section">
-      <strong>模板说明</strong>
-      <p>${escapeHtml(prompt)}</p>
-    </div>
-    <div class="template-detail-section">
-      <strong>预览结构</strong>
-      <pre>${escapeHtml(preview)}</pre>
-    </div>
-  `;
+  $("#templateDetailSummary").textContent = prompt;
+  $("#templateDetailMeta").textContent = source;
+  $("#templateDetailBody").innerHTML = `<pre>${escapeHtml(preview)}</pre>`;
   $("#templateDetailModal").classList.add("show");
   $("#templateDetailModal").setAttribute("aria-hidden", "false");
 }

@@ -3612,7 +3612,7 @@ select {
 
 .report-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.75fr) minmax(320px, 0.85fr);
+  grid-template-columns: minmax(0, 1fr) clamp(220px, 17vw, 270px);
   gap: 18px;
   align-items: start;
 }
@@ -3756,10 +3756,8 @@ select {
 
 .template-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: 12px;
-  max-height: 520px;
-  overflow: auto;
   padding-right: 2px;
 }
 
@@ -4021,53 +4019,63 @@ select {
 }
 
 .template-detail-sheet {
+  width: min(720px, calc(100vw - 48px));
   max-width: 720px;
+  max-height: min(620px, calc(100vh - 72px));
+  border: 0;
+  box-shadow: 0 24px 80px rgba(17, 24, 39, 0.2);
+}
+
+.template-detail-sheet .detail-head {
+  padding: 16px 18px 8px;
+  border-bottom: 0;
+}
+
+.template-detail-sheet .detail-head h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+#templateDetailSummary {
+  margin: 8px 0 0;
+  color: #6b7471;
+  font-size: 12px;
+  line-height: 1.65;
 }
 
 .template-detail-sheet .detail-head span {
-  display: block;
-  margin-top: 5px;
-  color: var(--muted);
-  font-size: 12px;
+  display: inline-flex;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #e8f8ef;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.template-detail-sheet .detail-close {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  background: transparent;
+  color: #5d6663;
+  font-size: 18px;
 }
 
 .template-detail-body {
-  display: grid;
-  gap: 14px;
   overflow: auto;
-  padding: 18px;
+  padding: 0 18px 20px;
 }
 
-.template-detail-section {
-  display: grid;
-  gap: 8px;
-}
-
-.template-detail-section strong {
-  color: var(--ink);
-  font-size: 13px;
-}
-
-.template-detail-section p,
-.template-detail-section pre {
+.template-detail-body pre {
   margin: 0;
-  border: 1px solid var(--line-soft);
-  border-radius: 8px;
-  background: var(--surface-soft);
-  color: #33413e;
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.template-detail-section p {
-  padding: 12px;
-}
-
-.template-detail-section pre {
-  max-height: 280px;
-  overflow: auto;
-  padding: 12px;
+  color: #37413e;
   white-space: pre-wrap;
+  word-break: break-word;
+  font: 12px/1.75 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
 .generated-report-card .report-preview {
