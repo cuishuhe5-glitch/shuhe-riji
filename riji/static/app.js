@@ -2253,7 +2253,9 @@ function renderSearchItem(item) {
 
 function formatSearchScope() {
   const parts = [];
-  if (state.search.query) parts.push(`关键词：${state.search.query}`);
+  const appSource = state.search.source === "app" && state.search.query;
+  if (appSource) parts.push(`应用记录：${state.search.query}`);
+  else if (state.search.query) parts.push(`关键词：${state.search.query}`);
   if (state.search.category) parts.push(`分类：${state.search.category}`);
   if (state.search.from || state.search.to) parts.push(`${state.search.from || "最早"} 至 ${state.search.to || "今天"}`);
   return parts.join(" · ") || "全部活动";
@@ -3176,7 +3178,7 @@ async function saveDayNote() {
   }
 }
 
-async function runSearch() {
+async function runSearch({ source = "" } = {}) {
   const button = $("#runSearch");
   button.disabled = true;
   button.textContent = "搜索中";
@@ -3184,6 +3186,7 @@ async function runSearch() {
   state.search.category = $("#searchCategory").value;
   state.search.from = $("#searchFrom").value;
   state.search.to = $("#searchTo").value;
+  state.search.source = source;
   try {
     const params = new URLSearchParams({
       q: state.search.query,
@@ -3320,6 +3323,7 @@ function clearSearch() {
     category: "",
     from: "",
     to: "",
+    source: "",
     results: [],
     searched: false,
   };
@@ -3334,6 +3338,11 @@ function syncTimelineSearchStatus() {
   const query = state.search.query || $("#timelineQuickSearch")?.value.trim() || "";
   const range = state.search.from || state.search.to ? `${state.search.from || "最早"} 至 ${state.search.to || "今天"}` : "当前日期";
   if (state.search.searched) {
+    if (state.search.source === "app" && query) {
+      status.textContent = `应用记录：${query} · ${range} · ${state.search.results.length} 条时间线`;
+      status.classList.add("active");
+      return;
+    }
     status.textContent = query ? `搜索：${query} · ${range} · ${state.search.results.length} 条结果` : `已显示 ${range} 的搜索结果`;
     status.classList.toggle("active", Boolean(query || state.search.from || state.search.to));
     return;
@@ -3357,9 +3366,10 @@ function searchAppRecords(appName) {
     category: "",
     from,
     to,
+    source: "app",
   };
   navigateTo("timeline");
-  runSearch();
+  runSearch({ source: "app" });
 }
 
 function selectDay(day) {
