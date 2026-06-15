@@ -1387,7 +1387,6 @@ select {
 
 .agent-service-card code {
   min-width: 0;
-  max-width: 260px;
   overflow: hidden;
   padding: 9px 10px;
   border: 1px solid var(--line-soft);
@@ -1397,6 +1396,14 @@ select {
   font: 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.agent-service-url {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(150px, 260px) auto;
+  gap: 8px;
+  align-items: center;
 }
 
 .agent-grid {

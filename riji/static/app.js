@@ -3386,6 +3386,11 @@ function bindEvents() {
       toast(error.message);
     }
   });
+  $("#copyAgentServiceUrl").addEventListener("click", async () => {
+    const url = $("#agentServiceUrl").textContent.trim();
+    await copyText(url);
+    toast("Agent 服务地址已复制");
+  });
   $("#saveAutoReport").addEventListener("click", () => saveAutoReport().catch((error) => toast(error.message)));
   $("#runAutoReportNow").addEventListener("click", () => runAutoReportNow().catch((error) => toast(error.message)));
   $("#openScreenSettings").addEventListener("click", () => openPermission("screen_recording").catch((error) => toast(error.message)));
