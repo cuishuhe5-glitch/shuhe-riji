@@ -3850,6 +3850,24 @@ select {
   font-size: 11px;
 }
 
+.display-meta-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.display-meta-chips em {
+  max-width: 100%;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: #e8f6ef;
+  color: var(--accent-strong);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 760;
+  line-height: 1.4;
+}
+
 .setting-list {
   display: grid;
   gap: 8px;
