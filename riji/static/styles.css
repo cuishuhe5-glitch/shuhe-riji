@@ -3227,8 +3227,10 @@ select {
   cursor: pointer;
 }
 
-.template-card:hover {
+.template-card:hover,
+.template-card:focus {
   border-color: rgba(15, 118, 110, 0.38);
+  outline: 0;
 }
 
 .template-card.selected {
@@ -3256,9 +3258,16 @@ select {
   font-size: 11px;
 }
 
+.template-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
 .template-card em {
   justify-self: start;
-  margin-top: 4px;
   padding: 3px 7px;
   border-radius: 999px;
   background: #e8f8ef;
@@ -3266,6 +3275,23 @@ select {
   font-size: 11px;
   font-style: normal;
   font-weight: 800;
+}
+
+.template-detail-button {
+  min-height: 24px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 8px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.template-detail-button:hover {
+  background: #e8f8ef;
+  color: var(--accent-strong);
 }
 
 .template-check {
@@ -3375,6 +3401,56 @@ select {
   color: var(--muted);
   font-size: 12px;
   line-height: 1.55;
+}
+
+.template-detail-sheet {
+  max-width: 720px;
+}
+
+.template-detail-sheet .detail-head span {
+  display: block;
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.template-detail-body {
+  display: grid;
+  gap: 14px;
+  overflow: auto;
+  padding: 18px;
+}
+
+.template-detail-section {
+  display: grid;
+  gap: 8px;
+}
+
+.template-detail-section strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.template-detail-section p,
+.template-detail-section pre {
+  margin: 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+  color: #33413e;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.template-detail-section p {
+  padding: 12px;
+}
+
+.template-detail-section pre {
+  max-height: 280px;
+  overflow: auto;
+  padding: 12px;
+  white-space: pre-wrap;
 }
 
 .generated-report-card .report-preview {

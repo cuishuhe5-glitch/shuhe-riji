@@ -13,6 +13,7 @@ const state = {
   reportMeta: null,
   reportDirty: false,
   agentDocs: "",
+  templateDetailItem: null,
   reportFilters: {
     kind: "all",
     range: "",
@@ -773,12 +774,15 @@ function renderTemplateCatalog(catalog) {
   grid.innerHTML = items
     .map(
       (item) => `
-        <button class="template-card" type="button" data-template-name="${escapeHtml(item.name)}">
+        <article class="template-card" role="button" tabindex="0" data-template-name="${escapeHtml(item.name)}">
           <span class="template-check">✓</span>
           <strong>${escapeHtml(item.name)}</strong>
           <small>${escapeHtml(item.audience || item.prompt || "")}</small>
-          <em>${escapeHtml(templateSourceLabel(item))}</em>
-        </button>
+          <div class="template-card-foot">
+            <em>${escapeHtml(templateSourceLabel(item))}</em>
+            <button class="template-detail-button" type="button" data-template-detail="${escapeHtml(item.name)}">详情</button>
+          </div>
+        </article>
       `,
     )
     .join("");
@@ -836,6 +840,52 @@ function renderTemplatePreview(item, selected) {
     </div>
     <p>实际内容将基于你的工作记录自动生成</p>
   `;
+}
+
+function findTemplateCatalogItem(name) {
+  const catalog = state.data?.style_catalog || [];
+  return catalog.find((entry) => entry.name === name)
+    || (state.data?.styles || []).map((styleName) => ({
+      name: styleName,
+      prompt: state.data?.style_descriptions?.[styleName] || "",
+      group: "内置",
+      audience: "通用",
+      preview: state.data?.style_descriptions?.[styleName] || "",
+      source: "内置",
+    })).find((entry) => entry.name === name);
+}
+
+function openTemplateDetail(name) {
+  const item = findTemplateCatalogItem(name);
+  if (!item) return;
+  state.templateDetailItem = item;
+  const source = templateSourceLabel(item);
+  const prompt = item.prompt || state.data?.style_descriptions?.[item.name] || "暂无模板说明。";
+  const preview = item.preview || prompt;
+  $("#templateDetailTitle").textContent = item.name;
+  $("#templateDetailMeta").textContent = `${source} · ${item.audience || "通用"}`;
+  $("#templateDetailBody").innerHTML = `
+    <div class="template-detail-section">
+      <strong>适用场景</strong>
+      <p>${escapeHtml(item.audience || item.group || "通用工作汇报")}</p>
+    </div>
+    <div class="template-detail-section">
+      <strong>模板说明</strong>
+      <p>${escapeHtml(prompt)}</p>
+    </div>
+    <div class="template-detail-section">
+      <strong>预览结构</strong>
+      <pre>${escapeHtml(preview)}</pre>
+    </div>
+  `;
+  $("#templateDetailModal").classList.add("show");
+  $("#templateDetailModal").setAttribute("aria-hidden", "false");
+}
+
+function closeTemplateDetail() {
+  $("#templateDetailModal").classList.remove("show");
+  $("#templateDetailModal").setAttribute("aria-hidden", "true");
+  state.templateDetailItem = null;
 }
 
 function renderSearchControls(categories) {
@@ -3104,11 +3154,27 @@ function bindEvents() {
     renderTemplateSelection();
   });
   $("#templateGrid").addEventListener("click", (event) => {
-    const button = event.target.closest("[data-template-name]");
-    if (!button) return;
-    $("#styleSelect").value = button.dataset.templateName;
+    const detailButton = event.target.closest("[data-template-detail]");
+    if (detailButton) {
+      event.stopPropagation();
+      openTemplateDetail(detailButton.dataset.templateDetail);
+      return;
+    }
+    const card = event.target.closest("[data-template-name]");
+    if (!card) return;
+    $("#styleSelect").value = card.dataset.templateName;
     renderStyleHint();
   });
+  $("#templateGrid").addEventListener("keydown", (event) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    const card = event.target.closest("[data-template-name]");
+    if (!card) return;
+    event.preventDefault();
+    $("#styleSelect").value = card.dataset.templateName;
+    renderStyleHint();
+  });
+  $("#templateDetailClose").addEventListener("click", closeTemplateDetail);
+  $("#templateDetailBackdrop").addEventListener("click", closeTemplateDetail);
   $("#clearReportInstruction").addEventListener("click", () => {
     $("#reportInstructionInput").focus();
   });
@@ -3427,6 +3493,7 @@ function bindEvents() {
   });
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeTimelineDetail();
+    if (event.key === "Escape") closeTemplateDetail();
   });
 
   [
