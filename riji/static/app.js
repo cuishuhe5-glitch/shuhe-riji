@@ -1207,12 +1207,7 @@ function renderAppRecords(appUsage, meta = state.appUsageMeta) {
   const total = appUsage.reduce((sum, item) => sum + (Number(item.minutes) || 0), 0);
   const days = Math.max(1, Number(meta?.days) || 1);
   const periodLabel = appPeriodLabel(meta?.period || state.appPeriod);
-  const rangeLabel = meta?.start_day && meta?.end_day && meta.start_day !== meta.end_day ? `${meta.start_day} 至 ${meta.end_day}` : meta?.end_day || state.date;
   $("#appRecordsMeta").textContent = total ? `${periodLabel} · ${appUsage.length} 个应用 · 约 ${formatDuration(total)}` : `${periodLabel} · 按时间线估算`;
-  if ($("#appDetailMeta")) {
-    const clickHint = appUsage.length ? "点击应用查看对应时间线" : "暂无可查看应用";
-    $("#appDetailMeta").textContent = `${rangeLabel} · Top ${Math.min(20, appUsage.length)} · ${clickHint}`;
-  }
   if ($("#appTotalCount")) $("#appTotalCount").textContent = appUsage.length;
   if ($("#appTotalTime")) $("#appTotalTime").textContent = total ? formatDuration(total) : "0秒";
   if ($("#appDailyAverage")) $("#appDailyAverage").textContent = total ? formatDuration(Math.max(1, Math.round(total / days))) : "0秒";
