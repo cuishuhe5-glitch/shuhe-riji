@@ -547,17 +547,27 @@ select {
 .trust-strip {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
   margin-top: 12px;
-}
-
-.trust-strip span {
-  padding: 4px 8px;
-  border-radius: 999px;
-  background: var(--surface-soft);
   color: #78837f;
   font-size: 12px;
   font-weight: 700;
+}
+
+.trust-strip span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.trust-strip span::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #a7b2ae;
 }
 
 .today-status-strip {
