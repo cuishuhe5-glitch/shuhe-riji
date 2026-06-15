@@ -3042,6 +3042,10 @@ select {
   font-weight: 800;
 }
 
+.timeline-reuse-day[hidden] {
+  display: none;
+}
+
 .timeline-copy-log:hover,
 .timeline-reuse-day:hover {
   color: var(--accent-strong);
