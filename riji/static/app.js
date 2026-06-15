@@ -3636,6 +3636,7 @@ function bindEvents() {
   $("#copyTimelineLog").addEventListener("click", () => copyTimelineLog().catch((error) => toast(error.message)));
   $("#timelineAddRecord").addEventListener("click", () => {
     if (!state.manualOpen) toggleManualActivity();
+    resetManualActivity(false);
     $("#manualSummary").focus();
   });
   $$(".timeline-quick-ranges [data-timeline-range]").forEach((button) => {
