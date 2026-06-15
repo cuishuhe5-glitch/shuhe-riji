@@ -1435,7 +1435,7 @@ function renderTimeHeatmap(heatmap) {
               ${(day.hours || [])
                 .map(
                   (hour) => `
-                  <button class="time-cell heatmap-cell level-${hour.level || 0}" type="button" title="${escapeHtml(`${day.day} ${String(hour.hour).padStart(2, "0")}:00 · ${hour.count || 0} 条${hour.top_category ? ` · ${hour.top_category}` : ""}`)}">
+                  <button class="time-cell heatmap-cell level-${hour.level || 0}" type="button" title="${escapeHtml(heatmapHourTitle(day, hour))}">
                     ${hour.count ? `<span>${hour.count}</span>` : ""}
                   </button>
                 `,
@@ -1448,6 +1448,13 @@ function renderTimeHeatmap(heatmap) {
         .join("")
     : `<div class="empty time-heatmap-empty">还没有时段热力数据。</div>`;
   syncHeatmapRangeStatus(heatmap, { requestedFrom, requestedTo });
+}
+
+function heatmapHourTitle(day, hour) {
+  const count = Number(hour?.count) || 0;
+  const label = `${day.day} ${String(hour?.hour ?? 0).padStart(2, "0")}:00`;
+  const category = hour?.top_category ? ` · ${hour.top_category}` : "";
+  return `${label} · ${count} 条 · 约 ${formatDuration(count)}${category}`;
 }
 
 function heatmapDayMinutes(day) {
