@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-app-timeline-status" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-heatmap-quick-ranges" />
   </head>
   <body>
     <div class="shell">
@@ -298,6 +298,11 @@
                 </div>
                 <div class="heatmap-toolbar">
                   <button class="button subtle compact-button" id="refreshHeatmap" type="button">生成热力图</button>
+                  <div class="heatmap-quick-ranges" aria-label="热力图快捷范围">
+                    <button class="text-button" type="button" data-heatmap-range="7">近7天</button>
+                    <button class="text-button" type="button" data-heatmap-range="14">近14天</button>
+                    <button class="text-button" type="button" data-heatmap-range="30">近30天</button>
+                  </div>
                   <input id="heatmapFromDate" type="date" />
                   <span>至</span>
                   <input id="heatmapToDate" type="date" />
@@ -1507,6 +1512,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-app-timeline-status"></script>
+    <script src="/static/app.js?v=20260615-heatmap-quick-ranges"></script>
   </body>
 </html>
