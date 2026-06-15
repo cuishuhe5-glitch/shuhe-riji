@@ -904,7 +904,7 @@ function renderTemplateSelection() {
   const item = catalog.find((entry) => entry.name === selected);
   const source = $("#templateSource");
   const preview = $("#templatePreview");
-  if (source) source.textContent = item ? `${templateSourceLabel(item)} · ${item.audience || "通用"}` : "-";
+  if (source) source.textContent = item ? templateSourceLabel(item) : "-";
   if (preview) preview.innerHTML = renderTemplatePreview(item, selected);
   syncReportConfigSummary();
 }
@@ -936,13 +936,14 @@ function renderTemplatePreview(item, selected) {
     .slice(0, 8);
   return `
     <div class="template-preview-head">
-      <span>文</span>
+      <span>报</span>
       <div>
         <strong>${escapeHtml(title)}</strong>
         <small>${escapeHtml(source)} · ${escapeHtml(kind)} · 时间范围：${escapeHtml(start)} 至 ${escapeHtml(end)}</small>
       </div>
     </div>
     <div class="template-preview-meta">
+      <span>${escapeHtml(item?.audience || "通用")}</span>
       <span>${escapeHtml(instructionStatus)}</span>
       <span>${escapeHtml(currentReportRangeLabel($("#kindSelect")?.value || "day"))}</span>
     </div>
