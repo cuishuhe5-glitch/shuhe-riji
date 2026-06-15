@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-overview-easy-copy" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-help-status-clean" />
   </head>
   <body>
     <div class="shell">
@@ -53,17 +53,17 @@
           <button class="nav-item" data-view="privacy">
             <span class="icon">◇</span><span>隐私保护</span>
           </button>
-          <button class="nav-item" data-view="support">
-            <span class="icon">☏</span><span>客服</span>
-          </button>
-          <button class="nav-item" data-view="notifications">
-            <span class="icon">!</span><span>通知中心</span>
+          <button class="nav-item" data-view="settings">
+            <span class="icon">⚙</span><span>设置</span>
           </button>
           <button class="nav-item" data-view="help">
             <span class="icon">?</span><span>帮助</span>
           </button>
-          <button class="nav-item" data-view="settings">
-            <span class="icon">⚙</span><span>设置</span>
+          <button class="nav-item" data-view="support">
+            <span class="icon">☏</span><span>客服</span>
+          </button>
+          <button class="nav-item" data-view="notifications" hidden>
+            <span class="icon">!</span><span>通知中心</span>
           </button>
         </nav>
 
@@ -827,7 +827,7 @@
                   <p class="eyebrow">帮助</p>
                   <h3>书赫日报助手使用指南</h3>
                 </div>
-                <span class="section-meta" id="helpHealthStatus">检测中</span>
+                <span class="section-meta" id="helpHealthStatus" hidden>检测中</span>
               </div>
               <div class="help-grid">
                 <div class="help-card">
@@ -838,7 +838,7 @@
                     <li><span>3</span><p>在报告页生成日报，也可以打开自动日报定时归档。</p></li>
                   </ol>
                 </div>
-	                <div class="help-card">
+	                <div class="help-card" hidden>
 	                  <strong>当前状态</strong>
 	                  <div class="help-status-list">
 	                    <div><span>权限</span><b id="helpPermissionStatus">-</b></div>
