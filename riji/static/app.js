@@ -1227,7 +1227,6 @@ function renderAppRecords(appUsage, meta = state.appUsageMeta) {
           (item) => `
           <button class="app-record-row" type="button" data-app-search="${escapeHtml(item.name)}" title="查看 ${escapeHtml(item.name)} 的时间线记录">
             <div class="app-record-name">
-              <div class="app-usage-icon">${renderUsageIcon(item)}</div>
               <strong>${escapeHtml(item.name)}</strong>
             </div>
             <span>${escapeHtml(item.label || formatDuration(item.minutes || 0))}</span>

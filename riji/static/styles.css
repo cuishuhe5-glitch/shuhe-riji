@@ -1069,6 +1069,14 @@ select {
   margin-bottom: 16px;
 }
 
+.app-summary-grid .metric {
+  min-height: 78px;
+}
+
+.app-summary-grid .metric small {
+  display: none;
+}
+
 .app-custom-range {
   display: flex;
   align-items: center;
