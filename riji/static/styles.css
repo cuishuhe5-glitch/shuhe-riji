@@ -2571,6 +2571,26 @@ select {
   outline: 0;
 }
 
+.timeline-search-box {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.timeline-search-status {
+  margin: -8px 0 14px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.timeline-search-status.active {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
 .timeline-toolbar > span {
   color: var(--muted);
   font-size: 12px;
