@@ -510,7 +510,12 @@ function renderAgentDocs(text) {
     "",
     "2. 读取 Markdown 文档后，解析接口列表、参数定义、请求示例和响应结构，再动态选择接口并构造请求。",
     "",
-    "3. 所有业务接口返回 JSON 格式；具体字段以实时 API 文档为准。",
+    "3. 所有业务接口返回统一 JSON 格式：",
+    "   {",
+    '     "code": 0,',
+    '     "message": "success",',
+    '     "data": null',
+    "   }",
     "",
     "【已知能力范围】（仅供参考，实际以 GET / 返回的 Markdown 文档为准）",
     "该服务目前通常暴露以下类型的数据查询能力：",
@@ -536,7 +541,16 @@ function renderAgentDocs(text) {
     "• 本地查询不做分页，直接返回全量数据，无需处理翻页逻辑",
     "",
   ].join("\n");
-  preview.textContent = text ? `${intro}${text}` : `${intro}正在读取本地 API 文档...`;
+  preview.textContent = text ? `${intro}${extractAgentInterfaceDocs(text)}` : `${intro}正在读取本地 API 文档...`;
+}
+
+function extractAgentInterfaceDocs(text) {
+  const interfaceStart = text.indexOf("【接口列表】");
+  if (interfaceStart < 0) return text;
+  const executionStart = text.indexOf("【请你执行】", interfaceStart);
+  return executionStart > interfaceStart
+    ? text.slice(interfaceStart, executionStart).trimStart()
+    : text.slice(interfaceStart).trimStart();
 }
 
 async function loadAgentDocs({ notify = false } = {}) {
