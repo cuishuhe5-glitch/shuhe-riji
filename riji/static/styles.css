@@ -2878,7 +2878,7 @@ select {
 
 .timeline-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   align-items: stretch;
   margin-bottom: 16px;
@@ -2886,6 +2886,10 @@ select {
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: var(--surface-soft);
+}
+
+.timeline-type-filter[hidden] {
+  display: none;
 }
 
 .timeline-stats > div:not(.segmented) {
