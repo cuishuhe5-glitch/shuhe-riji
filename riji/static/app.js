@@ -2106,7 +2106,11 @@ function renderHistoryFilters() {
     $("#historyToDate").value = state.reportFilters.to;
   }
   const hasFilters = hasHistoryFilters();
-  $("#historyClearFilters")?.toggleAttribute("disabled", !hasFilters);
+  const clearButton = $("#historyClearFilters");
+  if (clearButton) {
+    clearButton.hidden = !hasFilters;
+    clearButton.toggleAttribute("disabled", !hasFilters);
+  }
 }
 
 function filterReports(reports) {
