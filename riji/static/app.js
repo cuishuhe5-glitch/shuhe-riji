@@ -803,7 +803,18 @@ function renderTemplateCatalog(catalog) {
         </article>
       `,
     )
-    .join("");
+    .join("")
+    + `
+      <article class="template-card template-add-card" role="button" tabindex="0" data-template-add>
+        <span class="template-add-icon">+</span>
+        <strong>添加自定义模板</strong>
+        <small>写下自己的汇报口径，保存后会出现在这里。</small>
+        <div class="template-card-foot">
+          <em>自定义</em>
+          <span>去设置</span>
+        </div>
+      </article>
+    `;
   renderTemplateSelection();
 }
 
@@ -905,6 +916,16 @@ function closeTemplateDetail() {
   $("#templateDetailModal").classList.remove("show");
   $("#templateDetailModal").setAttribute("aria-hidden", "true");
   state.templateDetailItem = null;
+}
+
+function openCustomTemplateSettings() {
+  navigateTo("settings");
+  window.setTimeout(() => {
+    const input = $("#customReportStylesInput");
+    input?.scrollIntoView({ block: "center", behavior: "smooth" });
+    input?.focus();
+    toast("在这里添加自定义报告模板");
+  }, 80);
 }
 
 function focusReportInstruction() {
@@ -3378,6 +3399,10 @@ function bindEvents() {
     renderTemplateSelection();
   });
   $("#templateGrid").addEventListener("click", (event) => {
+    if (event.target.closest("[data-template-add]")) {
+      openCustomTemplateSettings();
+      return;
+    }
     const detailButton = event.target.closest("[data-template-detail]");
     if (detailButton) {
       event.stopPropagation();
@@ -3391,6 +3416,11 @@ function bindEvents() {
   });
   $("#templateGrid").addEventListener("keydown", (event) => {
     if (event.key !== "Enter" && event.key !== " ") return;
+    if (event.target.closest("[data-template-add]")) {
+      event.preventDefault();
+      openCustomTemplateSettings();
+      return;
+    }
     const card = event.target.closest("[data-template-name]");
     if (!card) return;
     event.preventDefault();

@@ -3463,6 +3463,41 @@ select {
   display: grid;
 }
 
+.template-add-card {
+  place-items: center;
+  border-style: dashed;
+  background: #fbfdfc;
+  color: var(--muted);
+  text-align: center;
+}
+
+.template-add-card:hover,
+.template-add-card:focus {
+  background: #f3fbf7;
+}
+
+.template-add-icon {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #e8f8ef;
+  color: var(--accent-strong);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.template-add-card .template-card-foot {
+  width: 100%;
+}
+
+.template-add-card .template-card-foot span {
+  color: var(--accent-strong);
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .template-preview-shell {
   min-height: 330px;
   max-height: 520px;
