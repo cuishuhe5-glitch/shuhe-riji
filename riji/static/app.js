@@ -1987,10 +1987,21 @@ function renderReportHistoryTable(reports) {
         )
         .join("")}
     `
-    : `<div class="empty report-empty history-report-empty">
-        <strong>暂无报告记录，去生成第一份吧</strong>
-        <button class="button primary compact-button" type="button" data-history-generate>去生成报告</button>
-      </div>`;
+    : renderHistoryReportEmpty(reports || []);
+}
+
+function renderHistoryReportEmpty(reports) {
+  const hasReports = Boolean(reports?.length);
+  const title = hasReports ? "当前筛选没有报告" : "暂无报告记录，去生成第一份吧";
+  const text = hasReports ? "换个关键词、放宽日期范围，或清空筛选后查看全部报告。" : "生成日报、周报或月报后，会在这里统一查看和管理。";
+  return `
+    <div class="empty report-empty history-report-empty">
+      <span>◷</span>
+      <strong>${title}</strong>
+      <p>${text}</p>
+      <button class="button primary compact-button" type="button" data-history-generate>去生成报告</button>
+    </div>
+  `;
 }
 
 function compactReportPreview(value) {
