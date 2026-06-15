@@ -297,6 +297,10 @@ select {
   gap: 10px;
 }
 
+.top-actions[hidden] {
+  display: none;
+}
+
 .date-control {
   height: 38px;
   display: flex;
