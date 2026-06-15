@@ -506,7 +506,7 @@ def _summary(day: str) -> dict[str, Any]:
         "app_usage": _app_usage(segments),
         "productivity": _productivity_summary(segments, set(runtime["work_categories"])),
         "trends": _trend_summary(day, work_categories=set(runtime["work_categories"])),
-        "time_heatmap": _time_heatmap(day, days=3),
+        "time_heatmap": _time_heatmap(day, days=7),
         "day_note": _day_note(day),
         "items": items,
         "segments": segments,
