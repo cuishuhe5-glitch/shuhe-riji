@@ -2809,6 +2809,10 @@ select {
   display: none;
 }
 
+.heatmap-peak-hour[hidden] {
+  display: none;
+}
+
 .segmented {
   display: inline-flex;
   height: 32px;
