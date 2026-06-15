@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-display-meta-chips" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-timeline-search-status" />
   </head>
   <body>
     <div class="shell">
@@ -352,8 +352,12 @@
                 <input id="timelineToDate" type="date" />
                 <button class="button subtle" id="timelineExportData" type="button">导出数据</button>
                 <button class="button subtle" id="timelineAddRecord" type="button">添加记录</button>
-                <input id="timelineQuickSearch" type="search" placeholder="搜索活动..." />
+                <div class="timeline-search-box">
+                  <input id="timelineQuickSearch" type="search" placeholder="搜索活动..." />
+                  <button class="text-button" id="timelineClearSearch" type="button">清空</button>
+                </div>
               </div>
+              <p class="timeline-search-status" id="timelineSearchStatus">输入关键词后按 Enter 搜索摘要、应用或窗口。</p>
               <div class="timeline-stats">
                 <div>
                   <strong id="timelineRecordCount">0</strong>
@@ -1447,6 +1451,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-display-meta-chips"></script>
+    <script src="/static/app.js?v=20260615-timeline-search-status"></script>
   </body>
 </html>

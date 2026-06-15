@@ -2832,6 +2832,7 @@ async function runSearch() {
     const result = await api(`/api/search?${params.toString()}`);
     state.search.results = result.search?.items || [];
     state.search.searched = true;
+    syncTimelineSearchStatus();
     renderSearchResults();
     toast(`找到 ${state.search.results.length} 条记录`);
   } catch (error) {
@@ -2897,6 +2898,7 @@ async function saveManualActivity(event) {
 
 function clearSearch() {
   $("#searchQuery").value = "";
+  if ($("#timelineQuickSearch")) $("#timelineQuickSearch").value = "";
   $("#searchCategory").value = "";
   $("#searchFrom").value = "";
   $("#searchTo").value = "";
@@ -2908,7 +2910,22 @@ function clearSearch() {
     results: [],
     searched: false,
   };
+  syncTimelineSearchStatus();
   renderSearchResults();
+}
+
+function syncTimelineSearchStatus() {
+  const status = $("#timelineSearchStatus");
+  if (!status) return;
+  const query = state.search.query || $("#timelineQuickSearch")?.value.trim() || "";
+  const range = state.search.from || state.search.to ? `${state.search.from || "最早"} 至 ${state.search.to || "今天"}` : "当前日期";
+  if (state.search.searched) {
+    status.textContent = query ? `搜索：${query} · ${range} · ${state.search.results.length} 条结果` : `已显示 ${range} 的搜索结果`;
+    status.classList.toggle("active", Boolean(query || state.search.from || state.search.to));
+    return;
+  }
+  status.textContent = query ? `按 Enter 搜索“${query}”` : "输入关键词后按 Enter 搜索摘要、应用或窗口。";
+  status.classList.toggle("active", Boolean(query));
 }
 
 function searchAppRecords(appName) {
@@ -3355,8 +3372,10 @@ function bindEvents() {
   $("#timelineQuickSearch").addEventListener("input", (event) => {
     $("#searchQuery").value = event.target.value;
     state.search.query = event.target.value;
+    syncTimelineSearchStatus();
     renderSearchResults();
   });
+  $("#timelineClearSearch").addEventListener("click", clearSearch);
   $("#timelineQuickSearch").addEventListener("keydown", (event) => {
     if (event.key === "Enter") {
       $("#searchQuery").value = event.target.value;
