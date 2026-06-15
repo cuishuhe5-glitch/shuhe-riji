@@ -247,6 +247,60 @@ select {
   line-height: 1.45;
 }
 
+.sidebar-profile {
+  margin-top: auto;
+  min-height: 44px;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-avatar {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #e5f3f0;
+  color: var(--accent-strong);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.sidebar-profile strong,
+.sidebar-profile span {
+  display: block;
+  line-height: 1.2;
+}
+
+.sidebar-profile strong {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.sidebar-profile span {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.profile-notice {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.profile-notice:hover {
+  background: var(--surface-soft);
+  color: var(--accent-strong);
+}
+
 .status-dot {
   width: 10px;
   height: 10px;
@@ -5527,6 +5581,10 @@ select {
   }
 
   .sidebar-card {
+    display: none;
+  }
+
+  .sidebar-profile {
     display: none;
   }
 
