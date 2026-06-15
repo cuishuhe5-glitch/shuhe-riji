@@ -20,6 +20,7 @@ const state = {
   },
   filter: "all",
   timelineRange: "today",
+  appChartMode: "bar",
   settingsTouched: false,
   dayNoteTouched: false,
   summarySeq: 0,
@@ -894,27 +895,25 @@ function renderAppRecords(appUsage) {
   table.innerHTML = appUsage.length
     ? `
       <div class="app-records-head">
-        <span>应用</span>
-        <span>用时</span>
-        <span>记录</span>
-        <span>主要分类</span>
-        <span>时间范围</span>
-        <span>操作</span>
+        <span>应用名称</span>
+        <span>使用时长</span>
+        <span>占比</span>
+        <span>首次使用</span>
+        <span>最后使用</span>
       </div>
       ${appUsage
         .map(
           (item) => `
-          <div class="app-record-row">
+          <button class="app-record-row" type="button" data-app-search="${escapeHtml(item.name)}">
             <div class="app-record-name">
               <div class="app-usage-icon">${renderUsageIcon(item)}</div>
               <strong>${escapeHtml(item.name)}</strong>
             </div>
-            <span>${escapeHtml(item.label || formatDuration(item.minutes || 0))} · ${item.percent || 0}%</span>
-            <span>${item.count || 0} 条</span>
-            <span>${escapeHtml(item.top_category || "其他")}</span>
-            <span>${escapeHtml(item.first_time || "--:--")} - ${escapeHtml(item.last_time || "--:--")}</span>
-            <button class="text-button" type="button" data-app-search="${escapeHtml(item.name)}">查看</button>
-          </div>
+            <span>${escapeHtml(item.label || formatDuration(item.minutes || 0))}</span>
+            <span>${item.percent || 0}%</span>
+            <span>${escapeHtml(item.first_time || "--:--")}</span>
+            <span>${escapeHtml(item.last_time || "--:--")}</span>
+          </button>
         `,
         )
         .join("")}
@@ -925,26 +924,68 @@ function renderAppRecords(appUsage) {
 function renderAppPageChart(appUsage) {
   const chart = $("#appPageChart");
   if (!chart) return;
-  chart.innerHTML = appUsage.length
-    ? appUsage
-        .slice(0, 20)
-        .map(
-          (item) => `
-          <article class="app-usage-row">
-            <div class="app-usage-icon">${renderUsageIcon(item)}</div>
-            <div class="app-usage-main">
-              <div class="app-usage-title">
+  $$(".app-chart-modes [data-app-chart-mode]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.appChartMode === state.appChartMode);
+  });
+  const rows = appUsage.slice(0, 20);
+  if (!rows.length) {
+    chart.innerHTML = `<div class="empty app-usage-empty">暂无应用时长数据。</div>`;
+    return;
+  }
+  if (state.appChartMode === "pie") {
+    const stops = [];
+    let cursor = 0;
+    rows.forEach((item, index) => {
+      const value = Math.max(0, Number(item.percent) || 0);
+      const next = Math.min(100, cursor + value);
+      const color = appChartColor(index);
+      stops.push(`${color} ${cursor}% ${next}%`);
+      cursor = next;
+    });
+    if (cursor < 100) stops.push(`#edf2f0 ${cursor}% 100%`);
+    chart.innerHTML = `
+      <div class="app-pie-layout">
+        <div class="app-pie" style="background: conic-gradient(${stops.join(", ")})">
+          <span>${rows.length}</span>
+        </div>
+        <div class="app-pie-list">
+          ${rows
+            .map(
+              (item, index) => `
+              <button class="app-pie-item" type="button" data-app-search="${escapeHtml(item.name)}">
+                <i style="background:${appChartColor(index)}"></i>
                 <strong>${escapeHtml(item.name)}</strong>
                 <span>${escapeHtml(item.label || formatDuration(item.minutes || 0))}</span>
-              </div>
-              <div class="app-usage-bar"><span style="width:${Math.max(2, item.percent || 0)}%"></span></div>
-            </div>
-            <div class="app-usage-percent">${item.percent || 0}%</div>
-          </article>
+                <em>${item.percent || 0}%</em>
+              </button>
+            `,
+            )
+            .join("")}
+        </div>
+      </div>
+    `;
+    return;
+  }
+  chart.innerHTML = `
+    <div class="app-bar-chart">
+      ${rows
+        .map(
+          (item) => `
+          <button class="app-bar-row" type="button" data-app-search="${escapeHtml(item.name)}">
+            <strong>${escapeHtml(item.name)}</strong>
+            <span class="app-bar-track"><i style="width:${Math.max(2, item.percent || 0)}%"></i></span>
+            <em>${escapeHtml(item.label || formatDuration(item.minutes || 0))}</em>
+          </button>
         `,
         )
-        .join("")
-    : `<div class="empty app-usage-empty">暂无应用时长数据。</div>`;
+        .join("")}
+    </div>
+  `;
+}
+
+function appChartColor(index) {
+  const colors = ["#54c7a5", "#65b7f3", "#f4b860", "#ea6f7b", "#9b8af7", "#5fb8a8", "#d28ff2", "#8cc766"];
+  return colors[index % colors.length];
 }
 
 function renderActivityRhythm(items) {
@@ -2820,6 +2861,24 @@ function bindEvents() {
   $("#appRecordsTable").addEventListener("click", (event) => {
     const button = event.target.closest("[data-app-search]");
     if (button) searchAppRecords(button.dataset.appSearch);
+  });
+  $("#appPageChart").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-app-search]");
+    if (button) searchAppRecords(button.dataset.appSearch);
+  });
+  $$(".app-chart-modes [data-app-chart-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.appChartMode = button.dataset.appChartMode || "bar";
+      renderAppPageChart(state.data?.app_usage || []);
+    });
+  });
+  $$(".app-periods [data-app-period]").forEach((button) => {
+    button.addEventListener("click", () => {
+      $$(".app-periods [data-app-period]").forEach((item) => item.classList.toggle("active", item === button));
+      const labels = { day: "今日", week: "本周", month: "本月", custom: "自定义" };
+      const label = labels[button.dataset.appPeriod] || "当前";
+      toast(button.dataset.appPeriod === "day" ? "已显示今日应用记录" : `${label}筛选入口已选中，当前仍展示今日明细`);
+    });
   });
   $("#toggleManualActivity").addEventListener("click", toggleManualActivity);
   $("#manualActivityForm").addEventListener("submit", saveManualActivity);

@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-heatmap" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-apps" />
   </head>
   <body>
     <div class="shell">
@@ -457,10 +457,10 @@
                   <h3>查看各应用使用时长分布，了解时间花费结构</h3>
                 </div>
                 <div class="segmented app-periods">
-                  <button class="active" type="button">今日</button>
-                  <button type="button">本周</button>
-                  <button type="button">本月</button>
-                  <button type="button">自定义</button>
+                  <button class="active" type="button" data-app-period="day">今日</button>
+                  <button type="button" data-app-period="week">本周</button>
+                  <button type="button" data-app-period="month">本月</button>
+                  <button type="button" data-app-period="custom">自定义</button>
                 </div>
               </div>
               <div class="app-summary-grid">
@@ -483,9 +483,9 @@
               <section class="app-chart-card">
                 <div class="mini-head">
                   <strong>应用时长分布（Top 20）</strong>
-                  <div class="segmented tiny">
-                    <button class="active" type="button">柱状图</button>
-                    <button type="button">饼图</button>
+                  <div class="segmented tiny app-chart-modes">
+                    <button class="active" type="button" data-app-chart-mode="bar">柱状图</button>
+                    <button type="button" data-app-chart-mode="pie">饼图</button>
                   </div>
                 </div>
                 <div class="app-usage-list app-page-chart" id="appPageChart"></div>
@@ -1348,6 +1348,6 @@
         <div class="detail-body" id="detailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-heatmap"></script>
+    <script src="/static/app.js?v=20260615-apps"></script>
   </body>
 </html>

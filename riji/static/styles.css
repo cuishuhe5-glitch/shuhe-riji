@@ -961,6 +961,146 @@ select {
   overflow: auto;
 }
 
+.app-bar-chart {
+  display: grid;
+  gap: 10px;
+  padding: 18px 8px 8px;
+}
+
+.app-bar-row {
+  display: grid;
+  grid-template-columns: minmax(96px, 132px) minmax(0, 1fr) minmax(68px, auto);
+  gap: 10px;
+  align-items: center;
+  min-height: 24px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.app-bar-row strong {
+  overflow: hidden;
+  color: #273532;
+  font-size: 13px;
+  font-weight: 720;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-bar-track {
+  height: 16px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: transparent;
+}
+
+.app-bar-track i {
+  display: block;
+  height: 100%;
+  min-width: 3px;
+  border-radius: inherit;
+  background: #54c7a5;
+}
+
+.app-bar-row em {
+  color: var(--muted);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.app-pie-layout {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  min-height: 250px;
+  padding: 18px;
+}
+
+.app-pie {
+  position: relative;
+  width: 188px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(16, 34, 30, 0.08);
+}
+
+.app-pie::after {
+  position: absolute;
+  inset: 48px;
+  border-radius: 50%;
+  background: #fff;
+  content: "";
+}
+
+.app-pie span {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.app-pie-list {
+  display: grid;
+  gap: 8px;
+  max-height: 258px;
+  overflow: auto;
+}
+
+.app-pie-item {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto 48px;
+  gap: 8px;
+  align-items: center;
+  min-height: 30px;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.app-pie-item i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.app-pie-item strong,
+.app-pie-item span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-pie-item strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.app-pie-item span,
+.app-pie-item em {
+  font-size: 12px;
+}
+
+.app-pie-item em {
+  color: #51615d;
+  font-style: normal;
+  font-weight: 760;
+  text-align: right;
+}
+
 .segmented.tiny {
   height: 30px;
 }
@@ -974,7 +1114,7 @@ select {
 .app-record-row {
   min-width: 780px;
   display: grid;
-  grid-template-columns: minmax(180px, 1.4fr) minmax(120px, 0.8fr) minmax(80px, 0.5fr) minmax(110px, 0.7fr) minmax(120px, 0.8fr) 60px;
+  grid-template-columns: minmax(180px, 1.4fr) minmax(120px, 0.8fr) minmax(90px, 0.6fr) minmax(110px, 0.7fr) minmax(110px, 0.7fr);
   gap: 12px;
   align-items: center;
 }
@@ -988,10 +1128,20 @@ select {
 }
 
 .app-record-row {
+  width: 100%;
+  border: 0;
   padding: 11px 12px;
   border-top: 1px solid var(--line-soft);
+  background: #fff;
   color: #33413e;
+  cursor: pointer;
+  font: inherit;
   font-size: 13px;
+  text-align: left;
+}
+
+.app-record-row:hover {
+  background: #f8fbfa;
 }
 
 .app-record-name {
@@ -4052,6 +4202,54 @@ select {
   .app-usage-percent {
     grid-column: 2;
     text-align: left;
+  }
+
+  .app-bar-row {
+    grid-template-columns: minmax(72px, 96px) minmax(0, 1fr);
+  }
+
+  .app-bar-row em {
+    grid-column: 2;
+  }
+
+  .app-pie-layout {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    padding: 14px 8px;
+  }
+
+  .app-pie {
+    width: 168px;
+  }
+
+  .app-pie-list {
+    width: 100%;
+  }
+
+  .app-records-table {
+    overflow: visible;
+    border: 0;
+  }
+
+  .app-records-head {
+    display: none;
+  }
+
+  .app-record-row {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px 10px;
+    margin-bottom: 8px;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+  }
+
+  .app-record-name {
+    grid-column: 1 / -1;
+  }
+
+  .app-record-row > span:nth-of-type(n + 3) {
+    display: none;
   }
 
   .detail-meta-grid {
