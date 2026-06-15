@@ -2512,6 +2512,13 @@ select {
   min-height: 120px;
 }
 
+.heatmap-range-status {
+  margin: 10px 0 0 84px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
 .segmented {
   display: inline-flex;
   height: 32px;

@@ -479,7 +479,7 @@ def _row_to_dict(row: db.sqlite3.Row) -> dict[str, Any]:
     }
 
 
-def _summary(day: str) -> dict[str, Any]:
+def _summary(day: str, heatmap_from: str = "", heatmap_to: str = "") -> dict[str, Any]:
     rows = db.activities_for_day(day)
     items = [_row_to_dict(row) for row in rows]
     segments = timeline.build_segments(items)
@@ -506,7 +506,7 @@ def _summary(day: str) -> dict[str, Any]:
         "app_usage": _app_usage(segments),
         "productivity": _productivity_summary(segments, set(runtime["work_categories"])),
         "trends": _trend_summary(day, work_categories=set(runtime["work_categories"])),
-        "time_heatmap": _time_heatmap(day, days=7),
+        "time_heatmap": _time_heatmap_range(heatmap_from, heatmap_to or day) if (heatmap_from or heatmap_to) else _time_heatmap(day, days=7),
         "day_note": _day_note(day),
         "items": items,
         "segments": segments,
@@ -1074,6 +1074,28 @@ def _time_heatmap(end_day: str, days: int = 3) -> dict[str, Any]:
     except ValueError:
         end = date.today()
     start = end - timedelta(days=max(1, days) - 1)
+    return _time_heatmap_for_dates(start, end)
+
+
+def _time_heatmap_range(start_day: str, end_day: str, max_days: int = 31) -> dict[str, Any]:
+    try:
+        end = datetime.strptime(end_day, "%Y-%m-%d").date()
+    except ValueError:
+        end = date.today()
+    try:
+        start = datetime.strptime(start_day, "%Y-%m-%d").date()
+    except ValueError:
+        start = end - timedelta(days=6)
+    if start > end:
+        start, end = end, start
+    days = (end - start).days + 1
+    if days > max_days:
+        start = end - timedelta(days=max_days - 1)
+    return _time_heatmap_for_dates(start, end)
+
+
+def _time_heatmap_for_dates(start: date, end: date) -> dict[str, Any]:
+    days = (end - start).days + 1
     rows = db.activities_between(start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
     by_day: dict[str, list[dict[str, Any]]] = {}
     for offset in range(days):
@@ -1880,8 +1902,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             rel = unquote(parsed.path.removeprefix("/static/"))
             self._serve_file(STATIC_DIR / rel)
         elif parsed.path == "/api/summary":
-            day = parse_qs(parsed.query).get("date", [date.today().strftime("%Y-%m-%d")])[0]
-            self._send_json(_summary(day))
+            query = parse_qs(parsed.query)
+            day = query.get("date", [date.today().strftime("%Y-%m-%d")])[0]
+            heatmap_from = query.get("heatmap_from", [""])[0]
+            heatmap_to = query.get("heatmap_to", [""])[0]
+            self._send_json(_summary(day, heatmap_from=heatmap_from, heatmap_to=heatmap_to))
         elif parsed.path == "/api/app-usage":
             query = parse_qs(parsed.query)
             day = query.get("date", [date.today().strftime("%Y-%m-%d")])[0]

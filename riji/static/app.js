@@ -28,6 +28,7 @@ const state = {
   appPeriod: "day",
   appUsage: null,
   appUsageMeta: { days: 1, start_day: "", end_day: "", period: "day" },
+  heatmapRange: { from: "", to: "" },
   showPreviousRhythm: false,
   settingsTouched: false,
   dayNoteTouched: false,
@@ -159,7 +160,10 @@ async function textApi(path) {
 
 async function loadSummary() {
   const seq = ++state.summarySeq;
-  const data = await api(`/api/summary?date=${encodeURIComponent(state.date)}`);
+  const params = new URLSearchParams({ date: state.date });
+  if (state.heatmapRange.from) params.set("heatmap_from", state.heatmapRange.from);
+  if (state.heatmapRange.to) params.set("heatmap_to", state.heatmapRange.to);
+  const data = await api(`/api/summary?${params.toString()}`);
   if (seq !== state.summarySeq) return;
   state.data = data;
   render();
@@ -1360,6 +1364,9 @@ function renderTimeHeatmap(heatmap) {
   const workMinutes = days.reduce((sum, day) => sum + heatmapDayMinutes(day), 0);
   const start = days[0]?.day || addDays(state.date, -6);
   const end = days[days.length - 1]?.day || state.date;
+  const requestedFrom = $("#heatmapFromDate")?.value || state.heatmapRange.from || start;
+  const requestedTo = $("#heatmapToDate")?.value || state.heatmapRange.to || end;
+  state.heatmapRange = { from: start, to: end };
   if ($("#heatmapFromDate")) $("#heatmapFromDate").value = start;
   if ($("#heatmapToDate")) $("#heatmapToDate").value = end;
   if ($("#heatmapTotalRecords")) $("#heatmapTotalRecords").textContent = total;
@@ -1392,12 +1399,42 @@ function renderTimeHeatmap(heatmap) {
         )
         .join("")
     : `<div class="empty time-heatmap-empty">还没有时段热力数据。</div>`;
+  syncHeatmapRangeStatus(heatmap, { requestedFrom, requestedTo });
 }
 
 function heatmapDayMinutes(day) {
   const explicit = Number(day?.total_minutes);
   if (Number.isFinite(explicit) && explicit >= 0) return explicit;
   return (day?.hours || []).reduce((sum, hour) => sum + (Number(hour.count) || 0), 0);
+}
+
+function readHeatmapRange() {
+  const fallbackTo = state.heatmapRange.to || state.date;
+  const fallbackFrom = state.heatmapRange.from || addDays(fallbackTo, -6);
+  let from = $("#heatmapFromDate")?.value || fallbackFrom;
+  let to = $("#heatmapToDate")?.value || fallbackTo;
+  if (from > to) [from, to] = [to, from];
+  return { from, to };
+}
+
+async function refreshHeatmapRange() {
+  state.heatmapRange = readHeatmapRange();
+  await loadSummary();
+  toast("热力图已生成");
+}
+
+function syncHeatmapRangeStatus(heatmap = state.data?.time_heatmap, requested = {}) {
+  const status = $("#heatmapRangeStatus");
+  if (!status) return;
+  const days = heatmap?.days || [];
+  const start = heatmap?.start_day || days[0]?.day || state.heatmapRange.from || addDays(state.date, -6);
+  const end = heatmap?.end_day || days[days.length - 1]?.day || state.heatmapRange.to || state.date;
+  const requestedFrom = requested.requestedFrom || $("#heatmapFromDate")?.value || start;
+  const requestedTo = requested.requestedTo || $("#heatmapToDate")?.value || end;
+  const clipped = requestedFrom && requestedTo && (requestedFrom !== start || requestedTo !== end);
+  const total = days.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+  const suffix = clipped ? "，已按最近 31 天显示" : "";
+  status.textContent = `当前区间：${start} 至 ${end} · ${total} 条记录${suffix}`;
 }
 
 function renderUsageIcon(item) {
@@ -3390,16 +3427,14 @@ function bindEvents() {
     $("#searchTo").value = event.target.value;
     state.search.to = event.target.value;
   });
-  $("#refreshHeatmap").addEventListener("click", () => loadSummary().then(() => toast("热力图已刷新")));
+  $("#refreshHeatmap").addEventListener("click", () => refreshHeatmapRange().catch((error) => toast(error.message)));
   $("#heatmapFromDate").addEventListener("change", (event) => {
-    $("#timelineFromDate").value = event.target.value;
-    $("#searchFrom").value = event.target.value;
-    state.search.from = event.target.value;
+    state.heatmapRange.from = event.target.value;
+    syncHeatmapRangeStatus();
   });
   $("#heatmapToDate").addEventListener("change", (event) => {
-    $("#timelineToDate").value = event.target.value;
-    $("#searchTo").value = event.target.value;
-    state.search.to = event.target.value;
+    state.heatmapRange.to = event.target.value;
+    syncHeatmapRangeStatus();
   });
   $("#timelineExportData").addEventListener("click", (event) => exportActivities("day", event.currentTarget));
   $("#copyTimelineLog").addEventListener("click", () => copyTimelineLog().catch((error) => toast(error.message)));
