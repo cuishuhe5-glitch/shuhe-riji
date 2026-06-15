@@ -1057,7 +1057,10 @@ function renderAppRecords(appUsage, meta = state.appUsageMeta) {
   const periodLabel = appPeriodLabel(meta?.period || state.appPeriod);
   const rangeLabel = meta?.start_day && meta?.end_day && meta.start_day !== meta.end_day ? `${meta.start_day} 至 ${meta.end_day}` : meta?.end_day || state.date;
   $("#appRecordsMeta").textContent = total ? `${periodLabel} · ${appUsage.length} 个应用 · 约 ${formatDuration(total)}` : `${periodLabel} · 按时间线估算`;
-  if ($("#appDetailMeta")) $("#appDetailMeta").textContent = `${rangeLabel} · Top ${Math.min(20, appUsage.length)}`;
+  if ($("#appDetailMeta")) {
+    const clickHint = appUsage.length ? "点击应用查看对应时间线" : "暂无可查看应用";
+    $("#appDetailMeta").textContent = `${rangeLabel} · Top ${Math.min(20, appUsage.length)} · ${clickHint}`;
+  }
   if ($("#appTotalCount")) $("#appTotalCount").textContent = appUsage.length;
   if ($("#appTotalTime")) $("#appTotalTime").textContent = total ? formatDuration(total) : "0秒";
   if ($("#appDailyAverage")) $("#appDailyAverage").textContent = total ? formatDuration(Math.max(1, Math.round(total / days))) : "0秒";
@@ -1074,7 +1077,7 @@ function renderAppRecords(appUsage, meta = state.appUsageMeta) {
       ${appUsage
         .map(
           (item) => `
-          <button class="app-record-row" type="button" data-app-search="${escapeHtml(item.name)}">
+          <button class="app-record-row" type="button" data-app-search="${escapeHtml(item.name)}" title="查看 ${escapeHtml(item.name)} 的时间线记录">
             <div class="app-record-name">
               <div class="app-usage-icon">${renderUsageIcon(item)}</div>
               <strong>${escapeHtml(item.name)}</strong>
@@ -2852,10 +2855,20 @@ function clearSearch() {
 
 function searchAppRecords(appName) {
   if (!appName) return;
+  const meta = state.appUsageMeta || {};
+  const from = meta.start_day || state.date;
+  const to = meta.end_day || state.date;
   $("#searchQuery").value = appName;
   $("#searchCategory").value = "";
-  $("#searchFrom").value = state.date;
-  $("#searchTo").value = state.date;
+  $("#searchFrom").value = from;
+  $("#searchTo").value = to;
+  state.search = {
+    ...state.search,
+    query: appName,
+    category: "",
+    from,
+    to,
+  };
   navigateTo("timeline");
   runSearch();
 }
