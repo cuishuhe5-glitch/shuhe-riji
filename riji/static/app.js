@@ -56,7 +56,7 @@ const $$ = (selector) => [...document.querySelectorAll(selector)];
 
 const pageMeta = {
   overview: { label: "今日工作", title: "你只管工作，日报交给我" },
-  trends: { label: "趋势", title: "工作趋势" },
+  trends: { label: "趋势洞察", title: "近 30 天工作节奏" },
   heatmap: { label: "时段热力图", title: "时段热力图" },
   timeline: { label: "工作时间线", title: "工作时间线" },
   apps: { label: "应用记录", title: "应用记录" },

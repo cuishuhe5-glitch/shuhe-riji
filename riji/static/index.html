@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-heatmap-loading-state" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-work-nav-order" />
   </head>
   <body>
     <div class="shell">
@@ -20,30 +20,30 @@
         <nav class="nav">
           <div class="nav-group-label">工作</div>
           <button class="nav-item active" data-view="overview">
-            <span class="icon">⌂</span><span>今日概览</span>
-          </button>
-          <button class="nav-item" data-view="trends">
-            <span class="icon">↗</span><span>趋势</span>
-          </button>
-          <button class="nav-item" data-view="heatmap">
-            <span class="icon">▥</span><span>时段热力图</span>
-          </button>
-          <button class="nav-item" data-view="timeline">
-            <span class="icon">≡</span><span>时间线</span>
-          </button>
-          <button class="nav-item" data-view="apps">
-            <span class="icon">▦</span><span>应用记录</span>
+            <span class="icon">⌂</span><span>今日工作</span>
           </button>
           <button class="nav-item" data-view="report">
             <span class="icon">✎</span><span>生成报告</span>
           </button>
+          <button class="nav-item" data-view="timeline">
+            <span class="icon">≡</span><span>工作时间线</span>
+          </button>
+          <button class="nav-item" data-view="heatmap">
+            <span class="icon">▥</span><span>时段热力图</span>
+          </button>
+          <button class="nav-item" data-view="apps">
+            <span class="icon">▦</span><span>应用记录</span>
+          </button>
           <button class="nav-item" data-view="reports-history">
             <span class="icon">◷</span><span>历史报告</span>
           </button>
-          <div class="nav-group-label">更多</div>
           <button class="nav-item" data-view="agent">
             <span class="icon">◎</span><span>接入 Agent</span>
           </button>
+          <button class="nav-item" data-view="trends">
+            <span class="icon">↗</span><span>趋势洞察</span>
+          </button>
+          <div class="nav-group-label">更多</div>
           <button class="nav-item" data-view="subscription">
             <span class="icon">★</span><span>订阅</span>
           </button>
@@ -87,8 +87,8 @@
       <main class="main">
         <header class="topbar">
           <div>
-            <p class="page-label">Dashboard</p>
-            <h2>今天的工作流</h2>
+            <p class="page-label">今日工作</p>
+            <h2>你只管工作，日报交给我</h2>
           </div>
           <div class="top-actions">
             <label class="date-control">
@@ -1503,6 +1503,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-heatmap-loading-state"></script>
+    <script src="/static/app.js?v=20260615-work-nav-order"></script>
   </body>
 </html>
