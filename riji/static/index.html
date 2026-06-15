@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-help-status-clean" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-agent-root-docs" />
   </head>
   <body>
     <div class="shell">
@@ -579,10 +579,9 @@
             <section class="panel agent-panel" data-section="agent">
               <div class="section-head">
                 <div>
-                  <p class="eyebrow">接入 Agent</p>
-                  <h3>本地 HTTP 服务运行中</h3>
+                  <h3>接入 Agent</h3>
                 </div>
-                <span class="section-meta" id="agentStatusText">检测中</span>
+                <span class="section-meta" id="agentStatusText" hidden>检测中</span>
               </div>
               <div class="agent-service-card">
                 <div class="agent-service-main">
@@ -613,9 +612,9 @@
                     <button class="text-button" id="copyAgentDocs" type="button">一键复制</button>
                   </div>
                 </div>
-                <p class="path-note">把下面这段发给 Hermes、Claude、Codex 或其他 Agent，它会先读取实时 API 文档，再调用本地日报数据。</p>
+                <p class="path-note" hidden>把下面这段发给 Hermes、Claude、Codex 或其他 Agent，它会先读取实时 API 文档，再调用本地日报数据。</p>
                 <pre id="agentDocsPreview">正在读取本地 API 文档...</pre>
-                <p class="agent-doc-hint">复制上方文本，发送给你的 Hermes / Claude / Codex 或其他 Agent，它会自动读取本地 API 文档并完成接入。</p>
+                <p class="agent-doc-hint">复制上方文本，发送给你的龙虾/Hermes/任意Agent，它会自动读取本地 API 文档并完成 skill 接入。</p>
               </div>
               <div class="agent-grid" hidden>
                 <div class="agent-card">
@@ -1516,6 +1515,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-topbar-clean"></script>
+    <script src="/static/app.js?v=20260615-agent-root-docs-2"></script>
   </body>
 </html>
