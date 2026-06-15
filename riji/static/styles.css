@@ -3634,6 +3634,25 @@ select {
   gap: 13px;
 }
 
+.template-preview-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -6px 0 16px;
+}
+
+.template-preview-meta span {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  border-radius: 999px;
+  background: #eef7f4;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .template-preview-line {
   display: grid;
   grid-template-columns: 8px minmax(92px, 0.6fr) minmax(0, 1fr);

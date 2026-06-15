@@ -902,6 +902,8 @@ function renderTemplatePreview(item, selected) {
   const { start, end } = currentReportRange($("#kindSelect")?.value || "day");
   const title = item?.name || selected || "报告模板";
   const source = templateSourceLabel(item);
+  const instructionText = $("#reportInstructionInput")?.value.trim() || "";
+  const instructionStatus = instructionText ? "自定义指令已启用" : "未加自定义指令";
   const lines = String(item?.preview || state.data?.style_descriptions?.[selected] || "今日工作\n- ...\n\n进展与产出\n- ...\n\n明日计划\n- ...")
     .split(/\n+/)
     .map((line) => line.trim())
@@ -914,6 +916,10 @@ function renderTemplatePreview(item, selected) {
         <strong>${escapeHtml(title)}</strong>
         <small>${escapeHtml(source)} · ${escapeHtml(kind)} · 时间范围：${escapeHtml(start)} 至 ${escapeHtml(end)}</small>
       </div>
+    </div>
+    <div class="template-preview-meta">
+      <span>${escapeHtml(instructionStatus)}</span>
+      <span>${escapeHtml(currentReportRangeLabel($("#kindSelect")?.value || "day"))}</span>
     </div>
     <div class="template-preview-lines">
       ${lines
@@ -2356,6 +2362,7 @@ function handleReportKindChange() {
   state.reportRangeTouched = false;
   syncReportDateRange({ force: true });
   renderReportKindTabs();
+  renderTemplateSelection();
 }
 
 function safeDownloadName(value) {
@@ -3547,7 +3554,7 @@ function bindEvents() {
   $("#clearReportInstruction").addEventListener("click", focusReportInstruction);
   $("#reportInstructionInput").addEventListener("input", () => {
     $("#reportInstructionCard")?.classList.remove("is-focused");
-    syncReportConfigSummary();
+    renderTemplateSelection();
   });
   $("#saveDayNote").addEventListener("click", () => saveDayNote().catch((error) => toast(error.message)));
   $("#dayNoteInput").addEventListener("input", () => {
