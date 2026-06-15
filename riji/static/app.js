@@ -297,6 +297,7 @@ function renderDisplays(displays) {
           <button class="display-item ${item.scope === select.value ? "selected" : ""}" type="button" data-display-scope="${escapeHtml(item.scope)}">
             <strong>${escapeHtml(item.name)}</strong>
             <span>${escapeHtml(`${item.width} × ${item.height}`)}${item.primary ? " · 主显示器" : ""}</span>
+            ${renderDisplayMetaChips(item, item.scope === select.value)}
             <small>坐标 ${escapeHtml(`${item.left}, ${item.top}`)}</small>
           </button>
         `,
@@ -322,6 +323,7 @@ function renderOverviewDisplays(displays) {
             <div>
               <strong>${escapeHtml(item.name)}</strong>
               <span>${escapeHtml(`${item.width} × ${item.height}`)}${item.primary ? " · 主显示器" : ""}</span>
+              ${renderDisplayMetaChips(item, item.scope === selected || selected === "all")}
               <small>${escapeHtml(displayCaptureHint(item, selected, physical.length))}</small>
             </div>
           </div>
@@ -329,6 +331,16 @@ function renderOverviewDisplays(displays) {
         )
         .join("")
     : `<div class="empty display-empty">${escapeHtml(displays?.error || "暂未检测到显示器。")}</div>`;
+}
+
+function renderDisplayMetaChips(item, selected = false) {
+  const chips = [];
+  if (item.primary) chips.push("主显示器");
+  if (selected) chips.push("当前采集");
+  if (item.width && item.height) chips.push(`${item.width}×${item.height}`);
+  return chips.length
+    ? `<div class="display-meta-chips">${chips.map((chip) => `<em>${escapeHtml(chip)}</em>`).join("")}</div>`
+    : "";
 }
 
 function displayCaptureHint(item, selected, count) {
