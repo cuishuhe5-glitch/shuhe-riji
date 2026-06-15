@@ -3724,6 +3724,7 @@ function bindEvents() {
   $("#agentOpenLogs").addEventListener("click", () => loadRequestLogs({ show: true }).catch((error) => toast(error.message)));
   $("#requestLogClose").addEventListener("click", closeRequestLogModal);
   $("#requestLogBackdrop").addEventListener("click", closeRequestLogModal);
+  $("#refreshRequestLogs").addEventListener("click", () => loadRequestLogs({ notify: true }).catch((error) => toast(error.message)));
   $("#clearRequestLogs").addEventListener("click", () => clearRequestLogs().catch((error) => toast(error.message)));
   $("#openBackupsDir").addEventListener("click", () => openLocalPath("backups").catch((error) => toast(error.message)));
   $("#openExportsDir").addEventListener("click", () => openLocalPath("exports").catch((error) => toast(error.message)));
