@@ -1584,12 +1584,22 @@ def _create_backup(include_shots: bool = True) -> dict[str, Any]:
     }
 
 
-def _export_activities(day: str | None = None) -> dict[str, Any]:
+def _export_activities(
+    day: str | None = None,
+    start_day: str | None = None,
+    end_day: str | None = None,
+) -> dict[str, Any]:
     config.ensure_dirs()
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    label = day or "all"
+    if start_day and end_day:
+        if start_day > end_day:
+            start_day, end_day = end_day, start_day
+        rows = db.activities_for_day(start_day) if start_day == end_day else db.activities_between(start_day, end_day)
+        label = start_day if start_day == end_day else f"{start_day}_to_{end_day}"
+    else:
+        rows = db.activities_for_day(day) if day else _all_activities()
+        label = day or "all"
     path = config.EXPORTS_DIR / f"书赫日报助手-activities-{label}-{stamp}.csv"
-    rows = db.activities_for_day(day) if day else _all_activities()
     fields = ["id", "ts", "day", "category", "summary", "app", "window_title", "shot_path"]
     with path.open("w", newline="", encoding="utf-8-sig") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields)
@@ -1603,6 +1613,8 @@ def _export_activities(day: str | None = None) -> dict[str, Any]:
         "size_label": _format_bytes(path.stat().st_size),
         "rows": len(rows),
         "day": day or "",
+        "from": start_day or "",
+        "to": end_day or "",
     }
 
 
@@ -2103,8 +2115,10 @@ class DashboardHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/export/activities":
             body = self._read_json()
             day = str(body.get("day") or "").strip() or None
+            start_day = str(body.get("from") or "").strip() or None
+            end_day = str(body.get("to") or "").strip() or None
             try:
-                exported = _export_activities(day=day)
+                exported = _export_activities(day=day, start_day=start_day, end_day=end_day)
                 self._send_json({"ok": True, "export": exported})
             except Exception as exc:
                 self._send_json({"ok": False, "error": str(exc)}, status=500)

@@ -2581,6 +2581,31 @@ async function exportActivities(scope, triggerButton = null) {
   }
 }
 
+async function exportTimelineActivities(triggerButton = null) {
+  const button = triggerButton || $("#timelineExportData");
+  const originalText = button?.textContent || "";
+  const from = $("#timelineFromDate")?.value || state.search.from || state.date;
+  const to = $("#timelineToDate")?.value || state.search.to || from;
+  button.disabled = true;
+  button.textContent = "导出中";
+  $("#exportStatus").textContent = "正在导出当前时间线范围...";
+  try {
+    const result = await api("/api/export/activities", {
+      method: "POST",
+      body: JSON.stringify({ from, to }),
+    });
+    renderExportResult(result.export, "时间线活动");
+    const range = from === to ? from : `${from} 至 ${to}`;
+    toast(`已导出 ${range} 的活动记录`);
+  } catch (error) {
+    $("#exportStatus").textContent = error.message;
+    toast("时间线导出失败");
+  } finally {
+    button.disabled = false;
+    button.textContent = originalText || "导出数据";
+  }
+}
+
 async function exportReportsData() {
   const button = $("#exportReports");
   button.disabled = true;
@@ -3498,7 +3523,7 @@ function bindEvents() {
     state.heatmapRange.to = event.target.value;
     syncHeatmapRangeStatus();
   });
-  $("#timelineExportData").addEventListener("click", (event) => exportActivities("day", event.currentTarget));
+  $("#timelineExportData").addEventListener("click", (event) => exportTimelineActivities(event.currentTarget));
   $("#copyTimelineLog").addEventListener("click", () => copyTimelineLog().catch((error) => toast(error.message)));
   $("#timelineAddRecord").addEventListener("click", () => {
     if (!state.manualOpen) toggleManualActivity();
