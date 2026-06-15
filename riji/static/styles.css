@@ -3164,6 +3164,43 @@ select {
   padding-right: 4px;
 }
 
+.timeline-empty-state {
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff, var(--surface-soft));
+  text-align: center;
+}
+
+.timeline-empty-state span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #edf7f3;
+  color: var(--accent-strong);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.timeline-empty-state strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.timeline-empty-state p {
+  max-width: 420px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .timeline-row {
   display: grid;
   grid-template-columns: 64px 48px minmax(0, 1fr) 98px;
