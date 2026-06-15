@@ -1802,6 +1802,7 @@ function renderReportHistoryTable(reports) {
     ? `
       <div class="history-report-head">
         <span>标题</span>
+        <span>内容预览</span>
         <span>类型</span>
         <span>模板</span>
         <span>生成时间</span>
@@ -1812,6 +1813,7 @@ function renderReportHistoryTable(reports) {
           (item) => `
           <div class="history-report-row">
             <strong>${escapeHtml(item.title)}</strong>
+            <span class="history-report-preview">${escapeHtml(compactReportPreview(item.preview))}</span>
             <span>${escapeHtml(item.kind)}</span>
             <span>${escapeHtml(item.style)}</span>
             <span>${escapeHtml(formatDateTime(item.created_at))}</span>
@@ -1828,6 +1830,10 @@ function renderReportHistoryTable(reports) {
         <strong>暂无报告记录，去生成第一份吧</strong>
         <button class="button primary compact-button" type="button" data-history-generate>去生成报告</button>
       </div>`;
+}
+
+function compactReportPreview(value) {
+  return String(value || "暂无内容预览").replace(/\s+/g, " ").trim().slice(0, 80);
 }
 
 function renderHistoryFilters() {
