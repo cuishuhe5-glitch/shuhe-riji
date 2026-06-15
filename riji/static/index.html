@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-history-empty-state" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-agent-config-focus" />
   </head>
   <body>
     <div class="shell">
@@ -597,6 +597,18 @@
                 </div>
                 <button class="button subtle compact-button" id="copyAgentDocsUrl" type="button">复制接口</button>
               </div>
+              <div class="agent-doc-card">
+                <div class="mini-head">
+                  <strong>Agent 接入配置文本</strong>
+                  <div class="mini-actions">
+                    <button class="text-button" id="refreshAgentDocs" type="button">刷新文档</button>
+                    <button class="text-button" id="copyAgentDocs" type="button">一键复制</button>
+                  </div>
+                </div>
+                <p class="path-note">把下面这段发给 Hermes、Claude、Codex 或其他 Agent，它会先读取实时 API 文档，再调用本地日报数据。</p>
+                <pre id="agentDocsPreview">正在读取本地 API 文档...</pre>
+                <p class="agent-doc-hint">复制上方文本，发送给你的 Hermes / Claude / Codex 或其他 Agent，它会自动读取本地 API 文档并完成接入。</p>
+              </div>
               <div class="agent-grid">
                 <div class="agent-card">
                   <span>后端</span>
@@ -618,18 +630,6 @@
               <div class="agent-actions">
                 <button class="button primary" id="testAgentConnection">测试连接</button>
                 <button class="button subtle" id="openAgentSettings">打开模型设置</button>
-              </div>
-              <div class="agent-doc-card">
-                <div class="mini-head">
-                  <strong>Agent 接入配置文本</strong>
-                  <div class="mini-actions">
-                    <button class="text-button" id="refreshAgentDocs" type="button">刷新文档</button>
-                    <button class="text-button" id="copyAgentDocs" type="button">一键复制</button>
-                  </div>
-                </div>
-                <p class="path-note">把下面这段发给 Hermes、Claude、Codex 或其他 Agent，它会先读取实时 API 文档，再调用本地日报数据。</p>
-                <pre id="agentDocsPreview">正在读取本地 API 文档...</pre>
-                <p class="agent-doc-hint">复制上方文本，发送给你的 Hermes / Claude / Codex 或其他 Agent，它会自动读取本地 API 文档并完成接入。</p>
               </div>
               <div class="agent-context-card">
                 <div class="mini-head">
@@ -1503,6 +1503,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-history-empty-state"></script>
+    <script src="/static/app.js?v=20260615-agent-config-focus"></script>
   </body>
 </html>
