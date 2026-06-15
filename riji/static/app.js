@@ -329,7 +329,7 @@ function renderOverviewDisplays(displays) {
               <strong>${escapeHtml(item.name)}</strong>
               <span>${escapeHtml(`${item.width} × ${item.height}`)}${item.primary ? " · 主显示器" : ""}</span>
               ${renderDisplayMetaChips(item, item.scope === selected || selected === "all")}
-              <small>${escapeHtml(displayCaptureHint(item, selected, physical.length))}</small>
+              <small>${escapeHtml(`${displayCaptureHint(item, selected, physical.length)} · 坐标 ${item.left}, ${item.top}`)}</small>
             </div>
           </div>
         `,
