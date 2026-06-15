@@ -2841,6 +2841,11 @@ select {
   background: var(--surface-soft);
 }
 
+.search-panel[hidden],
+.manual-card[hidden] {
+  display: none;
+}
+
 .timeline-toolbar {
   display: grid;
   grid-template-columns: 150px auto 150px auto auto minmax(180px, 1fr);
