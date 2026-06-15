@@ -620,9 +620,10 @@ select {
   place-items: center;
   margin-bottom: 10px;
   border-radius: 50%;
-  background: #e4f3ee;
-  color: var(--accent);
+  background: #edf8f3;
+  color: #37b98b;
   font-weight: 900;
+  box-shadow: inset 0 0 0 1px rgba(55, 185, 139, 0.18);
 }
 
 .work-overview-empty strong {
