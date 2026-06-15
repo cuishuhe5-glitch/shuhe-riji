@@ -563,6 +563,10 @@ def _agent_docs() -> str:
 
 搜索活动记录。参数均可选，`q` 支持活动摘要、应用名和窗口标题。
 
+### GET /api/app-usage?date=YYYY-MM-DD&period=day|week|month|custom&from=YYYY-MM-DD&to=YYYY-MM-DD
+
+读取应用使用时长分布。`period=custom` 时使用 `from` 和 `to`，其他周期会根据 `date` 自动计算范围。
+
 ### POST /api/report
 
 生成日报、周报或月报。
@@ -907,6 +911,43 @@ def _app_usage(segments: list[dict[str, Any]]) -> list[dict[str, Any]]:
             }
         )
     return sorted(result, key=lambda entry: (-entry["minutes"], entry["name"]))[:20]
+
+
+def _app_usage_range(day: str, period: str, start_value: Any = None, end_value: Any = None) -> dict[str, Any]:
+    try:
+        end = datetime.strptime(day, "%Y-%m-%d").date()
+    except ValueError:
+        end = date.today()
+    if period == "week":
+        start = end - timedelta(days=6)
+    elif period == "month":
+        start = end - timedelta(days=29)
+    elif period == "custom":
+        try:
+            start = datetime.strptime(str(start_value or day), "%Y-%m-%d").date()
+            custom_end = datetime.strptime(str(end_value or day), "%Y-%m-%d").date()
+        except ValueError:
+            start = end
+            custom_end = end
+        if start > custom_end:
+            start, custom_end = custom_end, start
+        end = custom_end
+    else:
+        start = end
+        period = "day"
+    start_day = start.strftime("%Y-%m-%d")
+    end_day = end.strftime("%Y-%m-%d")
+    rows = db.activities_for_day(end_day) if start_day == end_day else db.activities_between(start_day, end_day)
+    items = [_row_to_dict(row) for row in rows]
+    segments = timeline.build_segments(items)
+    days = max(1, (end - start).days + 1)
+    return {
+        "period": period,
+        "start_day": start_day,
+        "end_day": end_day,
+        "days": days,
+        "app_usage": _app_usage(segments),
+    }
 
 
 def _format_minutes(minutes: int) -> str:
@@ -1839,6 +1880,13 @@ class DashboardHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/summary":
             day = parse_qs(parsed.query).get("date", [date.today().strftime("%Y-%m-%d")])[0]
             self._send_json(_summary(day))
+        elif parsed.path == "/api/app-usage":
+            query = parse_qs(parsed.query)
+            day = query.get("date", [date.today().strftime("%Y-%m-%d")])[0]
+            period = query.get("period", ["day"])[0]
+            start_day = query.get("from", [""])[0]
+            end_day = query.get("to", [""])[0]
+            self._send_json({"app_usage_summary": _app_usage_range(day, period, start_day, end_day)})
         elif parsed.path == "/api/recording/status":
             self._send_json(RECORDER.snapshot())
         elif parsed.path == "/api/settings":
