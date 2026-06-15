@@ -327,7 +327,7 @@ function renderDisplays(displays) {
     }
     select.value = items.some((item) => item.scope === previous) ? previous : selected;
   }
-  $("#displayCount").textContent = displays?.ok ? `${Math.max(0, items.length - 1)} 台` : "检测失败";
+  $("#displayCount").textContent = displays?.ok ? displayScopeSummary(items, selected) : "检测失败";
   list.innerHTML = items.length
     ? items
         .filter((item) => item.index > 0)
@@ -352,7 +352,7 @@ function renderOverviewDisplays(displays) {
   const items = displays?.items || [];
   const selected = displays?.selected || state.data?.settings?.capture_scope || "primary";
   const physical = items.filter((item) => Number(item.index || 0) > 0);
-  count.textContent = displays?.ok ? `${physical.length} 台` : "检测失败";
+  count.textContent = displays?.ok ? displayScopeSummary(items, selected) : "检测失败";
   list.innerHTML = items.length
     ? physical
         .map(
@@ -380,6 +380,16 @@ function renderDisplayMetaChips(item, selected = false) {
   return chips.length
     ? `<div class="display-meta-chips">${chips.map((chip) => `<em>${escapeHtml(chip)}</em>`).join("")}</div>`
     : "";
+}
+
+function displayScopeSummary(items = [], selected = "primary") {
+  const physical = items.filter((item) => Number(item.index || 0) > 0);
+  const count = `${physical.length} 台`;
+  if (!physical.length) return count;
+  if (selected === "all") return `${count} · 全部采集`;
+  if (selected === "primary") return `${count} · 主显示器采集`;
+  const active = physical.find((item) => item.scope === selected);
+  return active ? `${count} · 采集 ${active.name}` : count;
 }
 
 function displayCaptureHint(item, selected, count) {
