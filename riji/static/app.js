@@ -1561,7 +1561,7 @@ function renderTimeHeatmap(heatmap) {
   if ($("#heatmapFocusTime")) $("#heatmapFocusTime").textContent = total ? formatDuration(workMinutes) : "0min";
   if ($("#heatmapActiveDays")) $("#heatmapActiveDays").textContent = activeDays;
   if ($("#heatmapDailyAverage")) $("#heatmapDailyAverage").textContent = days.length ? Math.round(total / days.length) : 0;
-  if ($("#heatmapSlogan")) $("#heatmapSlogan").textContent = "不必回忆，数据替你记得";
+  if ($("#heatmapSlogan")) $("#heatmapSlogan").textContent = "静默记录，忠实呈现";
   renderHeatmapPeakHour(days);
   container.innerHTML = days.length
     ? days
