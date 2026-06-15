@@ -1095,6 +1095,7 @@ def _time_heatmap(end_day: str, days: int = 3) -> dict[str, Any]:
     result_days = []
     for day, hours in by_day.items():
         total = sum(item["count"] for item in hours)
+        total_minutes = total
         max_count = max(max_count, *(item["count"] for item in hours))
         for item in hours:
             categories = category_counts.get((day, item["hour"]), Counter())
@@ -1104,6 +1105,7 @@ def _time_heatmap(end_day: str, days: int = 3) -> dict[str, Any]:
                 "day": day,
                 "label": _relative_day_label(day, end.strftime("%Y-%m-%d")),
                 "total": total,
+                "total_minutes": total_minutes,
                 "hours": hours,
             }
         )

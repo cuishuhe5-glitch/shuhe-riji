@@ -1282,7 +1282,7 @@ function renderTimeHeatmap(heatmap) {
   const days = heatmap?.days || [];
   const total = days.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
   const activeDays = days.filter((item) => Number(item.total || 0) > 0).length;
-  const workMinutes = days.reduce((sum, day) => sum + (day.hours || []).reduce((hourSum, hour) => hourSum + (Number(hour.count) || 0), 0), 0);
+  const workMinutes = days.reduce((sum, day) => sum + heatmapDayMinutes(day), 0);
   const start = days[0]?.day || addDays(state.date, -6);
   const end = days[days.length - 1]?.day || state.date;
   if ($("#heatmapFromDate")) $("#heatmapFromDate").value = start;
@@ -1299,7 +1299,7 @@ function renderTimeHeatmap(heatmap) {
           <div class="time-heatmap-row">
             <div class="time-heatmap-label">
               <strong>${escapeHtml(day.label)}</strong>
-              <span>${day.total || 0} 条</span>
+              <span>${day.total || 0} 条 · ${formatDuration(heatmapDayMinutes(day))}</span>
             </div>
             <div class="time-heatmap-cells">
               ${(day.hours || [])
@@ -1317,6 +1317,12 @@ function renderTimeHeatmap(heatmap) {
         )
         .join("")
     : `<div class="empty time-heatmap-empty">还没有时段热力数据。</div>`;
+}
+
+function heatmapDayMinutes(day) {
+  const explicit = Number(day?.total_minutes);
+  if (Number.isFinite(explicit) && explicit >= 0) return explicit;
+  return (day?.hours || []).reduce((sum, hour) => sum + (Number(hour.count) || 0), 0);
 }
 
 function renderUsageIcon(item) {
