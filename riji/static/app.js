@@ -3297,6 +3297,108 @@ function toggleManualActivity() {
   }
 }
 
+function openAddRecordModal() {
+  $("#addRecordModal")?.classList.add("show");
+  $("#addRecordModal")?.setAttribute("aria-hidden", "false");
+}
+
+function closeAddRecordModal() {
+  $("#addRecordModal")?.classList.remove("show");
+  $("#addRecordModal")?.setAttribute("aria-hidden", "true");
+}
+
+function openTextManualActivity() {
+  closeAddRecordModal();
+  openTextRecordModal();
+}
+
+function openTextRecordModal() {
+  $("#textRecordModal")?.classList.add("show");
+  $("#textRecordModal")?.setAttribute("aria-hidden", "false");
+  $("#textRecordTitleInput").value = "";
+  $("#textRecordContent").value = "";
+  updateTextRecordSaveState();
+  $("#textRecordTitleInput").focus();
+}
+
+function closeTextRecordModal() {
+  $("#textRecordModal")?.classList.remove("show");
+  $("#textRecordModal")?.setAttribute("aria-hidden", "true");
+}
+
+function composeTextRecordSummary() {
+  const title = $("#textRecordTitleInput").value.trim();
+  const content = $("#textRecordContent").value.trim();
+  if (title && content) return `${title}\n\n${content}`;
+  return content;
+}
+
+function updateTextRecordSaveState() {
+  $("#textRecordSave").disabled = !$("#textRecordContent").value.trim();
+}
+
+function applyTextRecordFormat(format) {
+  const input = $("#textRecordContent");
+  const start = input.selectionStart ?? input.value.length;
+  const end = input.selectionEnd ?? start;
+  const selected = input.value.slice(start, end);
+  const fallback = selected || "内容";
+  const stripHeading = (value) => value.split("\n").map((line) => line.replace(/^#{1,6}\s+/, "")).join("\n");
+  const replacements = {
+    bold: `**${fallback}**`,
+    italic: `*${fallback}*`,
+    underline: `<u>${fallback}</u>`,
+    strike: `~~${fallback}~~`,
+    unordered: selected ? selected.split("\n").map((line) => `- ${line}`).join("\n") : "- 内容",
+    ordered: selected ? selected.split("\n").map((line, index) => `${index + 1}. ${line}`).join("\n") : "1. 内容",
+    divider: selected ? `${selected}\n\n---` : "\n---\n",
+    h1: `# ${fallback}`,
+    h2: `## ${fallback}`,
+    h3: `### ${fallback}`,
+    paragraph: stripHeading(fallback),
+  };
+  input.setRangeText(replacements[format] || fallback, start, end, "select");
+  input.focus();
+  updateTextRecordSaveState();
+}
+
+async function saveTextRecord() {
+  if (!$("#textRecordContent").value.trim()) {
+    updateTextRecordSaveState();
+    return;
+  }
+  const button = $("#textRecordSave");
+  const now = new Date();
+  button.disabled = true;
+  button.textContent = "保存中";
+  try {
+    const result = await api("/api/activities/create", {
+      method: "POST",
+      body: JSON.stringify({
+        day: state.date || localDateString(now),
+        time: `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`,
+        category: "其他",
+        summary: composeTextRecordSummary(),
+        app: "手动记录",
+        window_title: "文本记录",
+      }),
+    });
+    if (result.summary) {
+      state.data = result.summary;
+      state.date = state.data.day;
+      $("#dateInput").value = state.date;
+      render();
+    }
+    closeTextRecordModal();
+    toast("补记已保存");
+  } catch (error) {
+    toast(error.message);
+  } finally {
+    button.textContent = "保存";
+    updateTextRecordSaveState();
+  }
+}
+
 function resetManualActivity(clearSummary = true) {
   const now = new Date();
   $("#manualDay").value = state.date || localDateString(now);
@@ -3415,7 +3517,7 @@ function syncTimelineSearchStatus() {
   if (!status) return;
   const query = state.search.query || $("#timelineQuickSearch")?.value.trim() || "";
   const clearButton = $("#timelineClearSearch");
-  if (clearButton) clearButton.hidden = !Boolean(query || state.search.searched || state.search.from || state.search.to);
+  if (clearButton) clearButton.hidden = !Boolean(query || state.search.searched);
   const range = state.search.from || state.search.to ? `${state.search.from || "最早"} 至 ${state.search.to || "今天"}` : "当前日期";
   status.hidden = false;
   if (state.search.searched) {
@@ -3936,11 +4038,18 @@ function bindEvents() {
   $("#timelineExportData").addEventListener("click", (event) => exportTimelineActivities(event.currentTarget));
   $("#copyTimelineLog").addEventListener("click", () => copyTimelineLog().catch((error) => toast(error.message)));
   $("#reuseTimelineDay").addEventListener("click", reuseTimelineDayDraft);
-  $("#timelineAddRecord").addEventListener("click", () => {
-    if (!state.manualOpen) toggleManualActivity();
-    setManualRecordMode("text");
-    resetManualActivity(false);
-    $("#manualSummary").focus();
+  $("#timelineAddRecord").addEventListener("click", openAddRecordModal);
+  $("#addRecordClose").addEventListener("click", closeAddRecordModal);
+  $("#addRecordBackdrop").addEventListener("click", closeAddRecordModal);
+  $("#addRecordText").addEventListener("click", openTextManualActivity);
+  $("#addRecordImage").addEventListener("click", () => toast("传图记录入口暂未开放"));
+  $("#textRecordClose").addEventListener("click", closeTextRecordModal);
+  $("#textRecordBackdrop").addEventListener("click", closeTextRecordModal);
+  $("#textRecordCancel").addEventListener("click", closeTextRecordModal);
+  $("#textRecordSave").addEventListener("click", () => saveTextRecord().catch((error) => toast(error.message)));
+  $("#textRecordContent").addEventListener("input", updateTextRecordSaveState);
+  $$(".text-record-toolbar [data-text-record-format]").forEach((button) => {
+    button.addEventListener("click", () => applyTextRecordFormat(button.dataset.textRecordFormat));
   });
   $$(".timeline-quick-ranges [data-timeline-range]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -4155,6 +4264,8 @@ function bindEvents() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeTimelineDetail();
     if (event.key === "Escape") closeTemplateDetail();
+    if (event.key === "Escape") closeAddRecordModal();
+    if (event.key === "Escape") closeTextRecordModal();
   });
 
   [

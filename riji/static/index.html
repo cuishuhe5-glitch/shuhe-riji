@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-template-detail-modal" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260616-text-record-modal" />
   </head>
   <body>
     <div class="shell">
@@ -359,8 +359,8 @@
             <section class="panel timeline-panel" data-section="timeline">
               <div class="section-head">
                 <div>
-                  <p class="eyebrow">工作时间线</p>
-                  <h3>查看全天工作活动轨迹，了解时间都花在了哪里</h3>
+                  <h3>工作时间线</h3>
+                  <p>查看全天工作活动轨迹，了解时间都花在了哪里</p>
                 </div>
               </div>
               <div class="timeline-toolbar">
@@ -388,7 +388,7 @@
                   <strong id="timelineActivePeriod">暂无</strong>
                   <span>活跃时段</span>
                 </div>
-                <div class="segmented timeline-type-filter" hidden>
+                <div class="segmented timeline-type-filter" hidden aria-hidden="true">
                   <button class="active" data-filter="all">全部</button>
                   <button data-filter="work">工作</button>
                   <button data-filter="rest">休息</button>
@@ -1501,6 +1501,67 @@
         </div>
       </section>
     </div>
+    <div class="detail-modal add-record-modal" id="addRecordModal" aria-hidden="true">
+      <div class="detail-backdrop" id="addRecordBackdrop"></div>
+      <section class="detail-sheet add-record-sheet" role="dialog" aria-modal="true" aria-labelledby="addRecordTitle">
+        <div class="add-record-head">
+          <div>
+            <h3 id="addRecordTitle">添加记录</h3>
+            <p>请选择记录方式</p>
+          </div>
+          <button class="detail-close" id="addRecordClose" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="add-record-options">
+          <button class="add-record-option" id="addRecordImage" type="button">
+            <span>▧</span>
+            <strong>传图记录</strong>
+          </button>
+          <button class="add-record-option" id="addRecordText" type="button">
+            <span>▤</span>
+            <strong>文本记录</strong>
+          </button>
+        </div>
+      </section>
+    </div>
+    <div class="detail-modal text-record-modal" id="textRecordModal" aria-hidden="true">
+      <div class="detail-backdrop" id="textRecordBackdrop"></div>
+      <section class="detail-sheet text-record-sheet" role="dialog" aria-modal="true" aria-labelledby="textRecordTitle">
+        <div class="text-record-head">
+          <div>
+            <h3 id="textRecordTitle">文本记录</h3>
+            <p>填写标题和记录内容，保存后将出现在工作时间线中</p>
+          </div>
+          <button class="detail-close" id="textRecordClose" type="button" aria-label="关闭">×</button>
+        </div>
+        <div class="text-record-body">
+          <label>
+            <span>标题（可选）</span>
+            <input id="textRecordTitleInput" placeholder="输入标题..." />
+          </label>
+          <label>
+            <span>记录内容</span>
+            <div class="text-record-toolbar" aria-label="文本编辑工具">
+              <button type="button" data-text-record-format="bold">加粗</button>
+              <button type="button" data-text-record-format="italic">斜体</button>
+              <button type="button" data-text-record-format="underline">下划线</button>
+              <button type="button" data-text-record-format="strike">删除线</button>
+              <button type="button" data-text-record-format="unordered">无序列表</button>
+              <button type="button" data-text-record-format="ordered">有序列表</button>
+              <button type="button" data-text-record-format="divider">分割线</button>
+              <button type="button" data-text-record-format="h1">标题 1</button>
+              <button type="button" data-text-record-format="h2">标题 2</button>
+              <button type="button" data-text-record-format="h3">标题 3</button>
+              <button type="button" data-text-record-format="paragraph">正文</button>
+            </div>
+            <textarea id="textRecordContent" placeholder="输入工作内容..."></textarea>
+          </label>
+        </div>
+        <div class="text-record-actions">
+          <button class="button subtle" id="textRecordCancel" type="button">取消</button>
+          <button class="button primary" id="textRecordSave" type="button" disabled>保存</button>
+        </div>
+      </section>
+    </div>
     <div class="detail-modal template-detail-modal" id="templateDetailModal" aria-hidden="true">
       <div class="detail-backdrop" id="templateDetailBackdrop"></div>
       <section class="detail-sheet template-detail-sheet" role="dialog" aria-modal="true" aria-labelledby="templateDetailTitle">
@@ -1515,6 +1576,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-template-detail-modal"></script>
+    <script src="/static/app.js?v=20260616-text-record-modal"></script>
   </body>
 </html>
