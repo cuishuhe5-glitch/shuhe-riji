@@ -3110,6 +3110,29 @@ select {
   resize: vertical;
 }
 
+.manual-editor-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.manual-editor-toolbar button {
+  min-height: 28px;
+  padding: 0 9px;
+  border: 1px solid var(--line-soft);
+  border-radius: 7px;
+  background: #fff;
+  color: #3f514d;
+  font-size: 11px;
+  font-weight: 760;
+}
+
+.manual-editor-toolbar button:hover,
+.manual-editor-toolbar button:focus-visible {
+  border-color: rgba(15, 118, 110, 0.35);
+  color: var(--accent-strong);
+}
+
 .manual-grid input:focus,
 .manual-grid select:focus,
 .manual-summary input:focus,

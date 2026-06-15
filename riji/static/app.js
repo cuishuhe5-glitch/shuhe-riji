@@ -3079,10 +3079,12 @@ function resetManualActivity(clearSummary = true) {
   $("#manualDay").value = state.date || localDateString(now);
   $("#manualTime").value = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
   if (clearSummary) {
+    $("#manualTitle").value = "";
     $("#manualSummary").value = "";
     $("#manualApp").value = "";
     $("#manualWindow").value = "";
   }
+  updateManualSaveState();
 }
 
 function setManualRecordMode(mode = "text") {
@@ -3091,8 +3093,42 @@ function setManualRecordMode(mode = "text") {
   $("#manualImageMode").classList.toggle("active", !textActive);
 }
 
+function composeManualSummary() {
+  const title = $("#manualTitle").value.trim();
+  const content = $("#manualSummary").value.trim();
+  if (title && content) return `${title}\n\n${content}`;
+  return content || title;
+}
+
+function updateManualSaveState() {
+  $("#saveManualActivity").disabled = !composeManualSummary();
+}
+
+function applyManualFormat(format) {
+  const input = $("#manualSummary");
+  const start = input.selectionStart ?? input.value.length;
+  const end = input.selectionEnd ?? start;
+  const selected = input.value.slice(start, end);
+  const fallback = selected || "内容";
+  const replacements = {
+    bold: `**${fallback}**`,
+    italic: `*${fallback}*`,
+    unordered: selected ? selected.split("\n").map((line) => `- ${line}`).join("\n") : "- 内容",
+    ordered: selected ? selected.split("\n").map((line, index) => `${index + 1}. ${line}`).join("\n") : "1. 内容",
+    heading: `## ${fallback}`,
+  };
+  const next = replacements[format] || fallback;
+  input.setRangeText(next, start, end, "select");
+  input.focus();
+  updateManualSaveState();
+}
+
 async function saveManualActivity(event) {
   event.preventDefault();
+  if (!composeManualSummary()) {
+    updateManualSaveState();
+    return;
+  }
   const button = $("#saveManualActivity");
   button.disabled = true;
   button.textContent = "保存中";
@@ -3103,7 +3139,7 @@ async function saveManualActivity(event) {
         day: $("#manualDay").value || state.date,
         time: $("#manualTime").value,
         category: $("#manualCategory").value,
-        summary: $("#manualSummary").value,
+        summary: composeManualSummary(),
         app: $("#manualApp").value,
         window_title: $("#manualWindow").value,
       }),
@@ -3119,8 +3155,8 @@ async function saveManualActivity(event) {
   } catch (error) {
     toast(error.message);
   } finally {
-    button.disabled = false;
     button.textContent = "保存补记";
+    updateManualSaveState();
   }
 }
 
@@ -3686,6 +3722,8 @@ function bindEvents() {
   $("#toggleManualActivity").addEventListener("click", toggleManualActivity);
   $("#manualActivityForm").addEventListener("submit", saveManualActivity);
   $("#resetManualActivity").addEventListener("click", () => resetManualActivity(true));
+  $("#manualTitle").addEventListener("input", updateManualSaveState);
+  $("#manualSummary").addEventListener("input", updateManualSaveState);
   $("#manualTextMode").addEventListener("click", () => {
     setManualRecordMode("text");
     $("#manualSummary").focus();
@@ -3694,6 +3732,9 @@ function bindEvents() {
     setManualRecordMode("image");
     toast("传图记录入口已预留，当前先使用文本记录");
     setManualRecordMode("text");
+  });
+  $$(".manual-editor-toolbar [data-manual-format]").forEach((button) => {
+    button.addEventListener("click", () => applyManualFormat(button.dataset.manualFormat));
   });
   $("#searchQuery").addEventListener("keydown", (event) => {
     if (event.key === "Enter") runSearch();
