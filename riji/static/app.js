@@ -3097,11 +3097,11 @@ function composeManualSummary() {
   const title = $("#manualTitle").value.trim();
   const content = $("#manualSummary").value.trim();
   if (title && content) return `${title}\n\n${content}`;
-  return content || title;
+  return content;
 }
 
 function updateManualSaveState() {
-  $("#saveManualActivity").disabled = !composeManualSummary();
+  $("#saveManualActivity").disabled = !$("#manualSummary").value.trim();
 }
 
 function applyManualFormat(format) {
@@ -3110,12 +3110,19 @@ function applyManualFormat(format) {
   const end = input.selectionEnd ?? start;
   const selected = input.value.slice(start, end);
   const fallback = selected || "内容";
+  const stripHeading = (value) => value.split("\n").map((line) => line.replace(/^#{1,6}\s+/, "")).join("\n");
   const replacements = {
     bold: `**${fallback}**`,
     italic: `*${fallback}*`,
+    underline: `<u>${fallback}</u>`,
+    strike: `~~${fallback}~~`,
     unordered: selected ? selected.split("\n").map((line) => `- ${line}`).join("\n") : "- 内容",
     ordered: selected ? selected.split("\n").map((line, index) => `${index + 1}. ${line}`).join("\n") : "1. 内容",
-    heading: `## ${fallback}`,
+    divider: selected ? `${selected}\n\n---` : "\n---\n",
+    h1: `# ${fallback}`,
+    h2: `## ${fallback}`,
+    h3: `### ${fallback}`,
+    paragraph: stripHeading(fallback),
   };
   const next = replacements[format] || fallback;
   input.setRangeText(next, start, end, "select");
@@ -3125,7 +3132,7 @@ function applyManualFormat(format) {
 
 async function saveManualActivity(event) {
   event.preventDefault();
-  if (!composeManualSummary()) {
+  if (!$("#manualSummary").value.trim()) {
     updateManualSaveState();
     return;
   }
