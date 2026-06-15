@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-report-summary-hidden" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-heatmap-page-clean" />
   </head>
   <body>
     <div class="shell">
@@ -298,7 +298,7 @@
                 </div>
                 <div class="heatmap-toolbar">
                   <button class="button subtle compact-button" id="refreshHeatmap" type="button">生成热力图</button>
-                  <div class="heatmap-quick-ranges" aria-label="热力图快捷范围">
+                  <div class="heatmap-quick-ranges" aria-label="热力图快捷范围" hidden>
                     <button class="text-button" type="button" data-heatmap-range="7">近7天</button>
                     <button class="text-button" type="button" data-heatmap-range="14">近14天</button>
                     <button class="text-button" type="button" data-heatmap-range="30">近30天</button>
@@ -327,7 +327,7 @@
                     <span>日均记录</span>
                   </div>
                 </div>
-                <span id="heatmapSlogan">专注工作本身，剩下的交给书赫</span>
+                <span id="heatmapSlogan">让时间说话，让努力有迹可循</span>
               </div>
               <section class="heatmap-card">
                 <div class="mini-head">
@@ -1516,6 +1516,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-report-summary-hidden"></script>
+    <script src="/static/app.js?v=20260615-heatmap-page-clean"></script>
   </body>
 </html>
