@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-report-instruction-state" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-timeline-range-state" />
   </head>
   <body>
     <div class="shell">
@@ -502,10 +502,10 @@
                   <div class="timeline-head-actions">
                     <button class="text-button timeline-copy-log" id="copyTimelineLog" type="button">复制日志到剪切板</button>
                     <div class="timeline-quick-ranges">
-                      <button class="text-button" type="button" data-timeline-range="30">近30分</button>
-                      <button class="text-button" type="button" data-timeline-range="60">近1小时</button>
-                      <button class="text-button" type="button" data-timeline-range="120">近2小时</button>
-                      <button class="text-button" type="button" data-timeline-range="today">今天</button>
+                      <button class="text-button" type="button" data-timeline-range="30" aria-pressed="false">近30分</button>
+                      <button class="text-button" type="button" data-timeline-range="60" aria-pressed="false">近1小时</button>
+                      <button class="text-button" type="button" data-timeline-range="120" aria-pressed="false">近2小时</button>
+                      <button class="text-button active" type="button" data-timeline-range="today" aria-pressed="true">今天</button>
                     </div>
                   </div>
                 </div>
@@ -1503,6 +1503,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-report-instruction-state"></script>
+    <script src="/static/app.js?v=20260615-timeline-range-state"></script>
   </body>
 </html>

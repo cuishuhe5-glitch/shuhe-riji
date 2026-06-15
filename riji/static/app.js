@@ -1604,7 +1604,9 @@ function renderUsageIcon(item) {
 
 function renderTimeline(items) {
   $$(".timeline-quick-ranges [data-timeline-range]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.timelineRange === state.timelineRange);
+    const active = button.dataset.timelineRange === state.timelineRange;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", active ? "true" : "false");
   });
   const filtered = filteredTimelineItems(items);
   renderTimelineSummary(items, filtered);
