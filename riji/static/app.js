@@ -154,6 +154,13 @@ function renderSettings(settings) {
     $("#modelBaseUrlInput").value = settings.base_url || "";
     $("#modelNameInput").value = settings.text_model || settings.vision_model || "";
     $("#autoRecordEnabled").checked = Boolean(settings.auto_record_enabled);
+    $("#languageInput").value = settings.language || "zh-CN";
+    $("#aiAnalysisSourceInput").value = settings.ai_analysis_source || "screen";
+    $("#quickEnterInput").checked = settings.quick_enter_enabled !== false;
+    $("#dockIconInput").checked = settings.show_dock_icon !== false;
+    $("#memoryInput").checked = settings.memory_enabled !== false;
+    $("#woodfishInput").checked = Boolean(settings.woodfish_enabled);
+    $("#analysisPromptInput").value = settings.analysis_prompt || "";
     $("#privacyModeInput").checked = settings.privacy_mode !== false;
     $("#keepShotsInput").checked = Boolean(settings.keep_shots);
     $("#keepShotsInput").disabled = settings.privacy_mode !== false;
@@ -1492,6 +1499,13 @@ async function saveSettings() {
         keep_shots: $("#keepShotsInput").checked,
         privacy_mode: $("#privacyModeInput").checked,
         auto_record_enabled: $("#autoRecordEnabled").checked,
+        language: $("#languageInput").value,
+        ai_analysis_source: $("#aiAnalysisSourceInput").value,
+        quick_enter_enabled: $("#quickEnterInput").checked,
+        show_dock_icon: $("#dockIconInput").checked,
+        memory_enabled: $("#memoryInput").checked,
+        woodfish_enabled: $("#woodfishInput").checked,
+        analysis_prompt: $("#analysisPromptInput").value,
         shot_retention_days: Number($("#shotRetentionInput").value),
         capture_interval: Number($("#intervalInput").value),
         idle_pause_after: Number($("#idlePauseInput").value),
@@ -1928,6 +1942,13 @@ function isSettingsFocused() {
     "modelBaseUrlInput",
     "modelNameInput",
     "modelApiKeyInput",
+    "languageInput",
+    "aiAnalysisSourceInput",
+    "quickEnterInput",
+    "dockIconInput",
+    "memoryInput",
+    "woodfishInput",
+    "analysisPromptInput",
     "autoReportEnabled",
     "autoReportTime",
     "autoReportStyle",
@@ -2690,6 +2711,13 @@ function bindEvents() {
     "modelBaseUrlInput",
     "modelNameInput",
     "modelApiKeyInput",
+    "languageInput",
+    "aiAnalysisSourceInput",
+    "quickEnterInput",
+    "dockIconInput",
+    "memoryInput",
+    "woodfishInput",
+    "analysisPromptInput",
     "autoReportEnabled",
     "autoReportTime",
     "autoReportStyle",

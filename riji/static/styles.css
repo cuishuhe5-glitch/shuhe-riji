@@ -2807,6 +2807,7 @@ select {
 
 .model-test-card,
 .model-config-card,
+.preferences-card,
 .auto-report-card,
 .desktop-app-card,
 .backup-card,
@@ -2830,6 +2831,7 @@ select {
 
 .model-test-card strong,
 .model-config-card strong,
+.preferences-card strong,
 .auto-report-card strong,
 .desktop-app-card strong,
 .backup-card strong,
@@ -2841,6 +2843,7 @@ select {
 
 .model-test-card p,
 .model-config-card p,
+.preferences-card p,
 .auto-report-card p,
 .desktop-app-card p,
 .backup-card p,
