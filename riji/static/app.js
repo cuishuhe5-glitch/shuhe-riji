@@ -21,6 +21,7 @@ const state = {
   filter: "all",
   timelineRange: "today",
   appChartMode: "bar",
+  showPreviousRhythm: false,
   settingsTouched: false,
   dayNoteTouched: false,
   summarySeq: 0,
@@ -185,7 +186,7 @@ function render() {
   renderTimeHeatmap(data.time_heatmap);
   renderAppUsage(data.app_usage || []);
   renderAppRecords(data.app_usage || []);
-  renderActivityRhythm(data.segments || data.items || []);
+  renderActivityRhythm(data.segments || data.items || [], data.time_heatmap);
   renderTimeline(data.segments || data.items);
   renderSearchResults();
   renderReports(data.reports || []);
@@ -296,21 +297,32 @@ function renderOverviewDisplays(displays) {
   const list = $("#overviewDisplayList");
   if (!count || !list) return;
   const items = displays?.items || [];
-  count.textContent = displays?.ok ? `${Math.max(0, items.length - 1)} 台` : "检测失败";
+  const selected = displays?.selected || state.data?.settings?.capture_scope || "primary";
+  const physical = items.filter((item) => Number(item.index || 0) > 0);
+  count.textContent = displays?.ok ? `${physical.length} 台` : "检测失败";
   list.innerHTML = items.length
-    ? items
-        .filter((item) => item.index > 0)
+    ? physical
         .map(
           (item) => `
-          <div class="display-item selected">
-            <strong>${escapeHtml(item.name)}</strong>
-            <span>${escapeHtml(`${item.width} × ${item.height}`)}${item.primary ? " · 主显示器" : ""}</span>
-            <small>${escapeHtml(item.primary ? "当前默认采集" : "可在设置中选择")}</small>
+          <div class="display-item overview-display-item ${item.scope === selected || (selected === "all" && item.primary) ? "selected" : ""}">
+            <div class="display-index">${item.index}</div>
+            <div>
+              <strong>${escapeHtml(item.name)}</strong>
+              <span>${escapeHtml(`${item.width} × ${item.height}`)}${item.primary ? " · 主显示器" : ""}</span>
+              <small>${escapeHtml(displayCaptureHint(item, selected, physical.length))}</small>
+            </div>
           </div>
         `,
         )
         .join("")
     : `<div class="empty display-empty">${escapeHtml(displays?.error || "暂未检测到显示器。")}</div>`;
+}
+
+function displayCaptureHint(item, selected, count) {
+  if (selected === "all") return count > 1 ? "当前会采集全部显示器" : "当前默认采集";
+  if (item.scope === selected) return "当前采集范围";
+  if (item.primary) return "主显示器，可在设置中切换";
+  return "可在设置中选择";
 }
 
 function renderHealth(health) {
@@ -988,9 +1000,14 @@ function appChartColor(index) {
   return colors[index % colors.length];
 }
 
-function renderActivityRhythm(items) {
+function renderActivityRhythm(items, heatmap = state.data?.time_heatmap) {
   const chart = $("#activityRhythm");
   if (!chart) return;
+  if (state.showPreviousRhythm && heatmap?.days?.length) {
+    renderOverviewHeatmapRhythm(heatmap);
+    return;
+  }
+  chart.classList.remove("is-heatmap");
   const buckets = Array.from({ length: 24 }, (_, hour) => ({
     hour,
     count: 0,
@@ -1035,6 +1052,38 @@ function renderActivityRhythm(items) {
       `;
     })
     .join("");
+}
+
+function renderOverviewHeatmapRhythm(heatmap) {
+  const chart = $("#activityRhythm");
+  const days = heatmap?.days || [];
+  chart.classList.add("is-heatmap");
+  const activeDays = days.filter((day) => Number(day.total || 0) > 0).length;
+  const total = days.reduce((sum, day) => sum + (Number(day.total) || 0), 0);
+  $("#activityRhythmMeta").textContent = total ? `${activeDays} 天有记录 · ${total} 条` : "近三日暂无时段记录";
+  chart.innerHTML = days.length
+    ? days
+        .map(
+          (day) => `
+          <div class="overview-heatmap-row">
+            <div class="overview-heatmap-label">
+              <strong>${escapeHtml(day.label || day.day)}</strong>
+              <span>${day.total || 0} 条</span>
+            </div>
+            <div class="overview-heatmap-cells">
+              ${(day.hours || [])
+                .map(
+                  (hour) => `
+                  <span class="overview-heat-cell level-${hour.level || 0}" title="${escapeHtml(`${day.day} ${String(hour.hour).padStart(2, "0")}:00 · ${hour.count || 0} 条`)}">${hour.count ? escapeHtml(String(hour.count)) : ""}</span>
+                `,
+                )
+                .join("")}
+            </div>
+          </div>
+        `,
+        )
+        .join("")
+    : `<div class="empty rhythm-empty">还没有小时分布数据。</div>`;
 }
 
 function renderTrends(trends) {
@@ -2710,6 +2759,10 @@ function bindEvents() {
   });
   $("#quickOpenHelp").addEventListener("click", () => {
     navigateTo("help");
+  });
+  $("#showPreviousRhythm").addEventListener("change", (event) => {
+    state.showPreviousRhythm = event.target.checked;
+    renderActivityRhythm(state.data?.segments || state.data?.items || [], state.data?.time_heatmap);
   });
   $("#settingsCaptureNow").addEventListener("click", () => captureNow().catch((error) => toast(error.message)));
   $("#generateReport").addEventListener("click", generateReport);

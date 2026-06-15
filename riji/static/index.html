@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-apps" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-overview" />
   </head>
   <body>
     <div class="shell">
@@ -218,7 +218,18 @@
               <div class="activity-rhythm-block">
                 <div class="mini-head">
                   <strong>时段记录</strong>
+                  <label class="inline-check subtle-check">
+                    <input id="showPreviousRhythm" type="checkbox" />
+                    <span>展示前两日时段热力</span>
+                  </label>
+                </div>
+                <div class="rhythm-legend-row">
                   <span id="activityRhythmMeta">按有效记录估算</span>
+                  <div class="heatmap-legend">
+                    <span>少</span>
+                    <i></i><i></i><i></i><i></i><i></i>
+                    <span>多</span>
+                  </div>
                 </div>
                 <div class="activity-rhythm" id="activityRhythm"></div>
               </div>
@@ -1348,6 +1359,6 @@
         <div class="detail-body" id="detailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-apps"></script>
+    <script src="/static/app.js?v=20260615-overview"></script>
   </body>
 </html>
