@@ -371,7 +371,7 @@
                 <button class="button subtle" id="timelineAddRecord" type="button">添加记录</button>
                 <div class="timeline-search-box">
                   <input id="timelineQuickSearch" type="search" placeholder="搜索活动..." />
-                  <button class="text-button" id="timelineClearSearch" type="button">清空</button>
+                  <button class="text-button" id="timelineClearSearch" type="button" hidden>清空</button>
                 </div>
               </div>
               <p class="timeline-search-status" id="timelineSearchStatus" hidden>输入关键词后按 Enter 搜索摘要、应用或窗口。</p>
@@ -411,7 +411,7 @@
                 <p class="path-note timeline-category-meta" id="timelineCategoryMeta" hidden>按时间段估算</p>
                 <div class="timeline-category-chart" id="timelineCategoryChart"></div>
               </section>
-              <div class="search-panel">
+              <div class="search-panel" hidden>
                 <div class="search-grid">
                   <label>
                     <span>关键词</span>
@@ -436,7 +436,7 @@
                 </div>
                 <div class="search-results" id="searchResults"></div>
               </div>
-              <form class="manual-card" id="manualActivityForm">
+              <form class="manual-card" id="manualActivityForm" hidden>
                 <div class="manual-head">
                   <div>
                     <strong>补记活动</strong>
@@ -1516,6 +1516,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-agent-panel-clean"></script>
+    <script src="/static/app.js?v=20260615-timeline-panel-clean"></script>
   </body>
 </html>
