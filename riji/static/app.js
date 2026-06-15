@@ -412,6 +412,7 @@ function renderAgent(modelConfig, health, projectContext, settings) {
   $("#agentModel").textContent = cfg.model || "-";
   $("#agentBaseUrl").textContent = cfg.base_url || "-";
   $("#agentServiceUrl").textContent = serviceUrl;
+  $("#agentDocsUrl").textContent = `${serviceUrl}/api/agent-docs`;
   $("#agentKeyStatus").textContent = cfg.provider === "openai"
     ? (cfg.api_key_present ? `已配置${cfg.api_key_source === "keychain" ? "（钥匙串）" : ""}` : "缺失")
     : "无需 key";
@@ -3585,6 +3586,11 @@ function bindEvents() {
     const url = $("#agentServiceUrl").textContent.trim();
     await copyText(url);
     toast("Agent 服务地址已复制");
+  });
+  $("#copyAgentDocsUrl").addEventListener("click", async () => {
+    const url = $("#agentDocsUrl").textContent.trim();
+    await copyText(url);
+    toast("Agent 文档接口已复制");
   });
   $("#saveAutoReport").addEventListener("click", () => saveAutoReport().catch((error) => toast(error.message)));
   $("#runAutoReportNow").addEventListener("click", () => runAutoReportNow().catch((error) => toast(error.message)));

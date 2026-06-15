@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-history-preview" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-agent-doc-endpoint" />
   </head>
   <body>
     <div class="shell">
@@ -559,6 +559,13 @@
                   <code id="agentServiceUrl">http://127.0.0.1:8765</code>
                   <button class="button subtle compact-button" id="copyAgentServiceUrl" type="button">复制地址</button>
                 </div>
+              </div>
+              <div class="agent-endpoint-card">
+                <div>
+                  <span>实时文档接口</span>
+                  <code id="agentDocsUrl">http://127.0.0.1:8765/api/agent-docs</code>
+                </div>
+                <button class="button subtle compact-button" id="copyAgentDocsUrl" type="button">复制接口</button>
               </div>
               <div class="agent-grid">
                 <div class="agent-card">
@@ -1464,6 +1471,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-history-preview"></script>
+    <script src="/static/app.js?v=20260615-agent-doc-endpoint"></script>
   </body>
 </html>
