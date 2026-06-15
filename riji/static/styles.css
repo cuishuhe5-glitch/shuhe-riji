@@ -4271,9 +4271,9 @@ select {
 }
 
 .overview-display-item {
-  grid-template-columns: 38px minmax(0, 1fr);
-  align-items: flex-start;
-  gap: 10px;
+  grid-template-columns: 34px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
 }
 
 .overview-display-body {
@@ -4323,15 +4323,15 @@ select {
 }
 
 .display-index {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
-  background: #e7f5ee;
-  color: var(--accent-strong);
-  font-size: 13px;
-  font-weight: 820;
+  border-radius: 7px;
+  background: #e8f7ef;
+  color: #10a66a;
+  font-size: 11px;
+  font-weight: 900;
 }
 
 .display-item.selected {
@@ -5558,6 +5558,10 @@ select {
 
   .app-custom-range span {
     justify-self: center;
+  }
+
+  .overview-display-card .display-list {
+    grid-template-columns: 1fr;
   }
 
   .donut {
