@@ -1535,15 +1535,19 @@ def _logs_snapshot() -> dict[str, Any]:
     }
 
 
-def _request_logs_snapshot() -> dict[str, Any]:
+def _request_logs_snapshot(page: int = 1) -> dict[str, Any]:
     with REQUEST_LOGS_LOCK:
         items = list(reversed(REQUEST_LOGS))
+    page_size = 20
+    pages = max(1, (len(items) + page_size - 1) // page_size)
+    page = min(max(1, int(page or 1)), pages)
+    start = (page - 1) * page_size
     return {
         "total": len(items),
-        "page": 1,
-        "page_size": 20,
-        "pages": max(1, (len(items) + 19) // 20),
-        "items": items[:20],
+        "page": page,
+        "page_size": page_size,
+        "pages": pages,
+        "items": items[start:start + page_size],
     }
 
 
@@ -1937,7 +1941,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/logs":
             self._send_json({"logs": _logs_snapshot()})
         elif parsed.path == "/api/request-logs":
-            self._send_json({"request_logs": _request_logs_snapshot()})
+            try:
+                page = int(parse_qs(parsed.query).get("page", ["1"])[0] or 1)
+            except ValueError:
+                page = 1
+            self._send_json({"request_logs": _request_logs_snapshot(page)})
         elif parsed.path == "/api/health":
             self._send_json({"health": _health()})
         elif parsed.path == "/api/agent-docs":

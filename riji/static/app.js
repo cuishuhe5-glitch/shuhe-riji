@@ -36,6 +36,7 @@ const state = {
   summarySeq: 0,
   logs: null,
   requestLogs: null,
+  requestLogPage: 1,
   reportRangeTouched: false,
   search: {
     query: "",
@@ -751,8 +752,13 @@ function renderRequestLogs(requestLogs) {
   const table = $("#requestLogTable");
   if (!table) return;
   const items = requestLogs?.items || [];
+  const page = requestLogs?.page || 1;
+  const pages = requestLogs?.pages || 1;
+  state.requestLogPage = page;
   $("#requestLogMeta").textContent = `共 ${requestLogs?.total || 0} 条记录，每页 ${requestLogs?.page_size || 20} 条`;
-  $("#requestLogPage").textContent = `第 ${requestLogs?.page || 1} 页 / 共 ${requestLogs?.pages || 1} 页`;
+  $("#requestLogPage").textContent = `第 ${page} 页 / 共 ${pages} 页`;
+  $("#requestLogPrev").disabled = page <= 1;
+  $("#requestLogNext").disabled = page >= pages;
   table.innerHTML = items.length
     ? `
       <div class="request-log-head">
@@ -2246,12 +2252,20 @@ function escapeHtml(value) {
   });
 }
 
-async function loadRequestLogs({ show = false, notify = false } = {}) {
-  const result = await api("/api/request-logs");
+async function loadRequestLogs({ show = false, notify = false, page = state.requestLogPage || 1 } = {}) {
+  const result = await api(`/api/request-logs?page=${encodeURIComponent(page)}`);
   state.requestLogs = result.request_logs;
   renderRequestLogs(state.requestLogs);
   if (show) openRequestLogModal();
   if (notify) toast("请求日志已刷新");
+}
+
+function changeRequestLogPage(delta) {
+  const current = state.requestLogs?.page || state.requestLogPage || 1;
+  const pages = state.requestLogs?.pages || 1;
+  const next = Math.min(Math.max(1, current + delta), pages);
+  if (next === current) return;
+  loadRequestLogs({ page: next }).catch((error) => toast(error.message));
 }
 
 function openRequestLogModal() {
@@ -3721,11 +3735,13 @@ function bindEvents() {
   $("#openDataDir").addEventListener("click", () => openLocalPath("data").catch((error) => toast(error.message)));
   $("#openReportsDir").addEventListener("click", () => openLocalPath("reports").catch((error) => toast(error.message)));
   $("#openLogsDir").addEventListener("click", () => openLocalPath("logs").catch((error) => toast(error.message)));
-  $("#agentOpenLogs").addEventListener("click", () => loadRequestLogs({ show: true }).catch((error) => toast(error.message)));
+  $("#agentOpenLogs").addEventListener("click", () => loadRequestLogs({ show: true, page: 1 }).catch((error) => toast(error.message)));
   $("#requestLogClose").addEventListener("click", closeRequestLogModal);
   $("#requestLogBackdrop").addEventListener("click", closeRequestLogModal);
   $("#refreshRequestLogs").addEventListener("click", () => loadRequestLogs({ notify: true }).catch((error) => toast(error.message)));
   $("#clearRequestLogs").addEventListener("click", () => clearRequestLogs().catch((error) => toast(error.message)));
+  $("#requestLogPrev").addEventListener("click", () => changeRequestLogPage(-1));
+  $("#requestLogNext").addEventListener("click", () => changeRequestLogPage(1));
   $("#openBackupsDir").addEventListener("click", () => openLocalPath("backups").catch((error) => toast(error.message)));
   $("#openExportsDir").addEventListener("click", () => openLocalPath("exports").catch((error) => toast(error.message)));
   $("#openDesktopApp").addEventListener("click", () => openLocalPath("app").catch((error) => toast(error.message)));
