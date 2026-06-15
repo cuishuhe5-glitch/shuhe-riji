@@ -104,31 +104,47 @@
         <section class="content-grid">
           <div class="left-column">
             <section class="panel overview-panel" data-section="overview">
-              <div class="section-head">
+              <div class="work-hero">
+                <div class="hero-mark">书</div>
                 <div>
-                  <p class="eyebrow">今日概览</p>
-                  <h3 id="overviewTitle">暂无记录</h3>
+                  <h3>你只管工作，日报交给我</h3>
+                  <p>静默记录工作轨迹，AI 帮你写好每一份日报、周报、月报。不再为写汇报发愁。</p>
+                  <div class="trust-strip">
+                    <span>截图分析后即刻销毁</span>
+                    <span>数据仅存本地，不上传云端</span>
+                    <span>你的工作内容只属于你</span>
+                  </div>
                 </div>
-                <button class="button subtle" id="refreshButton">刷新</button>
               </div>
 
-              <div class="summary-grid">
-                <div class="metric">
-                  <span>记录片段</span>
-                  <strong id="totalCount">0</strong>
-                  <small>每条约等于一次有效屏幕变化</small>
+              <section class="work-overview-card">
+                <div class="mini-head">
+                  <strong>工作概览</strong>
+                  <button class="text-button" id="refreshButton">刷新</button>
                 </div>
-                <div class="metric">
-                  <span>主要分类</span>
-                  <strong id="topCategory">暂无</strong>
-                  <small id="topCategoryMeta">等待记录</small>
+                <div class="work-overview-empty" id="workOverviewEmpty">
+                  <span>◇</span>
+                  <strong>今天还没有工作记录</strong>
+                  <p>软件会在后台自动截图记录，开始工作后稍等片刻即可看到记录。</p>
                 </div>
-                <div class="metric">
-                  <span>主要应用</span>
-                  <strong id="topApp">暂无</strong>
-                  <small id="topAppMeta">等待记录</small>
+                <div class="summary-grid">
+                  <div class="metric">
+                    <span>记录条数</span>
+                    <strong id="totalCount">0</strong>
+                    <small>每条约等于一次有效屏幕变化</small>
+                  </div>
+                  <div class="metric">
+                    <span>主要分类</span>
+                    <strong id="topCategory">暂无</strong>
+                    <small id="topCategoryMeta">等待记录</small>
+                  </div>
+                  <div class="metric">
+                    <span>主要应用</span>
+                    <strong id="topApp">暂无</strong>
+                    <small id="topAppMeta">等待记录</small>
+                  </div>
                 </div>
-              </div>
+              </section>
 
               <div class="quick-start-card" id="quickStartCard">
                 <div class="quick-start-head">
@@ -201,10 +217,17 @@
 
               <div class="activity-rhythm-block">
                 <div class="mini-head">
-                  <strong>小时分布</strong>
+                  <strong>时段记录</strong>
                   <span id="activityRhythmMeta">按有效记录估算</span>
                 </div>
                 <div class="activity-rhythm" id="activityRhythm"></div>
+              </div>
+              <div class="display-card overview-display-card">
+                <div class="mini-head">
+                  <strong>已连接显示器</strong>
+                  <span id="overviewDisplayCount">-</span>
+                </div>
+                <div class="display-list" id="overviewDisplayList"></div>
               </div>
             </section>
 
@@ -269,8 +292,30 @@
             <section class="panel timeline-panel" data-section="timeline">
               <div class="section-head">
                 <div>
-                  <p class="eyebrow">时间线</p>
-                  <h3>屏幕活动明细</h3>
+                  <p class="eyebrow">工作时间线</p>
+                  <h3>查看全天工作活动轨迹，了解时间都花在了哪里</h3>
+                </div>
+              </div>
+              <div class="timeline-toolbar">
+                <input id="timelineFromDate" type="date" />
+                <span>至</span>
+                <input id="timelineToDate" type="date" />
+                <button class="button subtle" id="timelineExportData" type="button">导出数据</button>
+                <button class="button subtle" id="timelineAddRecord" type="button">添加记录</button>
+                <input id="timelineQuickSearch" type="search" placeholder="搜索活动..." />
+              </div>
+              <div class="timeline-stats">
+                <div>
+                  <strong id="timelineRecordCount">0</strong>
+                  <span>记录条数</span>
+                </div>
+                <div>
+                  <strong id="timelineFocusTime">0min</strong>
+                  <span>专注时长</span>
+                </div>
+                <div>
+                  <strong id="timelineActivePeriod">暂无</strong>
+                  <span>活跃时段</span>
                 </div>
                 <div class="segmented">
                   <button class="active" data-filter="all">全部</button>
@@ -278,6 +323,13 @@
                   <button data-filter="rest">休息</button>
                 </div>
               </div>
+              <section class="timeline-category-card">
+                <div class="mini-head">
+                  <strong>分类时长分布</strong>
+                  <span id="timelineCategoryMeta">按时间段估算</span>
+                </div>
+                <div class="timeline-category-chart" id="timelineCategoryChart"></div>
+              </section>
               <div class="search-panel">
                 <div class="search-grid">
                   <label>
@@ -344,18 +396,67 @@
                   </div>
                 </div>
               </form>
+              <div class="timeline-card">
+                <div class="mini-head">
+                  <strong>活动时间线</strong>
+                  <div class="timeline-quick-ranges">
+                    <button class="text-button" type="button" data-timeline-range="30">近30分</button>
+                    <button class="text-button" type="button" data-timeline-range="60">近1小时</button>
+                    <button class="text-button" type="button" data-timeline-range="120">近2小时</button>
+                    <button class="text-button" type="button" data-timeline-range="today">今天</button>
+                  </div>
+                </div>
               <div class="timeline" id="timeline"></div>
+              </div>
             </section>
 
             <section class="panel apps-panel" data-section="apps">
               <div class="section-head">
                 <div>
                   <p class="eyebrow">应用记录</p>
-                  <h3>应用使用明细</h3>
+                  <h3>查看各应用使用时长分布，了解时间花费结构</h3>
                 </div>
-                <span class="section-meta" id="appRecordsMeta">按时间线估算</span>
+                <div class="segmented app-periods">
+                  <button class="active" type="button">今日</button>
+                  <button type="button">本周</button>
+                  <button type="button">本月</button>
+                  <button type="button">自定义</button>
+                </div>
               </div>
-              <div class="app-records-table" id="appRecordsTable"></div>
+              <div class="app-summary-grid">
+                <div class="metric">
+                  <span>总应用数</span>
+                  <strong id="appTotalCount">0</strong>
+                  <small>有记录的应用</small>
+                </div>
+                <div class="metric">
+                  <span>总时长</span>
+                  <strong id="appTotalTime">0秒</strong>
+                  <small id="appRecordsMeta">按时间线估算</small>
+                </div>
+                <div class="metric">
+                  <span>日均时长</span>
+                  <strong id="appDailyAverage">0秒</strong>
+                  <small>当前筛选范围</small>
+                </div>
+              </div>
+              <section class="app-chart-card">
+                <div class="mini-head">
+                  <strong>应用时长分布（Top 20）</strong>
+                  <div class="segmented tiny">
+                    <button class="active" type="button">柱状图</button>
+                    <button type="button">饼图</button>
+                  </div>
+                </div>
+                <div class="app-usage-list app-page-chart" id="appPageChart"></div>
+              </section>
+              <section class="app-detail-card">
+                <div class="mini-head">
+                  <strong>详细列表</strong>
+                  <span id="appDetailMeta">-</span>
+                </div>
+                <div class="app-records-table" id="appRecordsTable"></div>
+              </section>
             </section>
 
             <section class="panel agent-panel" data-section="agent">
@@ -663,10 +764,9 @@
               <div class="section-head">
                 <div>
                   <p class="eyebrow">历史报告</p>
-                  <h3>已生成报告</h3>
+                  <h3>查看和管理所有 AI 生成的报告，支持按类型筛选和关键词搜索</h3>
                 </div>
                 <div class="mini-actions">
-                  <button class="text-button" id="historyArchiveAllReports">归档全部</button>
                   <button class="text-button" id="historyRefreshReports">刷新</button>
                 </div>
               </div>
@@ -677,6 +777,11 @@
                   <button type="button" data-report-kind="周报">周报</button>
                   <button type="button" data-report-kind="月报">月报</button>
                 </div>
+                <input id="historySearchInput" type="search" placeholder="搜索报告..." />
+                <button class="button subtle compact-button" id="historyArchiveAllReports">归档全部</button>
+              </div>
+              <div class="report-date-filter-bar">
+                <span>日期</span>
                 <div class="segmented" id="historyRangeFilter">
                   <button class="active" type="button" data-report-range="all">全部日期</button>
                   <button type="button" data-report-range="week">本周</button>
@@ -692,67 +797,93 @@
 
           <aside class="right-column">
             <section class="panel report-panel" data-section="report">
-              <div class="section-head compact">
+              <div class="section-head">
                 <div>
-                  <p class="eyebrow">AI 报告</p>
-                  <h3>日报预览</h3>
+                  <p class="eyebrow">生成报告</p>
+                  <h3>配置参数后点击生成，AI 将基于工作记录自动撰写报告</h3>
+                </div>
+                <div class="report-top-actions">
+                  <button class="button subtle" id="clearReportInstruction" type="button">自定义指令</button>
+                  <button class="button primary" id="generateReport">开始生成报告</button>
                 </div>
               </div>
 
-              <div class="report-controls">
-                <select id="kindSelect">
-                  <option value="day">日报</option>
-                  <option value="week">周报</option>
-                  <option value="month">月报</option>
-                </select>
-                <select id="styleSelect"></select>
-              </div>
-              <p class="style-hint" id="styleHint">选择报告模板后会显示要求。</p>
-              <div class="template-picker-card">
-                <div class="mini-head">
-                  <strong>选择报告模板</strong>
-                  <span id="templateCount">-</span>
-                </div>
-                <div class="template-grid" id="templateGrid"></div>
-              </div>
-              <div class="template-preview-card">
-                <div class="mini-head">
-                  <strong>模板预览</strong>
-                  <span id="templateSource">-</span>
-                </div>
-                <pre id="templatePreview">选择模板后查看结构。</pre>
-              </div>
+              <div class="report-workspace">
+                <div class="report-config-column">
+                  <section class="report-config-card">
+                    <div class="mini-head">
+                      <strong>报告配置</strong>
+                      <span>选择要生成的报告周期</span>
+                    </div>
+                    <div class="report-kind-tabs" id="reportKindTabs">
+                      <button class="active" type="button" data-kind-value="day">日报</button>
+                      <button type="button" data-kind-value="week">周报</button>
+                      <button type="button" data-kind-value="month">月报</button>
+                    </div>
+                    <div class="report-controls">
+                      <select id="kindSelect" aria-label="报告类型">
+                        <option value="day">日报</option>
+                        <option value="week">周报</option>
+                        <option value="month">月报</option>
+                      </select>
+                      <select id="styleSelect" aria-label="报告模板"></select>
+                    </div>
+                    <p class="style-hint" id="styleHint">选择报告模板后会显示要求。</p>
+                  </section>
 
-              <div class="report-instruction-card">
-                <div class="mini-head">
-                  <strong>报告要求</strong>
-                  <button class="text-button" id="clearReportInstruction" type="button">清空</button>
+                  <section class="template-picker-card">
+                    <div class="mini-head">
+                      <strong>选择报告模板</strong>
+                      <span id="templateCount">-</span>
+                    </div>
+                    <div class="template-grid" id="templateGrid"></div>
+                  </section>
+
+                  <section class="report-instruction-card">
+                    <div class="mini-head">
+                      <strong>报告要求</strong>
+                      <span>自定义指令</span>
+                    </div>
+                    <textarea id="reportInstructionInput" rows="2" placeholder="例如：写给老板看，突出产出和风险；明日计划要具体到动作。"></textarea>
+                  </section>
+
+                  <section class="day-note-card">
+                    <div class="mini-head">
+                      <strong>今日备注 / 明日计划</strong>
+                      <button class="text-button" id="saveDayNote">保存</button>
+                    </div>
+                    <textarea id="dayNoteInput" rows="3" placeholder="写下今天想强调的产出、阻塞、明天计划；生成报告时会一起参考。"></textarea>
+                    <p class="path-note" id="dayNoteStatus">尚未保存备注。</p>
+                  </section>
                 </div>
-                <textarea id="reportInstructionInput" rows="2" placeholder="例如：写给老板看，突出产出和风险；明日计划要具体到动作。"></textarea>
-              </div>
 
-              <div class="day-note-card">
-                <div class="mini-head">
-                  <strong>今日备注 / 明日计划</strong>
-                  <button class="text-button" id="saveDayNote">保存</button>
+                <div class="report-preview-column">
+                  <section class="template-preview-card">
+                    <div class="mini-head">
+                      <strong>模板预览</strong>
+                      <span id="templateSource">-</span>
+                    </div>
+                    <pre id="templatePreview">选择模板后查看结构。</pre>
+                  </section>
+
+                  <section class="generated-report-card">
+                    <div class="mini-head">
+                      <strong>生成结果</strong>
+                      <span id="reportWordCount">0 字</span>
+                    </div>
+                    <div class="report-preview" id="reportPreview" contenteditable="true" spellcheck="false">选择日期后点击生成，报告会在本地网关完成。</div>
+                    <div class="report-status-bar">
+                      <span id="reportCurrentMeta">未生成报告</span>
+                      <strong id="reportSaveState">未生成</strong>
+                    </div>
+                    <div class="button-row">
+                      <button class="button subtle" id="saveReportEdits">保存修改</button>
+                      <button class="button subtle" id="copyReport">复制</button>
+                      <button class="button subtle" id="downloadReport">导出</button>
+                      <button class="button subtle" id="archiveReport">归档</button>
+                    </div>
+                  </section>
                 </div>
-                <textarea id="dayNoteInput" rows="3" placeholder="写下今天想强调的产出、阻塞、明天计划；生成报告时会一起参考。"></textarea>
-                <p class="path-note" id="dayNoteStatus">尚未保存备注。</p>
-              </div>
-
-              <div class="report-preview" id="reportPreview" contenteditable="true" spellcheck="false">选择日期后点击生成，报告会在本地网关完成。</div>
-              <div class="report-status-bar">
-                <span id="reportCurrentMeta">未生成报告</span>
-                <span id="reportWordCount">0 字</span>
-                <strong id="reportSaveState">未生成</strong>
-              </div>
-
-              <div class="button-row">
-                <button class="button primary" id="generateReport">生成</button>
-                <button class="button subtle" id="saveReportEdits">保存修改</button>
-                <button class="button subtle" id="copyReport">复制</button>
-                <button class="button subtle" id="downloadReport">导出</button>
-                <button class="button subtle" id="archiveReport">归档</button>
               </div>
 
               <div class="report-history">
