@@ -1416,13 +1416,38 @@ select {
 }
 
 .history-report-empty {
-  min-height: 112px;
-  gap: 10px;
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 20px;
+  text-align: center;
+}
+
+.history-report-empty span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #edf7f3;
+  color: var(--accent-strong);
+  font-size: 17px;
+  font-weight: 900;
 }
 
 .history-report-empty strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.history-report-empty p {
+  max-width: 430px;
+  margin: 0;
   color: var(--muted);
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .history-report-row strong,
