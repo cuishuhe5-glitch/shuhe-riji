@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-manual-rich-text" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-manual-editor-toolbar" />
   </head>
   <body>
     <div class="shell">
@@ -471,9 +471,15 @@
                     <div class="manual-editor-toolbar" aria-label="文本编辑工具">
                       <button type="button" data-manual-format="bold">加粗</button>
                       <button type="button" data-manual-format="italic">斜体</button>
+                      <button type="button" data-manual-format="underline">下划线</button>
+                      <button type="button" data-manual-format="strike">删除线</button>
                       <button type="button" data-manual-format="unordered">无序列表</button>
                       <button type="button" data-manual-format="ordered">有序列表</button>
-                      <button type="button" data-manual-format="heading">标题</button>
+                      <button type="button" data-manual-format="divider">分割线</button>
+                      <button type="button" data-manual-format="h1">标题 1</button>
+                      <button type="button" data-manual-format="h2">标题 2</button>
+                      <button type="button" data-manual-format="h3">标题 3</button>
+                      <button type="button" data-manual-format="paragraph">正文</button>
                     </div>
                     <textarea id="manualSummary" rows="3" placeholder="例如整理日报助手的搜索和导出功能"></textarea>
                   </label>
@@ -1493,6 +1499,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-manual-rich-text"></script>
+    <script src="/static/app.js?v=20260615-manual-editor-toolbar"></script>
   </body>
 </html>
