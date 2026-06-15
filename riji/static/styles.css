@@ -2619,6 +2619,22 @@ select {
   align-items: center;
 }
 
+.timeline-head-actions {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.timeline-copy-log {
+  color: var(--muted);
+}
+
+.timeline-copy-log:hover {
+  color: var(--accent-strong);
+}
+
 .timeline-quick-ranges .active {
   color: var(--accent-strong);
 }
@@ -4816,5 +4832,11 @@ select {
 
   .detail-actions {
     justify-content: space-between;
+  }
+
+  .timeline-head-actions {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
   }
 }

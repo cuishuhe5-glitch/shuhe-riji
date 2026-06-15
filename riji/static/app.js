@@ -1287,11 +1287,7 @@ function renderTimeline(items) {
   $$(".timeline-quick-ranges [data-timeline-range]").forEach((button) => {
     button.classList.toggle("active", button.dataset.timelineRange === state.timelineRange);
   });
-  const filtered = items.filter((item) => {
-    if (state.filter === "all") return true;
-    const isWork = currentWorkCategories().has(item.category);
-    return state.filter === "work" ? isWork : !isWork;
-  }).filter((item) => timelineRangeMatches(item));
+  const filtered = filteredTimelineItems(items);
   renderTimelineSummary(items, filtered);
 
   $("#timeline").innerHTML = filtered.length
@@ -1314,6 +1310,16 @@ function renderTimeline(items) {
         )
         .join("")
     : `<div class="empty">这个筛选下没有记录。<br />保持面板打开，开始记录后会自动出现时间线。</div>`;
+}
+
+function filteredTimelineItems(items = state.data?.segments || state.data?.items || []) {
+  return items
+    .filter((item) => {
+      if (state.filter === "all") return true;
+      const isWork = currentWorkCategories().has(item.category);
+      return state.filter === "work" ? isWork : !isWork;
+    })
+    .filter((item) => timelineRangeMatches(item));
 }
 
 function timelineRangeMatches(item) {
@@ -1349,6 +1355,38 @@ function renderTimelineSummary(items, filtered) {
   if ($("#timelineFocusTime")) $("#timelineFocusTime").textContent = workMinutes ? formatDuration(workMinutes) : "0min";
   if ($("#timelineActivePeriod")) $("#timelineActivePeriod").textContent = first && last ? `${first}-${last}` : "暂无";
   renderTimelineCategoryChart(items);
+}
+
+function timelineFilterLabel() {
+  const type = state.filter === "work" ? "工作" : state.filter === "rest" ? "休息" : "全部";
+  const range = { 30: "近30分", 60: "近1小时", 120: "近2小时", today: "今天" }[state.timelineRange] || "当前范围";
+  return `${type} · ${range}`;
+}
+
+function buildTimelineLogText(items = filteredTimelineItems()) {
+  const header = [
+    "书赫日报助手 - 活动时间线",
+    `日期：${state.date}`,
+    `筛选：${timelineFilterLabel()}`,
+    `记录数：${items.length}`,
+  ];
+  if (!items.length) {
+    return `${header.join("\n")}\n\n当天暂无工作记录。`;
+  }
+  const lines = items.map((item) => {
+    const app = item.app || "未知应用";
+    const title = item.window_title ? `《${item.window_title}》` : "";
+    const count = item.count && item.count > 1 ? ` · ${item.count} 条` : "";
+    return `- ${formatTimeRange(item)} [${item.category || "未分类"}] ${item.summary || "无摘要"}（${app}${title}${count}）`;
+  });
+  return `${header.join("\n")}\n\n${lines.join("\n")}`;
+}
+
+async function copyTimelineLog() {
+  const text = buildTimelineLogText();
+  await copyText(text);
+  const count = filteredTimelineItems().length;
+  toast(count ? `已复制 ${count} 条时间线日志` : "已复制空时间线提示");
 }
 
 function renderTimelineCategoryChart(items) {
@@ -2223,8 +2261,9 @@ async function testModelConnection(buttonSelector = "#testModelConnection", stat
   }
 }
 
-async function exportActivities(scope) {
-  const button = scope === "day" ? $("#exportDayActivities") : $("#exportAllActivities");
+async function exportActivities(scope, triggerButton = null) {
+  const button = triggerButton || (scope === "day" ? $("#exportDayActivities") : $("#exportAllActivities"));
+  const originalText = button?.textContent || "";
   button.disabled = true;
   button.textContent = "导出中";
   $("#exportStatus").textContent = "正在导出活动记录...";
@@ -2242,7 +2281,7 @@ async function exportActivities(scope) {
     toast("活动导出失败");
   } finally {
     button.disabled = false;
-    button.textContent = scope === "day" ? "导出当天活动" : "导出全部活动";
+    button.textContent = originalText || (scope === "day" ? "导出当天活动" : "导出全部活动");
   }
 }
 
@@ -2830,14 +2869,6 @@ async function copyReport() {
 }
 
 async function copyText(text) {
-  if (navigator.clipboard?.writeText) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return;
-    } catch (_error) {
-      // Fall through to the textarea copy path for stricter local browser contexts.
-    }
-  }
   const textarea = document.createElement("textarea");
   textarea.value = text;
   textarea.setAttribute("readonly", "");
@@ -2845,8 +2876,14 @@ async function copyText(text) {
   textarea.style.left = "-9999px";
   document.body.appendChild(textarea);
   textarea.select();
-  document.execCommand("copy");
+  const copied = document.execCommand("copy");
   textarea.remove();
+  if (copied) return;
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  throw new Error("复制失败，请手动选择内容复制");
 }
 
 function detailCopyText(item) {
@@ -3112,7 +3149,8 @@ function bindEvents() {
     $("#searchTo").value = event.target.value;
     state.search.to = event.target.value;
   });
-  $("#timelineExportData").addEventListener("click", () => exportActivities("day"));
+  $("#timelineExportData").addEventListener("click", (event) => exportActivities("day", event.currentTarget));
+  $("#copyTimelineLog").addEventListener("click", () => copyTimelineLog().catch((error) => toast(error.message)));
   $("#timelineAddRecord").addEventListener("click", () => {
     if (!state.manualOpen) toggleManualActivity();
     $("#manualSummary").focus();
@@ -3255,8 +3293,8 @@ function bindEvents() {
   });
   $("#createBackup").addEventListener("click", () => createBackup());
   $("#testModelConnection").addEventListener("click", () => testModelConnection());
-  $("#exportDayActivities").addEventListener("click", () => exportActivities("day"));
-  $("#exportAllActivities").addEventListener("click", () => exportActivities("all"));
+  $("#exportDayActivities").addEventListener("click", (event) => exportActivities("day", event.currentTarget));
+  $("#exportAllActivities").addEventListener("click", (event) => exportActivities("all", event.currentTarget));
   $("#exportReports").addEventListener("click", () => exportReportsData());
   $("#importJsonData").addEventListener("click", () => $("#importJsonFile").click());
   $("#importJsonFile").addEventListener("change", (event) => importJsonFile(event.target.files?.[0]));
