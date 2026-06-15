@@ -2656,6 +2656,10 @@ select {
   min-width: 0;
 }
 
+.heatmap-quick-ranges[hidden] {
+  display: none;
+}
+
 .heatmap-quick-ranges .text-button {
   white-space: nowrap;
 }
