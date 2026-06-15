@@ -3279,7 +3279,9 @@ async function runSearch({ source = "" } = {}) {
 
 function toggleManualActivity() {
   state.manualOpen = !state.manualOpen;
-  $("#manualActivityForm").classList.toggle("open", state.manualOpen);
+  const form = $("#manualActivityForm");
+  form.hidden = !state.manualOpen;
+  form.classList.toggle("open", state.manualOpen);
   $("#toggleManualActivity").textContent = state.manualOpen ? "收起" : "展开";
   if (state.manualOpen) {
     $("#manualSummary").focus();
@@ -3403,6 +3405,8 @@ function syncTimelineSearchStatus() {
   const status = $("#timelineSearchStatus");
   if (!status) return;
   const query = state.search.query || $("#timelineQuickSearch")?.value.trim() || "";
+  const clearButton = $("#timelineClearSearch");
+  if (clearButton) clearButton.hidden = !Boolean(query || state.search.searched || state.search.from || state.search.to);
   const range = state.search.from || state.search.to ? `${state.search.from || "最早"} 至 ${state.search.to || "今天"}` : "当前日期";
   status.hidden = false;
   if (state.search.searched) {
