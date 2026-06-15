@@ -2935,7 +2935,13 @@ select {
   color: var(--muted);
 }
 
-.timeline-copy-log:hover {
+.timeline-reuse-day {
+  color: var(--accent-strong);
+  font-weight: 800;
+}
+
+.timeline-copy-log:hover,
+.timeline-reuse-day:hover {
   color: var(--accent-strong);
 }
 

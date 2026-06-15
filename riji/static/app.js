@@ -1769,6 +1769,40 @@ async function copyTimelineLog() {
   toast(count ? `已复制 ${count} 条时间线日志` : "已复制空时间线提示");
 }
 
+function reuseTimelineDayDraft() {
+  const items = filteredTimelineItems();
+  if (!state.manualOpen) toggleManualActivity();
+  setManualRecordMode("text");
+  resetManualActivity(false);
+  const nextDay = addDays(state.date, 1);
+  $("#manualDay").value = nextDay;
+  $("#manualTitle").value = `${state.date} 工作状态复用`;
+  $("#manualApp").value = "书赫日报助手";
+  $("#manualWindow").value = "工作时间线复用草稿";
+  $("#manualSummary").value = buildTimelineReuseDraft(items, nextDay);
+  updateManualSaveState();
+  $("#manualSummary").focus();
+  $("#manualActivityForm").scrollIntoView({ behavior: "smooth", block: "center" });
+  toast(items.length ? `已生成 ${items.length} 条记录的复用草稿` : "已生成空时间线复用草稿");
+}
+
+function buildTimelineReuseDraft(items = [], targetDay = addDays(state.date, 1)) {
+  const header = [
+    `复用 ${state.date} 工作状态到 ${targetDay}`,
+    `筛选范围：${timelineFilterLabel()}`,
+  ];
+  if (!items.length) {
+    return `${header.join("\n")}\n\n当前筛选暂无记录。可以把这段改成邻近日期的实际工作安排，再保存为补记。`;
+  }
+  const lines = items.slice(0, 12).map((item) => {
+    const app = item.app || "未知应用";
+    const title = item.window_title ? `《${item.window_title}》` : "";
+    return `- ${formatTimeRange(item)} ${item.summary || "无摘要"}（${app}${title}）`;
+  });
+  const suffix = items.length > 12 ? `\n- 另有 ${items.length - 12} 条记录，可按需补充。` : "";
+  return `${header.join("\n")}\n\n${lines.join("\n")}${suffix}\n\n请按邻近日期实际情况修改后再保存。`;
+}
+
 function renderTimelineCategoryChart(items) {
   const chart = $("#timelineCategoryChart");
   if (!chart) return;
@@ -3803,6 +3837,7 @@ function bindEvents() {
   });
   $("#timelineExportData").addEventListener("click", (event) => exportTimelineActivities(event.currentTarget));
   $("#copyTimelineLog").addEventListener("click", () => copyTimelineLog().catch((error) => toast(error.message)));
+  $("#reuseTimelineDay").addEventListener("click", reuseTimelineDayDraft);
   $("#timelineAddRecord").addEventListener("click", () => {
     if (!state.manualOpen) toggleManualActivity();
     setManualRecordMode("text");
