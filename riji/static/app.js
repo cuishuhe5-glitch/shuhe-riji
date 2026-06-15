@@ -1621,8 +1621,9 @@ function renderTimeline(items) {
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", active ? "true" : "false");
   });
-  const filtered = filteredTimelineItems(items);
-  renderTimelineSummary(items, filtered);
+  const sourceItems = state.search.searched ? state.search.results : items;
+  const filtered = filteredTimelineItems(sourceItems);
+  renderTimelineSummary(sourceItems, filtered);
 
   $("#timeline").innerHTML = filtered.length
     ? filtered
@@ -1643,7 +1644,25 @@ function renderTimeline(items) {
         `,
         )
         .join("")
-    : `<div class="empty">这个筛选下没有记录。<br />保持面板打开，开始记录后会自动出现时间线。</div>`;
+    : renderTimelineEmpty(sourceItems);
+}
+
+function renderTimelineEmpty(items) {
+  const hasSourceItems = Boolean(items?.length);
+  const searched = Boolean(state.search.searched);
+  const title = searched ? "没有匹配记录" : hasSourceItems ? "这个筛选下没有记录" : "当天暂无工作记录";
+  const text = searched
+    ? "换个关键词、放宽日期范围，或清空搜索后查看全部活动。"
+    : hasSourceItems
+      ? "调整时间范围、关键词或工作/休息筛选后再试。"
+      : "软件已在后台自动截图记录，开始工作后稍等片刻即可看到记录。";
+  return `
+    <div class="empty timeline-empty-state">
+      <span>⌁</span>
+      <strong>${title}</strong>
+      <p>${text}</p>
+    </div>
+  `;
 }
 
 function filteredTimelineItems(items = state.data?.segments || state.data?.items || []) {
@@ -3106,6 +3125,7 @@ async function runSearch() {
     state.search.searched = true;
     syncTimelineSearchStatus();
     renderSearchResults();
+    renderTimeline(state.search.results);
     toast(`找到 ${state.search.results.length} 条记录`);
   } catch (error) {
     toast(error.message);
@@ -3233,6 +3253,7 @@ function clearSearch() {
   };
   syncTimelineSearchStatus();
   renderSearchResults();
+  renderTimeline(state.data?.segments || state.data?.items || []);
 }
 
 function syncTimelineSearchStatus() {
@@ -3705,8 +3726,11 @@ function bindEvents() {
   $("#timelineQuickSearch").addEventListener("input", (event) => {
     $("#searchQuery").value = event.target.value;
     state.search.query = event.target.value;
+    state.search.results = [];
+    state.search.searched = false;
     syncTimelineSearchStatus();
     renderSearchResults();
+    renderTimeline(state.data?.segments || state.data?.items || []);
   });
   $("#timelineClearSearch").addEventListener("click", clearSearch);
   $("#timelineQuickSearch").addEventListener("keydown", (event) => {
