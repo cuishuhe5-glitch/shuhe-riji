@@ -1837,6 +1837,7 @@ function buildTimelineReuseDraft(items = [], targetDay = addDays(state.date, 1))
 function renderTimelineCategoryChart(items) {
   const chart = $("#timelineCategoryChart");
   if (!chart) return;
+  const meta = $("#timelineCategoryMeta");
   const enabled = $("#showTimelineCategory")?.checked !== false;
   $(".timeline-category-card")?.classList.toggle("is-collapsed", !enabled);
   $$(".timeline-category-modes [data-timeline-category-mode]").forEach((button) => {
@@ -1844,7 +1845,7 @@ function renderTimelineCategoryChart(items) {
   });
   if (!enabled) {
     chart.innerHTML = "";
-    $("#timelineCategoryMeta").textContent = "已隐藏分类时长分布";
+    if (meta) meta.hidden = true;
     return;
   }
   const counts = new Map();
@@ -1855,7 +1856,10 @@ function renderTimelineCategoryChart(items) {
   const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
   const max = Math.max(...rows.map(([, value]) => value), 0);
   const total = rows.reduce((sum, [, value]) => sum + value, 0);
-  $("#timelineCategoryMeta").textContent = rows.length ? `${rows.length} 个分类 · 约 ${formatDuration(total)}` : "按时间段估算";
+  if (meta) {
+    meta.hidden = !rows.length;
+    meta.textContent = rows.length ? `${rows.length} 个分类 · 约 ${formatDuration(total)}` : "";
+  }
   if (rows.length && state.timelineCategoryMode === "pie") {
     let cursor = 0;
     const stops = rows.map(([name, value]) => {
