@@ -2037,7 +2037,7 @@ function renderReportHistoryTable(reports) {
   if (meta) {
     const scope = historyFilterScope();
     const countText = filtered.length === (reports.length || 0) ? `共 ${filtered.length} 份` : `共 ${filtered.length} 份 / 全部 ${reports.length || 0} 份`;
-    meta.textContent = `${scope} · ${countText}`;
+    meta.textContent = hasHistoryFilters() ? `${scope} · ${countText}` : countText;
   }
   table.innerHTML = filtered.length
     ? `
