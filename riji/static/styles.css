@@ -2205,6 +2205,12 @@ select {
   margin-top: 16px;
 }
 
+.display-head-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .activity-rhythm {
   height: 138px;
   display: grid;
@@ -4197,7 +4203,54 @@ select {
 
 .overview-display-item {
   grid-template-columns: 38px minmax(0, 1fr);
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.overview-display-body {
+  min-width: 0;
+  display: grid;
+  gap: 7px;
+}
+
+.overview-display-title {
+  min-width: 0;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.overview-display-title strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overview-display-title > span {
+  flex: 0 0 auto;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #eef7f4;
+  color: #0f766e;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.overview-display-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.overview-display-facts span {
+  padding: 4px 7px;
+  border: 1px solid var(--line-soft);
+  border-radius: 999px;
+  background: #fff;
+  color: #5d6b67;
+  font-size: 11px;
+  font-weight: 720;
 }
 
 .display-index {
