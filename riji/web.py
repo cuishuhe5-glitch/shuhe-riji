@@ -82,6 +82,9 @@ PROJECT_CONTEXT_PRIORITY_NAMES = {
     "vite.config.js",
     "vite.config.ts",
 }
+REQUEST_LOGS: list[dict[str, Any]] = []
+REQUEST_LOGS_LOCK = threading.Lock()
+REQUEST_LOG_LIMIT = 200
 PROJECT_CONTEXT_SECRET_HINTS = {
     ".env",
     "secret",
@@ -1448,6 +1451,25 @@ def _logs_snapshot() -> dict[str, Any]:
     }
 
 
+def _request_logs_snapshot() -> dict[str, Any]:
+    with REQUEST_LOGS_LOCK:
+        items = list(reversed(REQUEST_LOGS))
+    return {
+        "total": len(items),
+        "page": 1,
+        "page_size": 20,
+        "pages": max(1, (len(items) + 19) // 20),
+        "items": items[:20],
+    }
+
+
+def _clear_request_logs() -> dict[str, Any]:
+    with REQUEST_LOGS_LOCK:
+        count = len(REQUEST_LOGS)
+        REQUEST_LOGS.clear()
+    return {"cleared": count, "request_logs": _request_logs_snapshot()}
+
+
 def _create_backup(include_shots: bool = True) -> dict[str, Any]:
     config.ensure_dirs()
     stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -1808,6 +1830,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send_json({"storage": storage.stats()})
         elif parsed.path == "/api/logs":
             self._send_json({"logs": _logs_snapshot()})
+        elif parsed.path == "/api/request-logs":
+            self._send_json({"request_logs": _request_logs_snapshot()})
         elif parsed.path == "/api/health":
             self._send_json({"health": _health()})
         elif parsed.path == "/api/agent-docs":
@@ -2042,6 +2066,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
                 self._send_json({"ok": True, "cleared": cleared, "summary": _summary(date.today().strftime("%Y-%m-%d"))})
             except Exception as exc:
                 self._send_json({"ok": False, "error": str(exc)}, status=500)
+        elif parsed.path == "/api/request-logs/clear":
+            self._send_json({"ok": True, **_clear_request_logs()})
         elif parsed.path == "/api/import/json":
             try:
                 imported = _import_json_data(self._read_json())
@@ -2128,6 +2154,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
         self.wfile.write(payload)
+        self._record_request_log(status)
 
     def _send_text(self, text: str, status: int = 200, content_type: str = "text/plain; charset=utf-8") -> None:
         payload = text.encode("utf-8")
@@ -2136,6 +2163,28 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(payload)))
         self.end_headers()
         self.wfile.write(payload)
+        self._record_request_log(status)
+
+    def _record_request_log(self, status: int) -> None:
+        parsed = urlparse(self.path)
+        if not parsed.path.startswith("/api/") or parsed.path.startswith("/api/request-logs"):
+            return
+        params = parse_qs(parsed.query)
+        safe_params = {
+            key: ["***" if any(hint in key.lower() for hint in ("key", "token", "password", "secret")) else str(value) for value in values]
+            for key, values in params.items()
+        }
+        item = {
+            "time": datetime.now().isoformat(timespec="seconds"),
+            "method": self.command,
+            "path": parsed.path,
+            "params": safe_params,
+            "status": status,
+            "source": self.client_address[0] if self.client_address else "-",
+        }
+        with REQUEST_LOGS_LOCK:
+            REQUEST_LOGS.append(item)
+            del REQUEST_LOGS[:-REQUEST_LOG_LIMIT]
 
     def _serve_file(self, path: Path) -> None:
         try:
