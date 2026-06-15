@@ -1192,7 +1192,7 @@ select {
 }
 
 .app-chart-card {
-  min-height: 340px;
+  min-height: 500px;
 }
 
 .app-detail-card {
@@ -1207,14 +1207,14 @@ select {
 }
 
 .app-page-chart {
-  max-height: 300px;
+  max-height: 430px;
   overflow: auto;
 }
 
 .app-bar-chart {
   display: grid;
-  gap: 10px;
-  padding: 18px 8px 8px;
+  gap: 12px;
+  padding: 22px 8px 8px;
 }
 
 .app-bar-row {
@@ -1222,7 +1222,7 @@ select {
   grid-template-columns: minmax(96px, 132px) minmax(0, 1fr) minmax(68px, auto);
   gap: 10px;
   align-items: center;
-  min-height: 24px;
+  min-height: 28px;
   border: 0;
   background: transparent;
   color: var(--ink);
@@ -1242,7 +1242,7 @@ select {
 }
 
 .app-bar-track {
-  height: 16px;
+  height: 20px;
   overflow: hidden;
   border-radius: 5px;
   background: transparent;
