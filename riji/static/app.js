@@ -4328,6 +4328,7 @@ function bindEvents() {
       navigateTo(button.dataset.view);
     });
   });
+  $("#profileNotice")?.addEventListener("click", () => navigateTo("notifications"));
 }
 
 navigateTo(normalizeView(window.location.hash), { replace: true, instant: true });
