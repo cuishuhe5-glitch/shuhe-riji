@@ -1220,7 +1220,17 @@ function renderAppRecords(appUsage, meta = state.appUsageMeta) {
         )
         .join("")}
     `
-    : `<div class="empty app-record-empty">还没有应用记录。开始记录后会按应用汇总。</div>`;
+    : renderAppEmptyState("暂无应用记录", "开始记录后会按应用汇总使用时长、占比和首次/最后使用时间。");
+}
+
+function renderAppEmptyState(title, text) {
+  return `
+    <div class="empty app-empty-state">
+      <span>▦</span>
+      <strong>${title}</strong>
+      <p>${text}</p>
+    </div>
+  `;
 }
 
 function appShareLabel(item, total) {
@@ -1293,7 +1303,7 @@ function renderAppPageChart(appUsage) {
   });
   const rows = appUsage.slice(0, 20);
   if (!rows.length) {
-    chart.innerHTML = `<div class="empty app-usage-empty">暂无应用时长数据。</div>`;
+    chart.innerHTML = renderAppEmptyState("暂无应用时长数据", "打开后台记录后，这里会显示 Top 20 应用时长分布。");
     return;
   }
   if (state.appChartMode === "pie") {
@@ -4012,12 +4022,12 @@ function bindEvents() {
     });
   });
 
-  $$(".segmented button").forEach((button) => {
+  $$(".timeline-stats .segmented [data-filter]").forEach((button) => {
     button.addEventListener("click", () => {
-      $$(".segmented button").forEach((item) => item.classList.remove("active"));
+      $$(".timeline-stats .segmented [data-filter]").forEach((item) => item.classList.remove("active"));
       button.classList.add("active");
       state.filter = button.dataset.filter;
-      renderTimeline(state.data.segments || state.data.items);
+      renderTimeline(state.data?.segments || state.data?.items || []);
     });
   });
 
