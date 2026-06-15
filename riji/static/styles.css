@@ -1349,9 +1349,9 @@ select {
 
 .history-report-head,
 .history-report-row {
-  min-width: 760px;
+  min-width: 920px;
   display: grid;
-  grid-template-columns: minmax(220px, 1.5fr) minmax(80px, 0.45fr) minmax(100px, 0.6fr) minmax(150px, 0.9fr) minmax(110px, 0.6fr);
+  grid-template-columns: minmax(190px, 1.25fr) minmax(240px, 1.35fr) minmax(72px, 0.42fr) minmax(92px, 0.55fr) minmax(140px, 0.78fr) minmax(106px, 0.55fr);
   gap: 12px;
   align-items: center;
 }
@@ -1392,6 +1392,10 @@ select {
 
 .history-report-row > span {
   color: var(--muted);
+}
+
+.history-report-preview {
+  color: #52635f;
 }
 
 .history-report-actions {
@@ -4931,7 +4935,13 @@ select {
     grid-column: 1 / -1;
   }
 
-  .history-report-row > span:nth-of-type(n + 3) {
+  .history-report-preview {
+    grid-column: 1 / -1;
+    white-space: normal;
+    line-height: 1.45;
+  }
+
+  .history-report-row > span:nth-of-type(n + 4) {
     display: none;
   }
 
