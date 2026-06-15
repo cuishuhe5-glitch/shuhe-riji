@@ -22,6 +22,7 @@ const state = {
   },
   filter: "all",
   timelineRange: "today",
+  timelineCategoryMode: "bar",
   appChartMode: "bar",
   appPeriod: "day",
   appUsage: null,
@@ -1436,6 +1437,9 @@ function renderTimelineCategoryChart(items) {
   if (!chart) return;
   const enabled = $("#showTimelineCategory")?.checked !== false;
   $(".timeline-category-card")?.classList.toggle("is-collapsed", !enabled);
+  $$(".timeline-category-modes [data-timeline-category-mode]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.timelineCategoryMode === state.timelineCategoryMode);
+  });
   if (!enabled) {
     chart.innerHTML = "";
     $("#timelineCategoryMeta").textContent = "已隐藏分类时长分布";
@@ -1448,7 +1452,43 @@ function renderTimelineCategoryChart(items) {
   }
   const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
   const max = Math.max(...rows.map(([, value]) => value), 0);
-  $("#timelineCategoryMeta").textContent = rows.length ? `${rows.length} 个分类` : "按时间段估算";
+  const total = rows.reduce((sum, [, value]) => sum + value, 0);
+  $("#timelineCategoryMeta").textContent = rows.length ? `${rows.length} 个分类 · 约 ${formatDuration(total)}` : "按时间段估算";
+  if (rows.length && state.timelineCategoryMode === "pie") {
+    let cursor = 0;
+    const stops = rows.map(([name, value]) => {
+      const percent = total ? Math.round((value / total) * 1000) / 10 : 0;
+      const next = Math.min(100, cursor + percent);
+      const color = categoryColor(name);
+      const stop = `${color} ${cursor}% ${next}%`;
+      cursor = next;
+      return stop;
+    });
+    if (cursor < 100) stops.push(`#edf2f0 ${cursor}% 100%`);
+    chart.innerHTML = `
+      <div class="timeline-category-pie-layout">
+        <div class="app-pie timeline-category-pie" style="background: conic-gradient(${stops.join(", ")})">
+          <span>${rows.length}</span>
+        </div>
+        <div class="timeline-category-pie-list">
+          ${rows
+            .map(([name, value]) => {
+              const percent = total ? Math.round((value / total) * 100) : 0;
+              return `
+                <div class="timeline-category-pie-item">
+                  <i style="background:${categoryColor(name)}"></i>
+                  <strong>${escapeHtml(name)}</strong>
+                  <span>${formatDuration(value)}</span>
+                  <em>${percent}%</em>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      </div>
+    `;
+    return;
+  }
   chart.innerHTML = rows.length
     ? rows
         .map(([name, value]) => `
@@ -3210,6 +3250,12 @@ function bindEvents() {
     });
   });
   $("#showTimelineCategory").addEventListener("change", () => renderTimeline(state.data?.segments || state.data?.items || []));
+  $$(".timeline-category-modes [data-timeline-category-mode]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.timelineCategoryMode = button.dataset.timelineCategoryMode || "bar";
+      renderTimelineCategoryChart(state.data?.segments || state.data?.items || []);
+    });
+  });
   $("#appRecordsTable").addEventListener("click", (event) => {
     const button = event.target.closest("[data-app-search]");
     if (button) searchAppRecords(button.dataset.appSearch);
