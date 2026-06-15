@@ -775,6 +775,12 @@ select {
   padding-top: 4px;
 }
 
+.productivity-card[hidden],
+.chart-block[hidden],
+.app-usage-block[hidden] {
+  display: none;
+}
+
 .donut {
   width: 172px;
   height: 172px;
