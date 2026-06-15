@@ -353,7 +353,7 @@ function renderOverviewDisplays(displays) {
   const items = displays?.items || [];
   const selected = displays?.selected || state.data?.settings?.capture_scope || "primary";
   const physical = items.filter((item) => Number(item.index || 0) > 0);
-  count.textContent = displays?.ok ? displayScopeSummary(items, selected) : "检测失败";
+  count.textContent = displays?.ok ? `${physical.length} 台` : "检测失败";
   list.innerHTML = items.length
     ? physical
         .map(
@@ -370,7 +370,6 @@ function renderOverviewDisplays(displays) {
                 <span>${escapeHtml(`坐标 ${item.left}, ${item.top}`)}</span>
                 <span>${escapeHtml(displayCaptureHint(item, selected, physical.length))}</span>
               </div>
-              ${renderDisplayMetaChips(item, displaySelected(item, selected))}
             </div>
           </div>
         `,
