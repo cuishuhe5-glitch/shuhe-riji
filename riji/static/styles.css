@@ -1318,6 +1318,67 @@ select {
   gap: 10px;
 }
 
+.agent-service-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.agent-service-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.agent-service-icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #e8f8ef;
+  color: var(--accent-strong);
+  font-weight: 900;
+}
+
+.agent-service-main strong,
+.agent-service-main p {
+  display: block;
+  margin: 0;
+}
+
+.agent-service-main strong {
+  color: var(--ink);
+  font-size: 14px;
+}
+
+.agent-service-main p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.agent-service-card code {
+  min-width: 0;
+  max-width: 260px;
+  overflow: hidden;
+  padding: 9px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #fff;
+  color: #26342f;
+  font: 12px/1.2 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .agent-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -4323,6 +4384,7 @@ select {
   .permission-grid,
 	  .autostart-actions,
 	  .agent-grid,
+	  .agent-service-card,
 	  .agent-actions,
 	  .agent-context-status-grid,
 	  .plan-grid,
@@ -4349,6 +4411,12 @@ select {
   .identify-card,
   .danger-card {
     grid-template-columns: 1fr;
+  }
+
+  .agent-service-card code,
+  .agent-service-card .button {
+    width: 100%;
+    max-width: none;
   }
 
   .chart-block {
