@@ -863,7 +863,7 @@ function renderTemplateCatalog(catalog) {
         preview: state.data?.style_descriptions?.[name] || "",
         source: "内置",
       }));
-  $("#templateCount").textContent = `${items.length} 个模板`;
+  $("#templateCount").textContent = "选择合适的模板，AI 将为你生成更贴合需求的报告";
   grid.innerHTML = items
     .map(
       (item) => `
