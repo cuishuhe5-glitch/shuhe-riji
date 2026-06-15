@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-heatmap-peak-hour" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-history-report-actions" />
   </head>
   <body>
     <div class="shell">
@@ -907,7 +907,8 @@
                 </div>
                 <input id="historySearchInput" type="search" placeholder="搜索报告..." />
                 <button class="button subtle compact-button history-clear-filter" id="historyClearFilters" type="button">清空筛选</button>
-                <button class="button subtle compact-button" id="historyRefreshReports">刷新</button>
+                <button class="button subtle compact-button" id="historyRefreshReports" type="button">刷新</button>
+                <button class="button subtle compact-button" id="historyOpenReportsDir" type="button">打开目录</button>
               </div>
               <div class="report-date-filter-bar">
                 <span>日期</span>
@@ -1502,6 +1503,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-heatmap-peak-hour"></script>
+    <script src="/static/app.js?v=20260615-history-report-actions"></script>
   </body>
 </html>

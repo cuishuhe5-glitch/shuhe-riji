@@ -3631,6 +3631,7 @@ function bindEvents() {
   });
   $("#refreshReports").addEventListener("click", () => refreshReports().catch((error) => toast(error.message)));
   $("#historyRefreshReports").addEventListener("click", () => refreshReports().catch((error) => toast(error.message)));
+  $("#historyOpenReportsDir").addEventListener("click", () => openLocalPath("reports").catch((error) => toast(error.message)));
   $("#historyClearFilters").addEventListener("click", clearHistoryFilters);
   $("#historyKindFilter").addEventListener("click", (event) => {
     const button = event.target.closest("[data-report-kind]");
