@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-record-mode-entry" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-manual-rich-text" />
   </head>
   <body>
     <div class="shell">
@@ -463,15 +463,26 @@
                     </label>
                   </div>
                   <label class="manual-summary">
-                    <span>摘要</span>
-                    <textarea id="manualSummary" rows="2" placeholder="例如整理日报助手的搜索和导出功能"></textarea>
+                    <span>标题（可选）</span>
+                    <input id="manualTitle" placeholder="例如 日报助手优化" />
+                  </label>
+                  <label class="manual-summary">
+                    <span>记录内容</span>
+                    <div class="manual-editor-toolbar" aria-label="文本编辑工具">
+                      <button type="button" data-manual-format="bold">加粗</button>
+                      <button type="button" data-manual-format="italic">斜体</button>
+                      <button type="button" data-manual-format="unordered">无序列表</button>
+                      <button type="button" data-manual-format="ordered">有序列表</button>
+                      <button type="button" data-manual-format="heading">标题</button>
+                    </div>
+                    <textarea id="manualSummary" rows="3" placeholder="例如整理日报助手的搜索和导出功能"></textarea>
                   </label>
                   <label class="manual-summary">
                     <span>窗口标题</span>
                     <input id="manualWindow" placeholder="可选" />
                   </label>
                   <div class="manual-actions">
-                    <button class="button primary" id="saveManualActivity" type="submit">保存补记</button>
+                    <button class="button primary" id="saveManualActivity" type="submit" disabled>保存补记</button>
                     <button class="button subtle" id="resetManualActivity" type="button">清空</button>
                   </div>
                 </div>
@@ -1482,6 +1493,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-record-mode-entry"></script>
+    <script src="/static/app.js?v=20260615-manual-rich-text"></script>
   </body>
 </html>
