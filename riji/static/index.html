@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-report-preview-sync" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-heatmap-peak-hour" />
   </head>
   <body>
     <div class="shell">
@@ -323,7 +323,10 @@
               </div>
               <section class="heatmap-card">
                 <div class="mini-head">
-                  <strong>时段记录</strong>
+                  <div>
+                    <strong>时段记录</strong>
+                    <span class="heatmap-peak-hour" id="heatmapPeakHour">暂无活跃时段</span>
+                  </div>
                   <div class="heatmap-legend">
                     <span>少</span>
                     <i></i><i></i><i></i><i></i><i></i>
@@ -1499,6 +1502,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-report-preview-sync"></script>
+    <script src="/static/app.js?v=20260615-heatmap-peak-hour"></script>
   </body>
 </html>

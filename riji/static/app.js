@@ -1507,6 +1507,7 @@ function renderTimeHeatmap(heatmap) {
   if ($("#heatmapActiveDays")) $("#heatmapActiveDays").textContent = activeDays;
   if ($("#heatmapDailyAverage")) $("#heatmapDailyAverage").textContent = days.length ? Math.round(total / days.length) : 0;
   if ($("#heatmapSlogan")) $("#heatmapSlogan").textContent = total ? "专注工作本身，剩下的交给书赫" : "专注工作本身，剩下的交给书赫";
+  renderHeatmapPeakHour(days);
   container.innerHTML = days.length
     ? days
         .map(
@@ -1533,6 +1534,22 @@ function renderTimeHeatmap(heatmap) {
         .join("")
     : `<div class="empty time-heatmap-empty">还没有时段热力数据。</div>`;
   syncHeatmapRangeStatus(heatmap, { requestedFrom, requestedTo });
+}
+
+function renderHeatmapPeakHour(days = []) {
+  const target = $("#heatmapPeakHour");
+  if (!target) return;
+  const peak = days
+    .flatMap((day) => (day.hours || []).map((hour) => ({ day, hour })))
+    .filter(({ hour }) => Number(hour?.count || 0) > 0)
+    .sort((a, b) => Number(b.hour.count || 0) - Number(a.hour.count || 0))[0];
+  if (!peak) {
+    target.textContent = "暂无活跃时段";
+    return;
+  }
+  const hour = String(peak.hour.hour ?? 0).padStart(2, "0");
+  const category = peak.hour.top_category ? ` · ${peak.hour.top_category}` : "";
+  target.textContent = `最活跃：${peak.day.label || peak.day.day} ${hour}:00 · ${peak.hour.count || 0} 条${category}`;
 }
 
 function heatmapHourTitle(day, hour) {
