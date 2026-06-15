@@ -670,6 +670,10 @@ select {
   background: #f5fbf8;
 }
 
+.quick-start-card[hidden] {
+  display: none;
+}
+
 .quick-start-card.is-done {
   border-color: var(--line-soft);
   background: var(--surface-soft);
@@ -1631,6 +1635,16 @@ select {
   border: 1px dashed #b7dfd1;
   border-radius: 8px;
   background: #f5fffb;
+}
+
+.agent-endpoint-card[hidden],
+.agent-grid[hidden],
+.agent-actions[hidden],
+.agent-context-card[hidden],
+#copyAgentServiceUrl[hidden],
+#refreshAgentDocs[hidden],
+#agentTestStatus[hidden] {
+  display: none;
 }
 
 .agent-endpoint-card div {
@@ -2878,7 +2892,7 @@ select {
 
 .timeline-stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   align-items: stretch;
   margin-bottom: 16px;
@@ -2886,6 +2900,10 @@ select {
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: var(--surface-soft);
+}
+
+.timeline-type-filter[hidden] {
+  display: none;
 }
 
 .timeline-stats > div:not(.segmented) {
@@ -4035,6 +4053,14 @@ select {
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: var(--surface-soft);
+}
+
+.report-instruction-card[hidden],
+.day-note-card[hidden],
+.generated-report-card[hidden],
+.report-history[hidden],
+.chat-card[hidden] {
+  display: none;
 }
 
 .report-instruction-card.is-focused {
