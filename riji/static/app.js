@@ -3371,6 +3371,7 @@ function syncTimelineSearchStatus() {
   if (!status) return;
   const query = state.search.query || $("#timelineQuickSearch")?.value.trim() || "";
   const range = state.search.from || state.search.to ? `${state.search.from || "最早"} 至 ${state.search.to || "今天"}` : "当前日期";
+  status.hidden = false;
   if (state.search.searched) {
     if (state.search.source === "app" && query) {
       status.textContent = `应用记录：${query} · ${range} · ${state.search.results.length} 条时间线`;
@@ -3381,8 +3382,13 @@ function syncTimelineSearchStatus() {
     status.classList.toggle("active", Boolean(query || state.search.from || state.search.to));
     return;
   }
-  status.textContent = query ? `按 Enter 搜索“${query}”` : "输入关键词后按 Enter 搜索摘要、应用或窗口。";
-  status.classList.toggle("active", Boolean(query));
+  if (query) {
+    status.textContent = `按 Enter 搜索“${query}”`;
+    status.classList.add("active");
+    return;
+  }
+  status.hidden = true;
+  status.classList.remove("active");
 }
 
 function searchAppRecords(appName) {
