@@ -850,7 +850,8 @@ function renderRequestLogs(requestLogs) {
 function renderStyles(styles) {
   const select = $("#styleSelect");
   const autoSelect = $("#autoReportStyle");
-  const previous = normalizeStyleName(select.value) || "标准日报";
+  const previous = normalizeStyleName(select.value);
+  const defaultStyle = state.data?.style_catalog?.[0]?.name || styles[0] || "标准日报";
   const autoPrevious = normalizeStyleName(autoSelect.value || state.data?.auto_report?.style) || "标准日报";
   select.innerHTML = "";
   autoSelect.innerHTML = "";
@@ -861,7 +862,7 @@ function renderStyles(styles) {
     select.appendChild(option);
     autoSelect.appendChild(option.cloneNode(true));
   }
-  select.value = styles.includes(previous) ? previous : styles[0] || "标准日报";
+  select.value = previous && styles.includes(previous) ? previous : defaultStyle;
   autoSelect.value = styles.includes(autoPrevious) ? autoPrevious : select.value;
   renderReportKindTabs();
   renderStyleHint();
@@ -907,7 +908,6 @@ function renderTemplateCatalog(catalog) {
           <small>${escapeHtml(templateCardSummary(item))}</small>
           <div class="template-card-foot">
             <em>${escapeHtml(templateSourceLabel(item))}</em>
-            <span class="template-card-audience">${escapeHtml(item.audience || "通用")}</span>
             <button class="template-detail-button" type="button" data-template-detail="${escapeHtml(item.name)}">详情</button>
           </div>
         </article>
@@ -961,8 +961,6 @@ function renderTemplatePreview(item, selected) {
   const { start, end } = currentReportRange($("#kindSelect")?.value || "day");
   const title = item?.name || selected || "报告模板";
   const source = templateSourceLabel(item);
-  const instructionText = $("#reportInstructionInput")?.value.trim() || "";
-  const instructionStatus = instructionText ? "自定义指令已启用" : "未加自定义指令";
   const lines = String(item?.preview || state.data?.style_descriptions?.[selected] || "今日工作\n- ...\n\n进展与产出\n- ...\n\n明日计划\n- ...")
     .split(/\n+/)
     .map((line) => line.trim())
@@ -970,16 +968,14 @@ function renderTemplatePreview(item, selected) {
     .slice(0, 8);
   return `
     <div class="template-preview-head">
-      <span>报</span>
+      <span>▤</span>
       <div>
-        <strong>${escapeHtml(title)}</strong>
-        <small>${escapeHtml(source)} · ${escapeHtml(kind)} · 时间范围：${escapeHtml(start)} 至 ${escapeHtml(end)}</small>
+        <div class="template-preview-title-row">
+          <strong>${escapeHtml(title)}</strong>
+          <em>${escapeHtml(source)}</em>
+        </div>
+        <small>时间范围：${escapeHtml(start)} 至 ${escapeHtml(end)}</small>
       </div>
-    </div>
-    <div class="template-preview-meta">
-      <span>${escapeHtml(item?.audience || "通用")}</span>
-      <span>${escapeHtml(instructionStatus)}</span>
-      <span>${escapeHtml(currentReportRangeLabel($("#kindSelect")?.value || "day"))}</span>
     </div>
     <div class="template-preview-lines">
       ${lines

@@ -3670,7 +3670,7 @@ select {
 
 .report-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) clamp(220px, 17vw, 270px);
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 24vw, 330px);
   gap: 18px;
   align-items: start;
 }
@@ -3814,7 +3814,7 @@ select {
 
 .template-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
   padding-right: 2px;
 }
@@ -3873,8 +3873,9 @@ select {
 
 .template-card-foot {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto auto;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-top: 4px;
 }
@@ -3998,6 +3999,13 @@ select {
   font-size: 17px;
 }
 
+.template-preview-title-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
 .template-preview-head strong,
 .template-preview-head small {
   display: block;
@@ -4007,6 +4015,20 @@ select {
 .template-preview-head strong {
   color: var(--ink);
   font-size: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.template-preview-title-row em {
+  flex: 0 0 auto;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #e8f8ef;
+  color: #0f766e;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 800;
 }
 
 .template-preview-head small {
