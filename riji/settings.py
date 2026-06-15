@@ -16,6 +16,13 @@ DEFAULTS: dict[str, Any] = {
     "capture_interval": config.CAPTURE_INTERVAL,
     "idle_pause_after": config.IDLE_PAUSE_AFTER,
     "capture_scope": "primary",
+    "language": "zh-CN",
+    "quick_enter_enabled": True,
+    "show_dock_icon": True,
+    "memory_enabled": True,
+    "woodfish_enabled": False,
+    "ai_analysis_source": "screen",
+    "analysis_prompt": "",
     "auto_record_enabled": False,
     "auto_report_enabled": False,
     "auto_report_time": "18:30",
@@ -44,6 +51,13 @@ def load() -> dict[str, Any]:
     merged["privacy_mode"] = bool(merged.get("privacy_mode", True))
     merged["keep_shots"] = False if merged["privacy_mode"] else bool(merged.get("keep_shots"))
     merged["capture_scope"] = _capture_scope(merged.get("capture_scope"))
+    merged["language"] = _choice(merged.get("language"), {"zh-CN", "en-US"}, "zh-CN")
+    merged["quick_enter_enabled"] = bool(merged.get("quick_enter_enabled", True))
+    merged["show_dock_icon"] = bool(merged.get("show_dock_icon", True))
+    merged["memory_enabled"] = bool(merged.get("memory_enabled", True))
+    merged["woodfish_enabled"] = bool(merged.get("woodfish_enabled", False))
+    merged["ai_analysis_source"] = _choice(merged.get("ai_analysis_source"), {"screen", "window", "screen_window"}, "screen")
+    merged["analysis_prompt"] = _optional_text(merged.get("analysis_prompt"), 1200)
     merged["auto_record_enabled"] = bool(merged.get("auto_record_enabled"))
     merged["auto_report_enabled"] = bool(merged.get("auto_report_enabled"))
     merged["auto_report_time"] = _time_value(merged.get("auto_report_time"), "18:30")
@@ -67,6 +81,13 @@ def save(patch: dict[str, Any]) -> dict[str, Any]:
         "capture_interval",
         "idle_pause_after",
         "capture_scope",
+        "language",
+        "quick_enter_enabled",
+        "show_dock_icon",
+        "memory_enabled",
+        "woodfish_enabled",
+        "ai_analysis_source",
+        "analysis_prompt",
         "auto_record_enabled",
         "auto_report_enabled",
         "auto_report_time",
@@ -88,6 +109,13 @@ def save(patch: dict[str, Any]) -> dict[str, Any]:
     current["privacy_mode"] = bool(current.get("privacy_mode", True))
     current["keep_shots"] = False if current["privacy_mode"] else bool(current.get("keep_shots"))
     current["capture_scope"] = _capture_scope(current.get("capture_scope"))
+    current["language"] = _choice(current.get("language"), {"zh-CN", "en-US"}, "zh-CN")
+    current["quick_enter_enabled"] = bool(current.get("quick_enter_enabled", True))
+    current["show_dock_icon"] = bool(current.get("show_dock_icon", True))
+    current["memory_enabled"] = bool(current.get("memory_enabled", True))
+    current["woodfish_enabled"] = bool(current.get("woodfish_enabled", False))
+    current["ai_analysis_source"] = _choice(current.get("ai_analysis_source"), {"screen", "window", "screen_window"}, "screen")
+    current["analysis_prompt"] = _optional_text(current.get("analysis_prompt"), 1200)
     current["auto_record_enabled"] = bool(current.get("auto_record_enabled"))
     current["auto_report_enabled"] = bool(current.get("auto_report_enabled"))
     current["auto_report_time"] = _time_value(current.get("auto_report_time"), "18:30")
@@ -226,3 +254,12 @@ def _time_value(value: Any, fallback: str) -> str:
 def _text_value(value: Any, fallback: str) -> str:
     text = str(value or "").strip()
     return text if text else fallback
+
+
+def _optional_text(value: Any, limit: int) -> str:
+    return str(value or "").strip()[:limit]
+
+
+def _choice(value: Any, allowed: set[str], fallback: str) -> str:
+    text = str(value or "").strip()
+    return text if text in allowed else fallback
