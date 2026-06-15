@@ -12,6 +12,11 @@ const state = {
   reportId: null,
   reportMeta: null,
   reportDirty: false,
+  agentDocs: "",
+  reportFilters: {
+    kind: "all",
+    range: "all",
+  },
   filter: "all",
   settingsTouched: false,
   dayNoteTouched: false,
@@ -67,12 +72,22 @@ async function api(path, options = {}) {
   return data;
 }
 
+async function textApi(path) {
+  const response = await fetch(path);
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(text || `请求失败：${response.status}`);
+  }
+  return text;
+}
+
 async function loadSummary() {
   const seq = ++state.summarySeq;
   const data = await api(`/api/summary?date=${encodeURIComponent(state.date)}`);
   if (seq !== state.summarySeq) return;
   state.data = data;
   render();
+  loadAgentDocs().catch(() => {});
 }
 
 function render() {
@@ -92,6 +107,7 @@ function render() {
   renderStorage(data.storage);
   renderDisplays(data.displays);
   renderStyles(data.styles);
+  renderTemplateCatalog(data.style_catalog || []);
   renderSearchControls(data.activity_categories || []);
   renderManualControls(data.activity_categories || []);
   renderOverview(data);
@@ -260,6 +276,27 @@ function renderAgent(modelConfig, health, projectContext, settings) {
   $("#agentStatusText").textContent = health?.ok ? "已就绪" : "需要处理";
   $("#agentStatusText").className = `section-meta ${health?.ok ? "good" : "bad"}`;
   renderProjectContext(projectContext, settings);
+}
+
+function renderAgentDocs(text) {
+  const preview = $("#agentDocsPreview");
+  if (!preview) return;
+  const service = "服务地址：`http://127.0.0.1:8765`";
+  const intro = [
+    "请把书赫日报助手接入为本地工作日报数据源。",
+    "",
+    "强制规则：每次调用前先读取 GET http://127.0.0.1:8765/api/agent-docs，接口以实时文档为准。",
+    "",
+  ].join("\n");
+  preview.textContent = text ? `${intro}${text}` : `正在读取本地 API 文档...\n\n${service}`;
+}
+
+async function loadAgentDocs({ notify = false } = {}) {
+  if (!$("#agentDocsPreview")) return;
+  const text = await textApi("/api/agent-docs");
+  state.agentDocs = text;
+  renderAgentDocs(text);
+  if (notify) toast("Agent 文档已刷新");
 }
 
 function renderProjectContext(projectContext, settings) {
@@ -490,6 +527,49 @@ function renderStyleHint() {
   const descriptions = state.data?.style_descriptions || {};
   const style = $("#styleSelect").value;
   $("#styleHint").textContent = descriptions[style] || "选择报告模板后会显示要求。";
+  renderTemplateSelection();
+}
+
+function renderTemplateCatalog(catalog) {
+  const grid = $("#templateGrid");
+  if (!grid) return;
+  const items = catalog.length
+    ? catalog
+    : (state.data?.styles || []).map((name) => ({
+        name,
+        prompt: state.data?.style_descriptions?.[name] || "",
+        group: "内置",
+        audience: "通用",
+        preview: state.data?.style_descriptions?.[name] || "",
+        source: "内置",
+      }));
+  $("#templateCount").textContent = `${items.length} 个模板`;
+  grid.innerHTML = items
+    .map(
+      (item) => `
+        <button class="template-card" type="button" data-template-name="${escapeHtml(item.name)}">
+          <span>${escapeHtml(item.group || item.source || "模板")}</span>
+          <strong>${escapeHtml(item.name)}</strong>
+          <small>${escapeHtml(item.audience || item.prompt || "")}</small>
+        </button>
+      `,
+    )
+    .join("");
+  renderTemplateSelection();
+}
+
+function renderTemplateSelection() {
+  const select = $("#styleSelect");
+  const selected = select?.value || "";
+  $$(".template-card").forEach((button) => {
+    button.classList.toggle("selected", button.dataset.templateName === selected);
+  });
+  const catalog = state.data?.style_catalog || [];
+  const item = catalog.find((entry) => entry.name === selected);
+  const source = $("#templateSource");
+  const preview = $("#templatePreview");
+  if (source) source.textContent = item ? `${item.source || "内置"} · ${item.audience || "通用"}` : "-";
+  if (preview) preview.textContent = item?.preview || state.data?.style_descriptions?.[selected] || "选择模板后查看结构。";
 }
 
 function renderSearchControls(categories) {
@@ -986,7 +1066,11 @@ function renderReports(reports) {
 function renderReportHistoryTable(reports) {
   const table = $("#historyReportTable");
   if (!table) return;
-  table.innerHTML = reports.length
+  renderHistoryFilters();
+  const filtered = filterReports(reports || []);
+  const meta = $("#historyFilterMeta");
+  if (meta) meta.textContent = `显示 ${filtered.length}/${reports.length || 0} 份`;
+  table.innerHTML = filtered.length
     ? `
       <div class="history-report-head">
         <span>标题</span>
@@ -995,7 +1079,7 @@ function renderReportHistoryTable(reports) {
         <span>生成时间</span>
         <span>操作</span>
       </div>
-      ${reports
+      ${filtered
         .map(
           (item) => `
           <div class="history-report-row">
@@ -1013,6 +1097,40 @@ function renderReportHistoryTable(reports) {
         .join("")}
     `
     : `<div class="empty report-empty">还没有历史报告。</div>`;
+}
+
+function renderHistoryFilters() {
+  $$("#historyKindFilter [data-report-kind]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.reportKind === state.reportFilters.kind);
+  });
+  $$("#historyRangeFilter [data-report-range]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.reportRange === state.reportFilters.range);
+  });
+}
+
+function filterReports(reports) {
+  const { kind, range } = state.reportFilters;
+  const start = reportRangeStart(range);
+  return reports.filter((item) => {
+    if (kind !== "all" && item.kind !== kind) return false;
+    if (start && String(item.day || "") < start) return false;
+    return true;
+  });
+}
+
+function reportRangeStart(range) {
+  const today = new Date(`${localDateString()}T00:00:00`);
+  if (range === "7" || range === "30") {
+    return localDateString(new Date(today.getTime() - (Number(range) - 1) * 86400000));
+  }
+  if (range === "week") {
+    const day = today.getDay() || 7;
+    return localDateString(new Date(today.getTime() - (day - 1) * 86400000));
+  }
+  if (range === "month") {
+    return `${localDateString().slice(0, 7)}-01`;
+  }
+  return "";
 }
 
 function renderChat(messages) {
@@ -2202,6 +2320,12 @@ function bindEvents() {
   });
   $("#generateReport").addEventListener("click", generateReport);
   $("#styleSelect").addEventListener("change", renderStyleHint);
+  $("#templateGrid").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-template-name]");
+    if (!button) return;
+    $("#styleSelect").value = button.dataset.templateName;
+    renderStyleHint();
+  });
   $("#clearReportInstruction").addEventListener("click", () => {
     $("#reportInstructionInput").value = "";
     $("#reportInstructionInput").focus();
@@ -2265,6 +2389,18 @@ function bindEvents() {
   $("#refreshReports").addEventListener("click", () => refreshReports().catch((error) => toast(error.message)));
   $("#historyRefreshReports").addEventListener("click", () => refreshReports().catch((error) => toast(error.message)));
   $("#historyArchiveAllReports").addEventListener("click", () => archiveAllReports().catch((error) => toast(error.message)));
+  $("#historyKindFilter").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-report-kind]");
+    if (!button) return;
+    state.reportFilters.kind = button.dataset.reportKind;
+    renderReportHistoryTable(state.data?.reports || []);
+  });
+  $("#historyRangeFilter").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-report-range]");
+    if (!button) return;
+    state.reportFilters.range = button.dataset.reportRange;
+    renderReportHistoryTable(state.data?.reports || []);
+  });
   $("#historyReportTable").addEventListener("click", (event) => {
     const loadButton = event.target.closest("[data-report-load]");
     const deleteButton = event.target.closest("[data-history-report-delete]");
@@ -2310,6 +2446,17 @@ function bindEvents() {
   $("#saveSettings").addEventListener("click", () => saveSettings().catch((error) => toast(error.message)));
   $("#saveModelConfig").addEventListener("click", () => saveModelConfig().catch((error) => toast(error.message)));
   $("#saveAgentContext").addEventListener("click", () => saveAgentContext().catch((error) => toast(error.message)));
+  $("#refreshAgentDocs").addEventListener("click", () => loadAgentDocs({ notify: true }).catch((error) => toast(error.message)));
+  $("#copyAgentDocs").addEventListener("click", async () => {
+    try {
+      if (!state.agentDocs) await loadAgentDocs();
+      const text = $("#agentDocsPreview").textContent || state.agentDocs;
+      await copyText(text);
+      toast("Agent 接入说明已复制");
+    } catch (error) {
+      toast(error.message);
+    }
+  });
   $("#saveAutoReport").addEventListener("click", () => saveAutoReport().catch((error) => toast(error.message)));
   $("#runAutoReportNow").addEventListener("click", () => runAutoReportNow().catch((error) => toast(error.message)));
   $("#openScreenSettings").addEventListener("click", () => openPermission("screen_recording").catch((error) => toast(error.message)));
