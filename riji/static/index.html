@@ -18,6 +18,7 @@
         </div>
 
         <nav class="nav">
+          <div class="nav-group-label">工作</div>
           <button class="nav-item active" data-view="overview">
             <span class="icon">⌂</span><span>今日概览</span>
           </button>
@@ -33,20 +34,33 @@
           <button class="nav-item" data-view="apps">
             <span class="icon">▦</span><span>应用记录</span>
           </button>
+          <button class="nav-item" data-view="report">
+            <span class="icon">✎</span><span>生成报告</span>
+          </button>
+          <button class="nav-item" data-view="reports-history">
+            <span class="icon">◷</span><span>历史报告</span>
+          </button>
+          <div class="nav-group-label">更多</div>
           <button class="nav-item" data-view="agent">
             <span class="icon">◎</span><span>接入 Agent</span>
+          </button>
+          <button class="nav-item" data-view="subscription">
+            <span class="icon">★</span><span>订阅</span>
+          </button>
+          <button class="nav-item" data-view="invite">
+            <span class="icon">↪</span><span>邀请激励</span>
           </button>
           <button class="nav-item" data-view="privacy">
             <span class="icon">◇</span><span>隐私保护</span>
           </button>
+          <button class="nav-item" data-view="support">
+            <span class="icon">☏</span><span>客服</span>
+          </button>
+          <button class="nav-item" data-view="notifications">
+            <span class="icon">!</span><span>通知中心</span>
+          </button>
           <button class="nav-item" data-view="help">
             <span class="icon">?</span><span>帮助</span>
-          </button>
-          <button class="nav-item" data-view="report">
-            <span class="icon">✎</span><span>报告</span>
-          </button>
-          <button class="nav-item" data-view="reports-history">
-            <span class="icon">◷</span><span>历史报告</span>
           </button>
           <button class="nav-item" data-view="settings">
             <span class="icon">⚙</span><span>设置</span>
@@ -472,6 +486,101 @@
               <p class="path-note" id="privacyActionStatus">工作记录、报告和聊天历史只保存在本机数据库。</p>
             </section>
 
+            <section class="panel subscription-panel module-panel" data-section="subscription">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">订阅</p>
+                  <h3>本地版能力状态</h3>
+                </div>
+                <span class="section-meta good">本地可用</span>
+              </div>
+              <div class="module-hero">
+                <div>
+                  <span>书赫日报助手 Local</span>
+                  <strong>当前版本不需要登录，也不需要订阅服务器。</strong>
+                  <p>记录、报告、Agent 接入、导出备份都在本机完成；以后如果接入团队版或云同步，可以从这里升级。</p>
+                </div>
+                <button class="button subtle" id="subscriptionOpenRelease">查看安装包</button>
+              </div>
+              <div class="plan-grid">
+                <div class="plan-card active">
+                  <span>当前</span>
+                  <strong>Local</strong>
+                  <p>单机记录、日报/周报/月报、Agent 本地 API、隐私模式、备份导出。</p>
+                </div>
+                <div class="plan-card muted">
+                  <span>预留</span>
+                  <strong>Team</strong>
+                  <p>多设备同步、团队模板、统一权限和组织看板，等需要时再接。</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel invite-panel module-panel" data-section="invite">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">邀请激励</p>
+                  <h3>把安装包发给另一台电脑</h3>
+                </div>
+                <button class="button subtle" id="copyInviteText">复制邀请文案</button>
+              </div>
+              <div class="share-grid">
+                <div class="share-card">
+                  <span>GitHub 地址</span>
+                  <strong id="inviteReleaseUrl">-</strong>
+                  <button class="text-button" id="copyReleaseUrl">复制链接</button>
+                </div>
+                <div class="share-card">
+                  <span>推荐说法</span>
+                  <p id="inviteCopy">这是书赫日报助手，下载安装后在本机记录工作、生成日报，数据默认只在电脑本地。</p>
+                </div>
+                <div class="share-card">
+                  <span>安装提醒</span>
+                  <p>macOS 选 DMG 或 app.zip；Windows 选 portable.zip。另一台电脑需要单独配置模型网关和权限。</p>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel support-panel module-panel" data-section="support">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">客服</p>
+                  <h3>排障与诊断</h3>
+                </div>
+                <button class="button subtle" id="copyDiagnostics">复制诊断信息</button>
+              </div>
+              <div class="support-grid">
+                <div class="support-card">
+                  <strong>常见问题</strong>
+                  <p>先检查屏幕录制/辅助功能权限、模型网关、日志目录和数据目录。</p>
+                  <div class="support-actions">
+                    <button class="button subtle compact-button" id="supportOpenHelp">打开帮助</button>
+                    <button class="button subtle compact-button" id="supportTestAgent">测试模型</button>
+                  </div>
+                </div>
+                <div class="support-card">
+                  <strong>本机文件</strong>
+                  <p>需要远程协助时，优先发诊断信息，不要直接发数据库或截图。</p>
+                  <div class="support-actions">
+                    <button class="button subtle compact-button" id="supportOpenLogs">日志目录</button>
+                    <button class="button subtle compact-button" id="supportOpenData">数据目录</button>
+                  </div>
+                </div>
+              </div>
+              <p class="path-note" id="supportStatus">诊断信息会包含版本、模型、权限、记录状态和存储概况，不包含 API Key。</p>
+            </section>
+
+            <section class="panel notifications-panel module-panel" data-section="notifications">
+              <div class="section-head">
+                <div>
+                  <p class="eyebrow">通知中心</p>
+                  <h3>本机状态提醒</h3>
+                </div>
+                <button class="button subtle" id="refreshNotifications">刷新</button>
+              </div>
+              <div class="notification-list" id="notificationList"></div>
+            </section>
+
             <section class="panel help-panel" data-section="help">
               <div class="section-head">
                 <div>
@@ -839,6 +948,13 @@
                   </select>
                 </label>
                 <p class="path-note">双屏办公时默认只记录主显示器；如果两块屏都承载工作，选择“全部显示器”。如副屏有微信、密码、客户敏感信息，建议只选主屏或指定某一块显示器。</p>
+                <div class="identify-card">
+                  <div>
+                    <strong>识别当前屏幕</strong>
+                    <p>立即抓取当前采集范围，送入 AI 分析，并写入今天的时间线。</p>
+                  </div>
+                  <button class="button primary compact-button" id="settingsCaptureNow">立即识别</button>
+                </div>
                 <div class="display-card">
                   <div class="mini-head">
                     <strong>已连接显示器</strong>
@@ -926,8 +1042,8 @@
                 </div>
                 <div class="export-card">
                   <div>
-                    <strong>结构化导出</strong>
-                    <p>把活动记录导出为 CSV，把历史报告导出为 JSON，方便二次分析。</p>
+                    <strong>导入 / 导出数据</strong>
+                    <p>把活动记录导出为 CSV，把历史报告导出为 JSON；JSON 报告文件也可以重新导入。</p>
                   </div>
                   <div class="export-actions">
                     <button class="button subtle" id="exportDayActivities">导出当天活动</button>
@@ -935,9 +1051,26 @@
                     <button class="button subtle" id="exportReports">导出报告</button>
                   </div>
                   <div class="export-actions single">
+                    <input id="importJsonFile" class="hidden-file" type="file" accept="application/json,.json" />
+                    <button class="button subtle" id="importJsonData">导入 JSON 报告</button>
                     <button class="button subtle" id="openExportsDir">打开导出目录</button>
                   </div>
                   <p class="path-note" id="exportStatus">尚未导出。</p>
+                </div>
+                <div class="danger-card">
+                  <div>
+                    <strong>清除历史数据</strong>
+                    <p>清空活动、报告、备注、聊天和截图文件。建议先生成本地备份。</p>
+                  </div>
+                  <button class="button subtle danger-button" id="clearAllData">清除全部历史</button>
+                  <p class="path-note" id="dangerStatus">此操作不可恢复。</p>
+                </div>
+                <div class="version-card">
+                  <div class="mini-head">
+                    <strong>版本日志</strong>
+                    <button class="text-button" id="versionOpenRelease">打开发布页</button>
+                  </div>
+                  <div class="version-list" id="versionList"></div>
                 </div>
                 <div class="folder-actions">
                   <button class="button subtle" id="openDataDir">打开数据目录</button>

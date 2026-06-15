@@ -101,6 +101,8 @@ function render() {
   renderAgent(data.model_config, data.health, data.project_context, data.settings);
   renderPrivacy(data);
   renderHelp(data);
+  renderProductModules(data);
+  renderNotifications(data.notifications || []);
   renderPermissions(data.permissions);
   renderAutostart(data.autostart);
   renderAutoReport(data.auto_report);
@@ -358,6 +360,50 @@ function renderHelp(data) {
     : "未就绪";
   $("#helpPrivacyStatus").textContent = privacyOk ? "隐私模式正常" : "需要检查截图留存";
   renderReleaseInfo(data.release);
+}
+
+function renderProductModules(data) {
+  const release = data.release || {};
+  const url = release.url || "https://github.com/cuishuhe5-glitch/shuhe-riji/releases";
+  const inviteUrl = $("#inviteReleaseUrl");
+  if (inviteUrl) inviteUrl.textContent = url;
+  renderVersionList(release);
+}
+
+function renderVersionList(release) {
+  const list = $("#versionList");
+  if (!list) return;
+  const version = release?.version || "v0.1.0";
+  list.innerHTML = `
+    <div class="version-item">
+      <span>${escapeHtml(version)}</span>
+      <strong>小黑式模块补齐</strong>
+      <p>新增订阅、邀请激励、客服、通知中心入口；补齐设置里的识别当前屏幕、数据导入、清理历史和版本日志。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.0</span>
+      <strong>本地日报助手</strong>
+      <p>支持本机屏幕记录、AI 识别、日报/周报/月报、历史报告、Agent 接入、隐私模式和跨平台安装包。</p>
+    </div>
+  `;
+}
+
+function renderNotifications(notifications) {
+  const list = $("#notificationList");
+  if (!list) return;
+  list.innerHTML = notifications.length
+    ? notifications
+        .map((item) => `
+          <div class="notification-item ${escapeHtml(item.level || "info")}">
+            <div>
+              <strong>${escapeHtml(item.title || "提醒")}</strong>
+              <p>${escapeHtml(item.message || "")}</p>
+            </div>
+            <span>${escapeHtml(item.time || "现在")}</span>
+          </div>
+        `)
+        .join("")
+    : `<div class="empty">当前没有新的提醒。</div>`;
 }
 
 function renderReleaseInfo(release) {
@@ -1407,9 +1453,12 @@ async function toggleRecording() {
 }
 
 async function captureNow() {
-  const button = $("#captureNowButton");
-  button.disabled = true;
-  button.textContent = "记录中";
+  const buttons = [$("#captureNowButton"), $("#settingsCaptureNow")].filter(Boolean);
+  const labels = buttons.map((button) => button.textContent);
+  buttons.forEach((button) => {
+    button.disabled = true;
+    button.textContent = "识别中";
+  });
   try {
     const result = await api("/api/recording/capture-now", { method: "POST", body: "{}" });
     if (result.summary) {
@@ -1425,8 +1474,10 @@ async function captureNow() {
   } catch (error) {
     toast(error.message);
   } finally {
-    button.disabled = false;
-    button.textContent = "立即记录";
+    buttons.forEach((button, index) => {
+      button.disabled = false;
+      button.textContent = labels[index] || "立即记录";
+    });
   }
 }
 
@@ -1720,10 +1771,81 @@ async function exportReportsData() {
   }
 }
 
+async function importJsonFile(file) {
+  if (!file) return;
+  $("#exportStatus").textContent = "正在读取 JSON 文件...";
+  try {
+    const text = await file.text();
+    const payload = JSON.parse(text);
+    const result = await api("/api/import/json", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    $("#exportStatus").textContent = `导入完成：报告 ${result.imported?.reports || 0} 份，活动 ${result.imported?.activities || 0} 条。`;
+    if (result.summary) {
+      state.data = result.summary;
+      render();
+    }
+    toast("JSON 数据已导入");
+  } catch (error) {
+    $("#exportStatus").textContent = error.message;
+    toast("导入失败");
+  } finally {
+    $("#importJsonFile").value = "";
+  }
+}
+
+async function clearAllData() {
+  const confirmText = window.prompt("这会清空活动、报告、备注、聊天和截图。请输入 清空历史 继续。");
+  if (confirmText !== "清空历史") {
+    toast("已取消清除");
+    return;
+  }
+  const button = $("#clearAllData");
+  button.disabled = true;
+  button.textContent = "清除中";
+  $("#dangerStatus").textContent = "正在清除本机历史数据...";
+  try {
+    const result = await api("/api/storage/clear-all", { method: "POST", body: "{}" });
+    $("#dangerStatus").textContent = `已清除：活动 ${result.cleared?.activities || 0} 条，报告 ${result.cleared?.reports || 0} 份，截图 ${result.cleared?.shots || 0} 个。`;
+    if (result.summary) {
+      state.data = result.summary;
+      render();
+    }
+    toast("历史数据已清除");
+  } catch (error) {
+    $("#dangerStatus").textContent = error.message;
+    toast("清除失败");
+  } finally {
+    button.disabled = false;
+    button.textContent = "清除全部历史";
+  }
+}
+
 function renderExportResult(exported, label) {
   $("#exportStatus").textContent = exported?.path
     ? `${label}：${exported.path}（${exported.rows || 0} 行，${exported.size_label || formatBytes(exported.size)}）`
     : `${label}已导出`;
+}
+
+function diagnosticsText() {
+  const data = state.data || {};
+  const health = data.health || {};
+  const recording = data.recording || {};
+  const model = data.model_config || {};
+  const storage = data.storage || {};
+  const permissions = data.permissions || {};
+  return [
+    "书赫日报助手诊断信息",
+    `日期：${new Date().toLocaleString()}`,
+    `版本：${data.release?.version || "-"}`,
+    `记录状态：${recording.running ? "运行中" : "已暂停"} / ${recording.message || "-"}`,
+    `健康状态：${health.ok ? "OK" : "需要处理"}`,
+    `模型：${model.provider || "-"} ${model.model || "-"} ${model.base_url || "-"}`,
+    `权限：屏幕录制 ${permissions.screen_recording?.state || "-"}，辅助功能 ${permissions.accessibility?.state || "-"}`,
+    `存储：活动 ${storage.activities || 0} 条，报告 ${storage.reports || 0} 份，截图 ${storage.shot_files || 0} 个`,
+    `数据目录：${data.settings?.data_dir || storage.data_dir || "-"}`,
+  ].join("\n");
 }
 
 async function setAutostart(enabled) {
@@ -2318,6 +2440,7 @@ function bindEvents() {
     $$(".nav-item").forEach((item) => item.classList.toggle("active", item.dataset.view === "help"));
     document.querySelector('[data-section="help"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
+  $("#settingsCaptureNow").addEventListener("click", () => captureNow().catch((error) => toast(error.message)));
   $("#generateReport").addEventListener("click", generateReport);
   $("#styleSelect").addEventListener("change", renderStyleHint);
   $("#templateGrid").addEventListener("click", (event) => {
@@ -2488,11 +2611,49 @@ function bindEvents() {
     document.querySelector('[data-section="settings"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
   });
   $("#checkReleaseUpdate").addEventListener("click", () => checkReleaseUpdate().catch((error) => toast(error.message)));
+  $("#subscriptionOpenRelease").addEventListener("click", () => {
+    const url = state.data?.release?.url;
+    if (url) window.open(url, "_blank", "noreferrer");
+  });
+  $("#copyInviteText").addEventListener("click", async () => {
+    const url = state.data?.release?.url || $("#inviteReleaseUrl")?.textContent || "";
+    const text = `${$("#inviteCopy")?.textContent || "这是书赫日报助手，数据默认只在电脑本地。"}\n\n下载地址：${url}`;
+    await copyText(text);
+    toast("邀请文案已复制");
+  });
+  $("#copyReleaseUrl").addEventListener("click", async () => {
+    await copyText(state.data?.release?.url || $("#inviteReleaseUrl")?.textContent || "");
+    toast("下载链接已复制");
+  });
+  $("#supportOpenHelp").addEventListener("click", () => {
+    document.querySelector('[data-section="help"]')?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+  $("#supportTestAgent").addEventListener("click", () => testModelConnection("#supportTestAgent", "#supportStatus"));
+  $("#supportOpenLogs").addEventListener("click", () => openLocalPath("logs").catch((error) => toast(error.message)));
+  $("#supportOpenData").addEventListener("click", () => openLocalPath("data").catch((error) => toast(error.message)));
+  $("#copyDiagnostics").addEventListener("click", async () => {
+    await copyText(diagnosticsText());
+    $("#supportStatus").textContent = "诊断信息已复制，不包含 API Key。";
+    toast("诊断信息已复制");
+  });
+  $("#refreshNotifications").addEventListener("click", async () => {
+    const result = await api("/api/notifications");
+    state.data.notifications = result.notifications || [];
+    renderNotifications(state.data.notifications);
+    toast("通知中心已刷新");
+  });
   $("#createBackup").addEventListener("click", () => createBackup());
   $("#testModelConnection").addEventListener("click", () => testModelConnection());
   $("#exportDayActivities").addEventListener("click", () => exportActivities("day"));
   $("#exportAllActivities").addEventListener("click", () => exportActivities("all"));
   $("#exportReports").addEventListener("click", () => exportReportsData());
+  $("#importJsonData").addEventListener("click", () => $("#importJsonFile").click());
+  $("#importJsonFile").addEventListener("change", (event) => importJsonFile(event.target.files?.[0]));
+  $("#clearAllData").addEventListener("click", () => clearAllData());
+  $("#versionOpenRelease").addEventListener("click", () => {
+    const url = state.data?.release?.url;
+    if (url) window.open(url, "_blank", "noreferrer");
+  });
   $("#refreshLogs").addEventListener("click", () => refreshLogs());
   $("#clearShots").addEventListener("click", () => clearShots().catch((error) => toast(error.message)));
   $("#timeline").addEventListener("click", (event) => {

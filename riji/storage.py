@@ -16,6 +16,7 @@ def stats() -> dict[str, Any]:
         rows = conn.execute(
             "SELECT COUNT(*) AS total, SUM(CASE WHEN shot_path IS NOT NULL AND shot_path != '' THEN 1 ELSE 0 END) AS with_shots FROM activities"
         ).fetchone()
+        reports = conn.execute("SELECT COUNT(*) AS total FROM reports").fetchone()
     return {
         "data_dir": str(config.DATA_DIR),
         "shots_dir": str(config.SHOTS_DIR),
@@ -24,6 +25,7 @@ def stats() -> dict[str, Any]:
         "shot_size": _format_bytes(total_bytes),
         "activities": int(rows["total"] or 0),
         "activities_with_shots": int(rows["with_shots"] or 0),
+        "reports": int(reports["total"] or 0),
     }
 
 

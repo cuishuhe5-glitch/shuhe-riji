@@ -199,6 +199,35 @@ def _release_check() -> dict[str, Any]:
     }
 
 
+def _notifications_snapshot(day: str | None = None, runtime: dict[str, Any] | None = None) -> list[dict[str, str]]:
+    runtime = runtime or settings.load()
+    day = day or date.today().strftime("%Y-%m-%d")
+    now = datetime.now().strftime("%H:%M")
+    notes: list[dict[str, str]] = []
+    status = permissions.status()
+    storage_info = storage.stats()
+    health = _health()
+    screen_ok = status.get("screen_recording", {}).get("state") == "granted"
+    accessibility_ok = status.get("accessibility", {}).get("state") == "granted"
+    if not screen_ok:
+        notes.append({"level": "warn", "title": "屏幕录制权限未开启", "message": "无法读取屏幕内容时，时间线和日报会缺少素材。", "time": now})
+    if not accessibility_ok:
+        notes.append({"level": "warn", "title": "辅助功能权限未开启", "message": "无法稳定识别前台应用和窗口标题。", "time": now})
+    if not health.get("model", {}).get("ready"):
+        notes.append({"level": "warn", "title": "模型网关需要检查", "message": health.get("model", {}).get("message") or "生成报告前请先确认 Hermes/OpenAI-compatible 网关可用。", "time": now})
+    if runtime.get("privacy_mode") is False or runtime.get("keep_shots"):
+        notes.append({"level": "info", "title": "截图留存已开启", "message": "如果屏幕上有客户信息、聊天或密码，建议回到隐私模式。", "time": now})
+    elif int(storage_info.get("shot_files") or 0) > 0:
+        notes.append({"level": "info", "title": "有可清理截图", "message": f"当前本机还有 {storage_info.get('shot_files')} 个截图文件，可以在隐私保护里清理。", "time": now})
+    if not RECORDER.running and not int(storage_info.get("activities") or 0):
+        notes.append({"level": "info", "title": "还没有工作记录", "message": "可以先点一次“立即识别”，确认当前屏幕能进入时间线。", "time": now})
+    if runtime.get("auto_report_enabled"):
+        notes.append({"level": "good", "title": "自动日报已启用", "message": f"每天 {runtime.get('auto_report_time')} 会尝试生成日报。", "time": now})
+    if db.activities_for_day(day):
+        notes.append({"level": "good", "title": "今天已有日报素材", "message": f"{day} 已有记录，可以直接进入“生成报告”。", "time": now})
+    return notes
+
+
 class Recorder:
     def __init__(self) -> None:
         self._thread: threading.Thread | None = None
@@ -506,6 +535,7 @@ def _summary(day: str) -> dict[str, Any]:
         "desktop_app": _desktop_app_status(),
         "project_context": _project_context_status(runtime),
         "release": RELEASE_INFO,
+        "notifications": _notifications_snapshot(day, runtime=runtime),
     }
 
 
@@ -1490,6 +1520,87 @@ def _export_reports() -> dict[str, Any]:
     }
 
 
+def _import_json_data(payload: dict[str, Any]) -> dict[str, Any]:
+    reports = payload.get("reports") if isinstance(payload, dict) else None
+    activities = payload.get("activities") if isinstance(payload, dict) else None
+    if reports is None and isinstance(payload, dict) and {"day", "body"}.issubset(payload):
+        reports = [payload]
+    if reports is None and activities is None:
+        raise ValueError("JSON 中没有可导入的 reports 或 activities")
+
+    imported_reports = 0
+    imported_activities = 0
+    with db.connect() as conn:
+        for item in list(reports or [])[:5000]:
+            if not isinstance(item, dict):
+                continue
+            day = str(item.get("day") or "").strip()
+            body = str(item.get("body") or "").strip()
+            if not day or not body:
+                continue
+            try:
+                datetime.strptime(day, "%Y-%m-%d")
+            except ValueError:
+                continue
+            kind = str(item.get("kind") or "日报").strip()[:40] or "日报"
+            style = str(item.get("style") or "导入").strip()[:80] or "导入"
+            title = str(item.get("title") or f"{day} {kind}").strip()[:120] or f"{day} {kind}"
+            created_at = str(item.get("created_at") or datetime.now().isoformat(timespec="seconds")).strip()
+            conn.execute(
+                "INSERT INTO reports (created_at, day, kind, style, title, body) VALUES (?, ?, ?, ?, ?, ?)",
+                (created_at, day, kind, style, title, body),
+            )
+            imported_reports += 1
+
+        valid_categories = set(settings.load()["activity_categories"])
+        for item in list(activities or [])[:5000]:
+            if not isinstance(item, dict):
+                continue
+            summary = str(item.get("summary") or "").strip()
+            ts_value = str(item.get("ts") or "").strip()
+            day = str(item.get("day") or "").strip()
+            if not summary or not ts_value:
+                continue
+            try:
+                ts = datetime.fromisoformat(ts_value)
+            except ValueError:
+                continue
+            day = day or ts.strftime("%Y-%m-%d")
+            category = str(item.get("category") or "其他").strip()
+            if category not in valid_categories:
+                category = "其他" if "其他" in valid_categories else next(iter(valid_categories), "其他")
+            conn.execute(
+                "INSERT INTO activities (ts, day, category, summary, app, window_title, shot_path) VALUES (?, ?, ?, ?, ?, ?, NULL)",
+                (
+                    ts.isoformat(timespec="seconds"),
+                    day,
+                    category,
+                    summary,
+                    str(item.get("app") or "").strip() or None,
+                    str(item.get("window_title") or "").strip() or None,
+                ),
+            )
+            imported_activities += 1
+    return {"reports": imported_reports, "activities": imported_activities}
+
+
+def _clear_all_data() -> dict[str, Any]:
+    with db.connect() as conn:
+        counts = {
+            "activities": int(conn.execute("SELECT COUNT(*) AS total FROM activities").fetchone()["total"] or 0),
+            "reports": int(conn.execute("SELECT COUNT(*) AS total FROM reports").fetchone()["total"] or 0),
+            "day_notes": int(conn.execute("SELECT COUNT(*) AS total FROM day_notes").fetchone()["total"] or 0),
+            "chat": int(conn.execute("SELECT COUNT(*) AS total FROM chat_messages").fetchone()["total"] or 0),
+        }
+    shots = storage.clear_shots().get("removed", 0)
+    with db.connect() as conn:
+        conn.execute("DELETE FROM activities")
+        conn.execute("DELETE FROM reports")
+        conn.execute("DELETE FROM day_notes")
+        conn.execute("DELETE FROM chat_messages")
+    return {**counts, "shots": int(shots or 0)}
+
+
 def _all_activities() -> list[db.sqlite3.Row]:
     with db.connect() as conn:
         return list(conn.execute("SELECT * FROM activities ORDER BY ts ASC"))
@@ -1701,6 +1812,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send_json({"health": _health()})
         elif parsed.path == "/api/agent-docs":
             self._send_text(_agent_docs(), content_type="text/markdown; charset=utf-8")
+        elif parsed.path == "/api/notifications":
+            day = parse_qs(parsed.query).get("date", [date.today().strftime("%Y-%m-%d")])[0]
+            self._send_json({"notifications": _notifications_snapshot(day)})
         elif parsed.path == "/api/release/check":
             self._send_json({"release_check": _release_check()})
         elif parsed.path == "/api/model-config":
@@ -1922,6 +2036,20 @@ class DashboardHandler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/storage/clear-shots":
             result = storage.clear_shots()
             self._send_json({"ok": True, **result})
+        elif parsed.path == "/api/storage/clear-all":
+            try:
+                cleared = _clear_all_data()
+                self._send_json({"ok": True, "cleared": cleared, "summary": _summary(date.today().strftime("%Y-%m-%d"))})
+            except Exception as exc:
+                self._send_json({"ok": False, "error": str(exc)}, status=500)
+        elif parsed.path == "/api/import/json":
+            try:
+                imported = _import_json_data(self._read_json())
+                self._send_json({"ok": True, "imported": imported, "summary": _summary(date.today().strftime("%Y-%m-%d"))})
+            except ValueError as exc:
+                self._send_json({"ok": False, "error": str(exc)}, status=400)
+            except Exception as exc:
+                self._send_json({"ok": False, "error": str(exc)}, status=500)
         elif activity_id := _activity_action(parsed.path, "update"):
             try:
                 result = _update_activity(activity_id, self._read_json())

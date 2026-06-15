@@ -97,6 +97,13 @@ select {
   gap: 6px;
 }
 
+.nav-group-label {
+  margin: 8px 6px 2px;
+  color: #8a9692;
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .nav-item {
   height: 38px;
   border: 0;
@@ -1062,6 +1069,148 @@ select {
 .agent-context-card textarea:focus {
   border-color: rgba(15, 118, 110, 0.58);
   box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.13);
+}
+
+.module-panel {
+  display: grid;
+  gap: 12px;
+}
+
+.module-hero,
+.plan-card,
+.share-card,
+.support-card,
+.notification-item,
+.identify-card,
+.danger-card,
+.version-card {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.module-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.module-hero span,
+.plan-card span,
+.share-card span,
+.notification-item span,
+.version-item span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.module-hero strong,
+.plan-card strong,
+.share-card strong,
+.support-card strong,
+.notification-item strong,
+.identify-card strong,
+.danger-card strong,
+.version-item strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.module-hero p,
+.plan-card p,
+.share-card p,
+.support-card p,
+.notification-item p,
+.identify-card p,
+.danger-card p,
+.version-item p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.plan-grid,
+.share-grid,
+.support-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.share-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.plan-card.active {
+  border-color: rgba(15, 118, 110, 0.35);
+  background: #f0faf7;
+}
+
+.plan-card.muted {
+  opacity: 0.82;
+}
+
+.share-card strong {
+  overflow-wrap: anywhere;
+}
+
+.support-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.notification-list,
+.version-list {
+  display: grid;
+  gap: 8px;
+}
+
+.notification-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: start;
+}
+
+.notification-item.warn {
+  border-color: #f2c9a1;
+  background: #fff8ef;
+}
+
+.notification-item.good {
+  border-color: rgba(15, 118, 110, 0.28);
+  background: #f0faf7;
+}
+
+.identify-card,
+.danger-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.danger-card {
+  border-color: #f0c8c2;
+  background: #fff7f6;
+}
+
+.danger-button {
+  color: var(--danger);
+}
+
+.hidden-file {
+  display: none;
 }
 
 .agent-context-status-grid {
@@ -3348,6 +3497,10 @@ select {
 	  .agent-grid,
 	  .agent-actions,
 	  .agent-context-status-grid,
+	  .plan-grid,
+	  .share-grid,
+	  .support-grid,
+	  .support-actions,
 	  .privacy-grid,
 	  .privacy-actions,
 	  .help-grid,
@@ -3359,6 +3512,13 @@ select {
   .backup-actions,
   .export-actions,
   .folder-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .module-hero,
+  .notification-item,
+  .identify-card,
+  .danger-card {
     grid-template-columns: 1fr;
   }
 
