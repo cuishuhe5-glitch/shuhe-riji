@@ -595,10 +595,10 @@
                 <div class="agent-service-actions">
                   <button class="button subtle compact-button" id="agentOpenLogs" type="button">请求日志</button>
                   <code id="agentServiceUrl">http://127.0.0.1:8765</code>
-                  <button class="button subtle compact-button" id="copyAgentServiceUrl" type="button">复制</button>
+                  <button class="button subtle compact-button" id="copyAgentServiceUrl" type="button" hidden>复制</button>
                 </div>
               </div>
-              <div class="agent-endpoint-card">
+              <div class="agent-endpoint-card" hidden>
                 <div>
                   <span>实时文档接口</span>
                   <code id="agentDocsUrl">http://127.0.0.1:8765/api/agent-docs</code>
@@ -609,7 +609,7 @@
                 <div class="mini-head">
                   <strong>Agent 接入配置文本</strong>
                   <div class="mini-actions">
-                    <button class="text-button" id="refreshAgentDocs" type="button">刷新文档</button>
+                    <button class="text-button" id="refreshAgentDocs" type="button" hidden>刷新文档</button>
                     <button class="text-button" id="copyAgentDocs" type="button">一键复制</button>
                   </div>
                 </div>
@@ -617,7 +617,7 @@
                 <pre id="agentDocsPreview">正在读取本地 API 文档...</pre>
                 <p class="agent-doc-hint">复制上方文本，发送给你的 Hermes / Claude / Codex 或其他 Agent，它会自动读取本地 API 文档并完成接入。</p>
               </div>
-              <div class="agent-grid">
+              <div class="agent-grid" hidden>
                 <div class="agent-card">
                   <span>后端</span>
                   <strong id="agentProvider">-</strong>
@@ -635,11 +635,11 @@
                   <strong id="agentKeyStatus">-</strong>
                 </div>
               </div>
-              <div class="agent-actions">
+              <div class="agent-actions" hidden>
                 <button class="button primary" id="testAgentConnection">测试连接</button>
                 <button class="button subtle" id="openAgentSettings">打开模型设置</button>
               </div>
-              <div class="agent-context-card">
+              <div class="agent-context-card" hidden>
                 <div class="mini-head">
                   <strong>项目上下文</strong>
                   <button class="text-button" id="saveAgentContext" type="button">保存</button>
@@ -661,7 +661,7 @@
                 </div>
                 <p class="path-note" id="agentContextNote">每行一个项目目录；追问日报助手会读取少量安全文本文件作为本地上下文。</p>
               </div>
-              <p class="path-note" id="agentTestStatus">AI 请求直连本地/服务商网关，不经过中转服务器。</p>
+              <p class="path-note" id="agentTestStatus" hidden>AI 请求直连本地/服务商网关，不经过中转服务器。</p>
             </section>
 
             <section class="panel privacy-panel" data-section="privacy">
@@ -1516,6 +1516,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-history-report-clean"></script>
+    <script src="/static/app.js?v=20260615-agent-panel-clean"></script>
   </body>
 </html>

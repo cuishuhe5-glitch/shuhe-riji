@@ -1637,6 +1637,16 @@ select {
   background: #f5fffb;
 }
 
+.agent-endpoint-card[hidden],
+.agent-grid[hidden],
+.agent-actions[hidden],
+.agent-context-card[hidden],
+#copyAgentServiceUrl[hidden],
+#refreshAgentDocs[hidden],
+#agentTestStatus[hidden] {
+  display: none;
+}
+
 .agent-endpoint-card div {
   min-width: 0;
   display: grid;
