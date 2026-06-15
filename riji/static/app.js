@@ -16,6 +16,7 @@ const state = {
   reportFilters: {
     kind: "all",
     range: "all",
+    query: "",
   },
   filter: "all",
   settingsTouched: false,
@@ -99,6 +100,22 @@ function currentWorkCategories() {
   return new Set(state.data?.work_categories || state.data?.settings?.work_categories || defaultWorkCategories);
 }
 
+function categoryColor(name) {
+  const palette = {
+    编码开发: "#0f766e",
+    会议沟通: "#2563eb",
+    文档写作: "#7c3aed",
+    阅读学习: "#0891b2",
+    邮件即时通讯: "#db2777",
+    设计: "#ea580c",
+    数据分析: "#4f46e5",
+    网页浏览: "#65a30d",
+    娱乐休息: "#64748b",
+    其他: "#475569",
+  };
+  return palette[name] || "#475569";
+}
+
 function toast(message) {
   const el = $("#toast");
   el.textContent = message;
@@ -155,6 +172,7 @@ function render() {
   renderAutoReport(data.auto_report);
   renderStorage(data.storage);
   renderDisplays(data.displays);
+  renderOverviewDisplays(data.displays);
   renderStyles(data.styles);
   renderTemplateCatalog(data.style_catalog || []);
   renderSearchControls(data.activity_categories || []);
@@ -265,6 +283,28 @@ function renderDisplays(displays) {
             <span>${escapeHtml(`${item.width} × ${item.height}`)}${item.primary ? " · 主显示器" : ""}</span>
             <small>坐标 ${escapeHtml(`${item.left}, ${item.top}`)}</small>
           </button>
+        `,
+        )
+        .join("")
+    : `<div class="empty display-empty">${escapeHtml(displays?.error || "暂未检测到显示器。")}</div>`;
+}
+
+function renderOverviewDisplays(displays) {
+  const count = $("#overviewDisplayCount");
+  const list = $("#overviewDisplayList");
+  if (!count || !list) return;
+  const items = displays?.items || [];
+  count.textContent = displays?.ok ? `${Math.max(0, items.length - 1)} 台` : "检测失败";
+  list.innerHTML = items.length
+    ? items
+        .filter((item) => item.index > 0)
+        .map(
+          (item) => `
+          <div class="display-item selected">
+            <strong>${escapeHtml(item.name)}</strong>
+            <span>${escapeHtml(`${item.width} × ${item.height}`)}${item.primary ? " · 主显示器" : ""}</span>
+            <small>${escapeHtml(item.primary ? "当前默认采集" : "可在设置中选择")}</small>
+          </div>
         `,
         )
         .join("")
@@ -619,8 +659,16 @@ function renderStyles(styles) {
   }
   select.value = styles.includes(previous) ? previous : styles[0] || "标准";
   autoSelect.value = styles.includes(autoPrevious) ? autoPrevious : select.value;
+  renderReportKindTabs();
   renderStyleHint();
   renderAutoReport(state.data?.auto_report);
+}
+
+function renderReportKindTabs() {
+  const value = $("#kindSelect")?.value || "day";
+  $$("#reportKindTabs [data-kind-value]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.kindValue === value);
+  });
 }
 
 function renderStyleHint() {
@@ -628,6 +676,7 @@ function renderStyleHint() {
   const style = $("#styleSelect").value;
   $("#styleHint").textContent = descriptions[style] || "选择报告模板后会显示要求。";
   renderTemplateSelection();
+  renderReportKindTabs();
 }
 
 function renderTemplateCatalog(catalog) {
@@ -708,9 +757,8 @@ function renderManualControls(categories) {
 function renderOverview(data) {
   const topCategory = data.categories[0];
   const topApp = data.top_apps[0];
-  $("#overviewTitle").textContent = data.total
-    ? `${data.day} 已记录 ${data.total} 个工作片段`
-    : `${data.day} 暂无活动记录`;
+  if ($("#timelineFromDate")) $("#timelineFromDate").value = state.search.from || data.day;
+  if ($("#timelineToDate")) $("#timelineToDate").value = state.search.to || data.day;
   $("#totalCount").textContent = data.total;
   $("#topCategory").textContent = topCategory ? topCategory.name : "暂无";
   $("#topCategoryMeta").textContent = topCategory ? `${topCategory.percent}% / ${topCategory.count} 条` : "等待记录";
@@ -742,6 +790,7 @@ function renderOverview(data) {
         )
         .join("")
     : `<div class="empty">还没有可统计的活动。<br />点击开始记录，或先用命令行导入几条记录。</div>`;
+  $("#workOverviewEmpty").hidden = Number(data.total || 0) > 0;
   renderQuickStart(data);
 }
 
@@ -837,6 +886,10 @@ function renderAppRecords(appUsage) {
   if (!table) return;
   const total = appUsage.reduce((sum, item) => sum + (Number(item.minutes) || 0), 0);
   $("#appRecordsMeta").textContent = total ? `${appUsage.length} 个应用 · 约 ${formatDuration(total)}` : "按时间线估算";
+  if ($("#appTotalCount")) $("#appTotalCount").textContent = appUsage.length;
+  if ($("#appTotalTime")) $("#appTotalTime").textContent = total ? formatDuration(total) : "0秒";
+  if ($("#appDailyAverage")) $("#appDailyAverage").textContent = total ? formatDuration(total) : "0秒";
+  renderAppPageChart(appUsage);
   table.innerHTML = appUsage.length
     ? `
       <div class="app-records-head">
@@ -866,6 +919,31 @@ function renderAppRecords(appUsage) {
         .join("")}
     `
     : `<div class="empty app-record-empty">还没有应用记录。开始记录后会按应用汇总。</div>`;
+}
+
+function renderAppPageChart(appUsage) {
+  const chart = $("#appPageChart");
+  if (!chart) return;
+  chart.innerHTML = appUsage.length
+    ? appUsage
+        .slice(0, 20)
+        .map(
+          (item) => `
+          <article class="app-usage-row">
+            <div class="app-usage-icon">${renderUsageIcon(item)}</div>
+            <div class="app-usage-main">
+              <div class="app-usage-title">
+                <strong>${escapeHtml(item.name)}</strong>
+                <span>${escapeHtml(item.label || formatDuration(item.minutes || 0))}</span>
+              </div>
+              <div class="app-usage-bar"><span style="width:${Math.max(2, item.percent || 0)}%"></span></div>
+            </div>
+            <div class="app-usage-percent">${item.percent || 0}%</div>
+          </article>
+        `,
+        )
+        .join("")
+    : `<div class="empty app-usage-empty">暂无应用时长数据。</div>`;
 }
 
 function renderActivityRhythm(items) {
@@ -1014,6 +1092,7 @@ function renderTimeline(items) {
     const isWork = currentWorkCategories().has(item.category);
     return state.filter === "work" ? isWork : !isWork;
   });
+  renderTimelineSummary(items, filtered);
 
   $("#timeline").innerHTML = filtered.length
     ? filtered
@@ -1035,6 +1114,44 @@ function renderTimeline(items) {
         )
         .join("")
     : `<div class="empty">这个筛选下没有记录。<br />保持面板打开，开始记录后会自动出现时间线。</div>`;
+}
+
+function renderTimelineSummary(items, filtered) {
+  const total = filtered.length;
+  const workMinutes = filtered.reduce((sum, item) => {
+    const minutes = Number(item.minutes || item.duration_minutes || item.count || 1);
+    return currentWorkCategories().has(item.category) ? sum + minutes : sum;
+  }, 0);
+  const first = filtered[0]?.time || filtered[0]?.start_time || "";
+  const last = filtered[filtered.length - 1]?.time || filtered[filtered.length - 1]?.end_time || "";
+  if ($("#timelineRecordCount")) $("#timelineRecordCount").textContent = total;
+  if ($("#timelineFocusTime")) $("#timelineFocusTime").textContent = workMinutes ? formatDuration(workMinutes) : "0min";
+  if ($("#timelineActivePeriod")) $("#timelineActivePeriod").textContent = first && last ? `${first}-${last}` : "暂无";
+  renderTimelineCategoryChart(items);
+}
+
+function renderTimelineCategoryChart(items) {
+  const chart = $("#timelineCategoryChart");
+  if (!chart) return;
+  const counts = new Map();
+  for (const item of items) {
+    const value = Number(item.minutes || item.duration_minutes || item.count || 1);
+    counts.set(item.category || "其他", (counts.get(item.category || "其他") || 0) + value);
+  }
+  const rows = [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+  const max = Math.max(...rows.map(([, value]) => value), 0);
+  $("#timelineCategoryMeta").textContent = rows.length ? `${rows.length} 个分类` : "按时间段估算";
+  chart.innerHTML = rows.length
+    ? rows
+        .map(([name, value]) => `
+          <div class="category-duration-row">
+            <span>${escapeHtml(name)}</span>
+            <div class="bar"><span style="width:${max ? Math.max(3, Math.round(value / max * 100)) : 0}%; background:${categoryColor(name)}"></span></div>
+            <strong>${formatDuration(value)}</strong>
+          </div>
+        `)
+        .join("")
+    : `<div class="empty timeline-category-empty">暂无分类时长数据。</div>`;
 }
 
 function findTimelineItem(id) {
@@ -1206,14 +1323,19 @@ function renderHistoryFilters() {
   $$("#historyRangeFilter [data-report-range]").forEach((button) => {
     button.classList.toggle("active", button.dataset.reportRange === state.reportFilters.range);
   });
+  if ($("#historySearchInput") && $("#historySearchInput").value !== state.reportFilters.query) {
+    $("#historySearchInput").value = state.reportFilters.query;
+  }
 }
 
 function filterReports(reports) {
-  const { kind, range } = state.reportFilters;
+  const { kind, range, query } = state.reportFilters;
   const start = reportRangeStart(range);
+  const needle = String(query || "").trim().toLowerCase();
   return reports.filter((item) => {
     if (kind !== "all" && item.kind !== kind) return false;
     if (start && String(item.day || "") < start) return false;
+    if (needle && ![item.title, item.kind, item.style, item.preview].some((value) => String(value || "").toLowerCase().includes(needle))) return false;
     return true;
   });
 }
@@ -2509,6 +2631,13 @@ function bindEvents() {
   $("#settingsCaptureNow").addEventListener("click", () => captureNow().catch((error) => toast(error.message)));
   $("#generateReport").addEventListener("click", generateReport);
   $("#styleSelect").addEventListener("change", renderStyleHint);
+  $("#kindSelect").addEventListener("change", renderReportKindTabs);
+  $("#reportKindTabs").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-kind-value]");
+    if (!button) return;
+    $("#kindSelect").value = button.dataset.kindValue;
+    renderReportKindTabs();
+  });
   $("#templateGrid").addEventListener("click", (event) => {
     const button = event.target.closest("[data-template-name]");
     if (!button) return;
@@ -2516,7 +2645,6 @@ function bindEvents() {
     renderStyleHint();
   });
   $("#clearReportInstruction").addEventListener("click", () => {
-    $("#reportInstructionInput").value = "";
     $("#reportInstructionInput").focus();
   });
   $("#saveDayNote").addEventListener("click", () => saveDayNote().catch((error) => toast(error.message)));
@@ -2590,6 +2718,10 @@ function bindEvents() {
     state.reportFilters.range = button.dataset.reportRange;
     renderReportHistoryTable(state.data?.reports || []);
   });
+  $("#historySearchInput").addEventListener("input", (event) => {
+    state.reportFilters.query = event.target.value;
+    renderReportHistoryTable(state.data?.reports || []);
+  });
   $("#historyReportTable").addEventListener("click", (event) => {
     const loadButton = event.target.closest("[data-report-load]");
     const deleteButton = event.target.closest("[data-history-report-delete]");
@@ -2601,6 +2733,40 @@ function bindEvents() {
   });
   $("#runSearch").addEventListener("click", () => runSearch());
   $("#clearSearch").addEventListener("click", clearSearch);
+  $("#timelineQuickSearch").addEventListener("input", (event) => {
+    $("#searchQuery").value = event.target.value;
+    state.search.query = event.target.value;
+    renderSearchResults();
+  });
+  $("#timelineQuickSearch").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      $("#searchQuery").value = event.target.value;
+      runSearch();
+    }
+  });
+  $("#timelineFromDate").addEventListener("change", (event) => {
+    $("#searchFrom").value = event.target.value;
+    state.search.from = event.target.value;
+  });
+  $("#timelineToDate").addEventListener("change", (event) => {
+    $("#searchTo").value = event.target.value;
+    state.search.to = event.target.value;
+  });
+  $("#timelineExportData").addEventListener("click", () => exportActivities("day"));
+  $("#timelineAddRecord").addEventListener("click", () => {
+    if (!state.manualOpen) toggleManualActivity();
+    $("#manualSummary").focus();
+  });
+  $$(".timeline-quick-ranges [data-timeline-range]").forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.timelineRange === "today") {
+        state.filter = "all";
+        renderTimeline(state.data?.segments || state.data?.items || []);
+      } else {
+        toast("已保留当前页筛选；精确近时段过滤后续继续补。");
+      }
+    });
+  });
   $("#appRecordsTable").addEventListener("click", (event) => {
     const button = event.target.closest("[data-app-search]");
     if (button) searchAppRecords(button.dataset.appSearch);

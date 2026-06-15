@@ -459,6 +459,104 @@ select {
   margin-bottom: 16px;
 }
 
+.work-hero {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 22px;
+  padding: 8px 0 2px;
+}
+
+.hero-mark {
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #111a18;
+  border-radius: 12px;
+  color: #111a18;
+  font-size: 24px;
+  font-weight: 820;
+}
+
+.work-hero h3 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.15;
+}
+
+.work-hero p {
+  margin: 7px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.trust-strip span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--surface-soft);
+  color: #78837f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.work-overview-card,
+.timeline-category-card,
+.timeline-card,
+.app-chart-card,
+.app-detail-card,
+.report-config-card,
+.generated-report-card {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.work-overview-empty {
+  display: grid;
+  place-items: center;
+  min-height: 154px;
+  padding: 18px;
+  border-radius: 8px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.work-overview-empty span {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 10px;
+  border-radius: 50%;
+  background: #e4f3ee;
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.work-overview-empty strong {
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.work-overview-empty p {
+  margin: 6px 0 0;
+  font-size: 12px;
+}
+
 .metric {
   min-height: 104px;
   padding: 14px;
@@ -843,6 +941,35 @@ select {
   border-radius: 8px;
 }
 
+.app-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.app-chart-card {
+  min-height: 340px;
+}
+
+.app-detail-card {
+  min-height: 180px;
+}
+
+.app-page-chart {
+  max-height: 300px;
+  overflow: auto;
+}
+
+.segmented.tiny {
+  height: 30px;
+}
+
+.segmented.tiny button {
+  min-height: 22px;
+  font-size: 11px;
+}
+
 .app-records-head,
 .app-record-row {
   min-width: 780px;
@@ -893,13 +1020,41 @@ select {
 
 .report-filter-bar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) auto;
+  grid-template-columns: auto minmax(220px, 1fr) auto;
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
 }
 
-.report-filter-bar > span {
+.report-date-filter-bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.report-filter-bar input {
+  width: 100%;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #fff;
+  color: var(--ink);
+  outline: 0;
+}
+
+.report-filter-bar > span,
+.report-date-filter-bar > span {
   color: var(--muted);
   font-size: 12px;
   font-weight: 700;
@@ -1588,6 +1743,10 @@ select {
   border-top: 1px solid var(--line-soft);
 }
 
+.overview-display-card {
+  margin-top: 16px;
+}
+
 .activity-rhythm {
   height: 138px;
   display: grid;
@@ -1917,11 +2076,109 @@ select {
 .search-panel {
   display: grid;
   gap: 10px;
-  margin: -4px 0 14px;
+  margin: 0 0 14px;
   padding: 12px;
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: var(--surface-soft);
+}
+
+.timeline-toolbar {
+  display: grid;
+  grid-template-columns: 150px auto 150px auto auto minmax(180px, 1fr);
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.timeline-toolbar input {
+  width: 100%;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #fff;
+  color: var(--ink);
+  outline: 0;
+}
+
+.timeline-toolbar > span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.timeline-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
+  gap: 10px;
+  align-items: stretch;
+  margin-bottom: 16px;
+  padding: 14px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.timeline-stats > div:not(.segmented) {
+  min-width: 0;
+}
+
+.timeline-stats strong,
+.timeline-stats span {
+  display: block;
+}
+
+.timeline-stats strong {
+  color: var(--ink);
+  font-size: 23px;
+  line-height: 1.1;
+}
+
+.timeline-stats span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.timeline-category-chart {
+  display: grid;
+  gap: 8px;
+  min-height: 136px;
+}
+
+.category-duration-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 70px;
+  gap: 10px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.category-duration-row > span,
+.category-duration-row strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.category-duration-row > span {
+  color: #33413e;
+}
+
+.category-duration-row strong {
+  color: var(--muted);
+  text-align: right;
+}
+
+.timeline-quick-ranges {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 .search-grid {
@@ -2145,7 +2402,7 @@ select {
 .timeline {
   display: grid;
   gap: 8px;
-  max-height: calc(100vh - 624px);
+  max-height: calc(100vh - 548px);
   min-height: 288px;
   overflow: auto;
   padding-right: 4px;
@@ -2284,7 +2541,48 @@ select {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 10px;
+}
+
+.report-top-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.report-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.9fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.report-config-column,
+.report-preview-column {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.report-kind-tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.report-kind-tabs button {
+  height: 38px;
+  min-width: 62px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: #33413e;
+  cursor: pointer;
+  font-weight: 760;
+}
+
+.report-kind-tabs button.active {
+  border-color: var(--accent);
+  background: #e8f7f2;
+  color: var(--accent-strong);
 }
 
 .style-hint {
@@ -2299,8 +2597,7 @@ select {
 .template-preview-card {
   display: grid;
   gap: 8px;
-  margin-bottom: 10px;
-  padding: 11px 10px;
+  padding: 16px;
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: var(--surface-soft);
@@ -2315,9 +2612,9 @@ select {
 
 .template-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  max-height: 278px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-height: 520px;
   overflow: auto;
   padding-right: 2px;
 }
@@ -2326,7 +2623,8 @@ select {
   min-width: 0;
   display: grid;
   gap: 5px;
-  padding: 10px;
+  min-height: 124px;
+  padding: 14px;
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: #fff;
@@ -2371,8 +2669,8 @@ select {
 }
 
 .template-preview-card pre {
-  min-height: 116px;
-  max-height: 188px;
+  min-height: 330px;
+  max-height: 520px;
   overflow: auto;
   margin: 0;
   padding: 10px;
@@ -2382,6 +2680,10 @@ select {
   color: var(--ink);
   white-space: pre-wrap;
   font: 12px/1.58 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.generated-report-card .report-preview {
+  min-height: 220px;
 }
 
 select {
@@ -3491,12 +3793,21 @@ select {
   }
 
   .summary-grid,
+  .work-hero,
   .quick-start-steps,
   .quick-start-actions,
   .trend-metrics,
   .productivity-card,
   .productivity-stats,
   .chart-block,
+  .timeline-toolbar,
+  .timeline-stats,
+  .category-duration-row,
+  .app-summary-grid,
+  .report-filter-bar,
+  .report-date-filter-bar,
+  .report-workspace,
+  .template-grid,
   .search-grid,
   .manual-grid,
 	  .model-test-card,
