@@ -624,6 +624,16 @@ def _agent_docs() -> str:
 """
 
 
+def _should_serve_agent_docs_at_root(query: dict[str, list[str]], accept: str) -> bool:
+    root_mode = (query.get("format", [""])[0] or query.get("view", [""])[0]).lower()
+    if root_mode in {"agent", "docs", "markdown"}:
+        return True
+    normalized_accept = accept.lower()
+    if "text/markdown" in normalized_accept:
+        return True
+    return "text/html" not in normalized_accept
+
+
 def _day_note(day: str) -> dict[str, str]:
     row = db.day_note(day)
     return {
@@ -1913,7 +1923,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         if parsed.path == "/":
-            self._serve_file(STATIC_DIR / "index.html")
+            query = parse_qs(parsed.query)
+            if _should_serve_agent_docs_at_root(query, self.headers.get("Accept", "")):
+                self._send_text(_agent_docs(), content_type="text/markdown; charset=utf-8")
+            else:
+                self._serve_file(STATIC_DIR / "index.html")
         elif parsed.path.startswith("/static/"):
             rel = unquote(parsed.path.removeprefix("/static/"))
             self._serve_file(STATIC_DIR / rel)
