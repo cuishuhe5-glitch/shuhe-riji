@@ -5301,7 +5301,7 @@ select {
 	  .plan-grid,
 	  .share-grid,
 	  .support-grid,
-  .support-actions,
+	  .support-actions,
 	  .privacy-grid,
 	  .privacy-actions,
 	  .help-grid,
@@ -5314,6 +5314,10 @@ select {
   .export-actions,
   .folder-actions {
     grid-template-columns: 1fr;
+  }
+
+  .history-filter-tools {
+    justify-self: stretch;
   }
 
   .module-hero,
