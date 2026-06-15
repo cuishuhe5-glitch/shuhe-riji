@@ -3430,7 +3430,7 @@ select {
 
 .report-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.9fr);
+  grid-template-columns: minmax(0, 1.75fr) minmax(320px, 0.85fr);
   gap: 18px;
   align-items: start;
 }
@@ -3440,6 +3440,11 @@ select {
   display: grid;
   gap: 14px;
   min-width: 0;
+}
+
+.report-preview-column {
+  position: sticky;
+  top: 16px;
 }
 
 .report-kind-tabs {
@@ -3697,8 +3702,8 @@ select {
 }
 
 .template-preview-shell {
-  min-height: 330px;
-  max-height: 520px;
+  min-height: 620px;
+  max-height: calc(100vh - 220px);
   overflow: auto;
   margin: 0;
   padding: 16px;
@@ -5381,6 +5386,15 @@ select {
 
   .main {
     padding: 12px;
+  }
+
+  .report-preview-column {
+    position: static;
+  }
+
+  .template-preview-shell {
+    min-height: 330px;
+    max-height: 520px;
   }
 
   .panel,
