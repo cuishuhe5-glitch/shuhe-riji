@@ -265,7 +265,6 @@ function renderStatus(recording) {
   $("#sideDot").classList.toggle("error", failed);
   $("#sideStatus").textContent = failed ? "记录异常" : stopping ? "正在暂停" : running ? "正在记录" : "已暂停";
   $("#sideMessage").textContent = failed ? recording.last_error : (recording.message || "等待操作");
-  $("#providerStatus").textContent = recording.provider === "openai" ? "Hermes 本地网关" : "Ollama 本地模型";
 }
 
 function renderSettings(settings) {
