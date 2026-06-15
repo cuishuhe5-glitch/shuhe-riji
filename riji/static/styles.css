@@ -2030,6 +2030,101 @@ select {
   color: #fff;
 }
 
+.heatmap-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.heatmap-toolbar input {
+  width: 142px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0 10px;
+  background: #fff;
+  color: var(--ink);
+  outline: 0;
+}
+
+.heatmap-toolbar span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.heatmap-summary-card,
+.heatmap-card {
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.heatmap-summary-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.heatmap-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.heatmap-metrics strong,
+.heatmap-metrics span {
+  display: block;
+}
+
+.heatmap-metrics strong {
+  color: var(--ink);
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.heatmap-metrics span,
+#heatmapSlogan {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.heatmap-legend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.heatmap-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: #e8f0ed;
+}
+
+.heatmap-legend i:nth-of-type(2) {
+  background: #d2e8e1;
+}
+
+.heatmap-legend i:nth-of-type(3) {
+  background: #a8d6c9;
+}
+
+.heatmap-legend i:nth-of-type(4) {
+  background: #72bda8;
+}
+
+.heatmap-legend i:nth-of-type(5) {
+  background: var(--accent);
+}
+
 .time-heatmap-axis {
   display: grid;
   grid-template-columns: 84px repeat(8, 1fr);
@@ -2151,6 +2246,25 @@ select {
   min-height: 136px;
 }
 
+.timeline-category-card.is-collapsed .timeline-category-chart {
+  min-height: 0;
+}
+
+.inline-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.inline-check input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--accent);
+}
+
 .category-duration-row {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr) 70px;
@@ -2179,6 +2293,10 @@ select {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.timeline-quick-ranges .active {
+  color: var(--accent-strong);
 }
 
 .search-grid {
@@ -3802,6 +3920,8 @@ select {
   .chart-block,
   .timeline-toolbar,
   .timeline-stats,
+  .heatmap-summary-card,
+  .heatmap-metrics,
   .category-duration-row,
   .app-summary-grid,
   .report-filter-bar,
@@ -3842,6 +3962,7 @@ select {
   }
 
   .module-hero,
+  .heatmap-toolbar,
   .notification-item,
   .identify-card,
   .danger-card {
@@ -3869,15 +3990,31 @@ select {
   }
 
   .time-heatmap {
-    overflow-x: auto;
+    padding: 10px;
   }
 
-  .time-heatmap-panel {
-    overflow-x: auto;
+  .time-heatmap-row {
+    grid-template-columns: 52px minmax(0, 1fr);
+    gap: 6px;
   }
 
-  .time-heatmap-row,
-  .time-heatmap-axis,
+  .time-heatmap-cells {
+    grid-template-columns: repeat(24, minmax(7px, 1fr));
+    gap: 2px;
+  }
+
+  .time-cell {
+    border-radius: 3px;
+    font-size: 9px;
+  }
+
+  .time-heatmap-axis {
+    grid-template-columns: 52px repeat(8, 1fr);
+    gap: 2px;
+    padding: 8px 10px 0;
+    font-size: 10px;
+  }
+
   .history-report-head,
   .history-report-row {
     min-width: 720px;

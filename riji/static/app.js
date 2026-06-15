@@ -19,6 +19,7 @@ const state = {
     query: "",
   },
   filter: "all",
+  timelineRange: "today",
   settingsTouched: false,
   dayNoteTouched: false,
   summarySeq: 0,
@@ -1051,7 +1052,17 @@ function renderTimeHeatmap(heatmap) {
   if (!container) return;
   const days = heatmap?.days || [];
   const total = days.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
-  $("#timeHeatmapMeta").textContent = total ? `${days.length} 天 · ${total} 条记录 · 峰值 ${heatmap.max_count || 0}` : "按小时统计";
+  const activeDays = days.filter((item) => Number(item.total || 0) > 0).length;
+  const workMinutes = days.reduce((sum, day) => sum + (day.hours || []).reduce((hourSum, hour) => hourSum + (Number(hour.count) || 0), 0), 0);
+  const start = days[0]?.day || addDays(state.date, -6);
+  const end = days[days.length - 1]?.day || state.date;
+  if ($("#heatmapFromDate")) $("#heatmapFromDate").value = start;
+  if ($("#heatmapToDate")) $("#heatmapToDate").value = end;
+  if ($("#heatmapTotalRecords")) $("#heatmapTotalRecords").textContent = total;
+  if ($("#heatmapFocusTime")) $("#heatmapFocusTime").textContent = total ? formatDuration(workMinutes) : "0min";
+  if ($("#heatmapActiveDays")) $("#heatmapActiveDays").textContent = activeDays;
+  if ($("#heatmapDailyAverage")) $("#heatmapDailyAverage").textContent = days.length ? Math.round(total / days.length) : 0;
+  if ($("#heatmapSlogan")) $("#heatmapSlogan").textContent = total ? "专注工作本身，剩下的交给书赫" : "专注工作本身，剩下的交给书赫";
   container.innerHTML = days.length
     ? days
         .map(
@@ -1065,7 +1076,7 @@ function renderTimeHeatmap(heatmap) {
               ${(day.hours || [])
                 .map(
                   (hour) => `
-                  <button class="time-cell level-${hour.level || 0}" type="button" title="${escapeHtml(`${day.day} ${String(hour.hour).padStart(2, "0")}:00 · ${hour.count || 0} 条${hour.top_category ? ` · ${hour.top_category}` : ""}`)}">
+                  <button class="time-cell heatmap-cell level-${hour.level || 0}" type="button" title="${escapeHtml(`${day.day} ${String(hour.hour).padStart(2, "0")}:00 · ${hour.count || 0} 条${hour.top_category ? ` · ${hour.top_category}` : ""}`)}">
                     ${hour.count ? `<span>${hour.count}</span>` : ""}
                   </button>
                 `,
@@ -1087,11 +1098,14 @@ function renderUsageIcon(item) {
 }
 
 function renderTimeline(items) {
+  $$(".timeline-quick-ranges [data-timeline-range]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.timelineRange === state.timelineRange);
+  });
   const filtered = items.filter((item) => {
     if (state.filter === "all") return true;
     const isWork = currentWorkCategories().has(item.category);
     return state.filter === "work" ? isWork : !isWork;
-  });
+  }).filter((item) => timelineRangeMatches(item));
   renderTimelineSummary(items, filtered);
 
   $("#timeline").innerHTML = filtered.length
@@ -1116,6 +1130,27 @@ function renderTimeline(items) {
     : `<div class="empty">这个筛选下没有记录。<br />保持面板打开，开始记录后会自动出现时间线。</div>`;
 }
 
+function timelineRangeMatches(item) {
+  if (state.timelineRange === "today") return true;
+  const minutes = Number(state.timelineRange || 0);
+  if (!minutes) return true;
+  const time = item.start_time || item.time || "";
+  const itemMinutes = timeToMinutes(time);
+  if (itemMinutes == null) return true;
+  const now = new Date();
+  const current = state.date === localDateString(now) ? now.getHours() * 60 + now.getMinutes() : 24 * 60;
+  return itemMinutes >= Math.max(0, current - minutes);
+}
+
+function timeToMinutes(value) {
+  const match = String(value || "").match(/(\d{1,2}):(\d{2})/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (hour < 0 || hour > 23 || minute < 0 || minute > 59) return null;
+  return hour * 60 + minute;
+}
+
 function renderTimelineSummary(items, filtered) {
   const total = filtered.length;
   const workMinutes = filtered.reduce((sum, item) => {
@@ -1133,6 +1168,13 @@ function renderTimelineSummary(items, filtered) {
 function renderTimelineCategoryChart(items) {
   const chart = $("#timelineCategoryChart");
   if (!chart) return;
+  const enabled = $("#showTimelineCategory")?.checked !== false;
+  $(".timeline-category-card")?.classList.toggle("is-collapsed", !enabled);
+  if (!enabled) {
+    chart.innerHTML = "";
+    $("#timelineCategoryMeta").textContent = "已隐藏分类时长分布";
+    return;
+  }
   const counts = new Map();
   for (const item of items) {
     const value = Number(item.minutes || item.duration_minutes || item.count || 1);
@@ -2752,6 +2794,17 @@ function bindEvents() {
     $("#searchTo").value = event.target.value;
     state.search.to = event.target.value;
   });
+  $("#refreshHeatmap").addEventListener("click", () => loadSummary().then(() => toast("热力图已刷新")));
+  $("#heatmapFromDate").addEventListener("change", (event) => {
+    $("#timelineFromDate").value = event.target.value;
+    $("#searchFrom").value = event.target.value;
+    state.search.from = event.target.value;
+  });
+  $("#heatmapToDate").addEventListener("change", (event) => {
+    $("#timelineToDate").value = event.target.value;
+    $("#searchTo").value = event.target.value;
+    state.search.to = event.target.value;
+  });
   $("#timelineExportData").addEventListener("click", () => exportActivities("day"));
   $("#timelineAddRecord").addEventListener("click", () => {
     if (!state.manualOpen) toggleManualActivity();
@@ -2759,14 +2812,11 @@ function bindEvents() {
   });
   $$(".timeline-quick-ranges [data-timeline-range]").forEach((button) => {
     button.addEventListener("click", () => {
-      if (button.dataset.timelineRange === "today") {
-        state.filter = "all";
-        renderTimeline(state.data?.segments || state.data?.items || []);
-      } else {
-        toast("已保留当前页筛选；精确近时段过滤后续继续补。");
-      }
+      state.timelineRange = button.dataset.timelineRange || "today";
+      renderTimeline(state.data?.segments || state.data?.items || []);
     });
   });
+  $("#showTimelineCategory").addEventListener("change", () => renderTimeline(state.data?.segments || state.data?.items || []));
   $("#appRecordsTable").addEventListener("click", (event) => {
     const button = event.target.closest("[data-app-search]");
     if (button) searchAppRecords(button.dataset.appSearch);
