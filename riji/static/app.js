@@ -1549,7 +1549,7 @@ function renderTimeHeatmap(heatmap) {
   if ($("#heatmapFocusTime")) $("#heatmapFocusTime").textContent = total ? formatDuration(workMinutes) : "0min";
   if ($("#heatmapActiveDays")) $("#heatmapActiveDays").textContent = activeDays;
   if ($("#heatmapDailyAverage")) $("#heatmapDailyAverage").textContent = days.length ? Math.round(total / days.length) : 0;
-  if ($("#heatmapSlogan")) $("#heatmapSlogan").textContent = "不必回忆，数据替你记得";
+  if ($("#heatmapSlogan")) $("#heatmapSlogan").textContent = "每一分钟的努力，都值得被看见";
   renderHeatmapPeakHour(days);
   container.innerHTML = days.length
     ? days
@@ -2093,10 +2093,9 @@ function renderHistoryReportEmpty(reports) {
   const title = hasReports ? "当前筛选没有报告" : "暂无报告记录，去生成第一份吧";
   const text = hasReports ? "换个关键词、放宽日期范围，或清空筛选后查看全部报告。" : "生成日报、周报或月报后，会在这里统一查看和管理。";
   return `
-    <div class="empty report-empty history-report-empty">
-      <span>◷</span>
+    <div class="history-report-empty">
       <strong>${title}</strong>
-      <p>${text}</p>
+      ${hasReports ? `<p>${text}</p>` : ""}
     </div>
   `;
 }
