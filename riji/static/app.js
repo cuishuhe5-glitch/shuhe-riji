@@ -71,9 +71,43 @@ const pageMeta = {
   settings: { label: "设置", title: "设置" },
 };
 
+const pageAliases = {
+  today: "overview",
+  work: "overview",
+  "今日工作": "overview",
+  "generate-report": "report",
+  "report-config": "report",
+  "生成报告": "report",
+  "work-timeline": "timeline",
+  "工作时间线": "timeline",
+  "time-heatmap": "heatmap",
+  "时段热力图": "heatmap",
+  "app-records": "apps",
+  applications: "apps",
+  "应用记录": "apps",
+  history: "reports-history",
+  "report-history": "reports-history",
+  "历史报告": "reports-history",
+  "agent-access": "agent",
+  "接入agent": "agent",
+  "接入-agent": "agent",
+};
+
+function decodeViewName(value) {
+  try {
+    return decodeURIComponent(value);
+  } catch (error) {
+    return value;
+  }
+}
+
 function normalizeView(view) {
-  const name = String(view || "").replace(/^#/, "").trim();
-  return pageMeta[name] ? name : "overview";
+  const decoded = decodeViewName(String(view || "").replace(/^#/, "").trim());
+  const lowered = decoded.toLowerCase();
+  const compact = lowered.replace(/\s+/g, "");
+  if (pageMeta[decoded]) return decoded;
+  if (pageMeta[lowered]) return lowered;
+  return pageAliases[decoded] || pageAliases[lowered] || pageAliases[compact] || "overview";
 }
 
 function navigateTo(view, options = {}) {
