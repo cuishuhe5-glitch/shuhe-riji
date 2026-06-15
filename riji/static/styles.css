@@ -976,6 +976,13 @@ select {
   min-height: 180px;
 }
 
+.app-detail-card .mini-head span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 650;
+  text-align: right;
+}
+
 .app-page-chart {
   max-height: 300px;
   overflow: auto;
