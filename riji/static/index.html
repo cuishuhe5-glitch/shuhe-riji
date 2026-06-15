@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-agent-config-focus" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-report-preview-sidebar" />
   </head>
   <body>
     <div class="shell">
@@ -1012,16 +1012,6 @@
                     <textarea id="dayNoteInput" rows="3" placeholder="写下今天想强调的产出、阻塞、明天计划；生成报告时会一起参考。"></textarea>
                     <p class="path-note" id="dayNoteStatus">尚未保存备注。</p>
                   </section>
-                </div>
-
-                <div class="report-preview-column">
-                  <section class="template-preview-card">
-                    <div class="mini-head">
-                      <strong>模板预览</strong>
-                      <span id="templateSource">-</span>
-                    </div>
-                    <div class="template-preview-shell" id="templatePreview">选择模板后查看结构。</div>
-                  </section>
 
                   <section class="generated-report-card">
                     <div class="mini-head">
@@ -1039,6 +1029,16 @@
                       <button class="button subtle" id="downloadReport">导出</button>
                       <button class="button subtle" id="archiveReport">归档</button>
                     </div>
+                  </section>
+                </div>
+
+                <div class="report-preview-column">
+                  <section class="template-preview-card">
+                    <div class="mini-head">
+                      <strong>模板预览</strong>
+                      <span id="templateSource">-</span>
+                    </div>
+                    <div class="template-preview-shell" id="templatePreview">选择模板后查看结构。</div>
                   </section>
                 </div>
               </div>
@@ -1503,6 +1503,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-agent-config-focus"></script>
+    <script src="/static/app.js?v=20260615-report-preview-sidebar"></script>
   </body>
 </html>
