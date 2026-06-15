@@ -829,9 +829,10 @@ function renderTemplateCatalog(catalog) {
         <article class="template-card" role="button" tabindex="0" data-template-name="${escapeHtml(item.name)}">
           <span class="template-check">✓</span>
           <strong>${escapeHtml(item.name)}</strong>
-          <small>${escapeHtml(item.audience || item.prompt || "")}</small>
+          <small>${escapeHtml(templateCardSummary(item))}</small>
           <div class="template-card-foot">
             <em>${escapeHtml(templateSourceLabel(item))}</em>
+            <span class="template-card-audience">${escapeHtml(item.audience || "通用")}</span>
             <button class="template-detail-button" type="button" data-template-detail="${escapeHtml(item.name)}">详情</button>
           </div>
         </article>
@@ -870,6 +871,13 @@ function renderTemplateSelection() {
 function templateSourceLabel(item) {
   const value = item?.source || item?.group || "内置";
   return value.includes("云") ? "云端" : value;
+}
+
+function templateCardSummary(item) {
+  const text = String(item?.prompt || item?.preview || item?.audience || "选择后按此口径生成报告。")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > 54 ? `${text.slice(0, 54)}...` : text;
 }
 
 function renderTemplatePreview(item, selected) {
