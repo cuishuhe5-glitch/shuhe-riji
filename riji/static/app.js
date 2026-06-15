@@ -1126,7 +1126,7 @@ function renderAppRecords(appUsage, meta = state.appUsageMeta) {
               <strong>${escapeHtml(item.name)}</strong>
             </div>
             <span>${escapeHtml(item.label || formatDuration(item.minutes || 0))}</span>
-            <span>${item.percent || 0}%</span>
+            <span>${escapeHtml(appShareLabel(item, total))}</span>
             <span>${escapeHtml(item.first_time || "--:--")}</span>
             <span>${escapeHtml(item.last_time || "--:--")}</span>
           </button>
@@ -1135,6 +1135,12 @@ function renderAppRecords(appUsage, meta = state.appUsageMeta) {
         .join("")}
     `
     : `<div class="empty app-record-empty">还没有应用记录。开始记录后会按应用汇总。</div>`;
+}
+
+function appShareLabel(item, total) {
+  if (!total) return "0.00%";
+  const value = (Number(item.minutes) || 0) / total * 100;
+  return `${value.toFixed(2)}%`;
 }
 
 function appPeriodLabel(period) {
