@@ -1693,7 +1693,11 @@ function renderReportHistoryTable(reports) {
   renderHistoryFilters();
   const filtered = filterReports(reports || []);
   const meta = $("#historyFilterMeta");
-  if (meta) meta.textContent = filtered.length === (reports.length || 0) ? `共 ${filtered.length} 份` : `共 ${filtered.length} 份 / 全部 ${reports.length || 0} 份`;
+  if (meta) {
+    const scope = historyFilterScope();
+    const countText = filtered.length === (reports.length || 0) ? `共 ${filtered.length} 份` : `共 ${filtered.length} 份 / 全部 ${reports.length || 0} 份`;
+    meta.textContent = `${scope} · ${countText}`;
+  }
   table.innerHTML = filtered.length
     ? `
       <div class="history-report-head">
@@ -1742,6 +1746,8 @@ function renderHistoryFilters() {
   if ($("#historyToDate") && $("#historyToDate").value !== state.reportFilters.to) {
     $("#historyToDate").value = state.reportFilters.to;
   }
+  const hasFilters = hasHistoryFilters();
+  $("#historyClearFilters")?.toggleAttribute("disabled", !hasFilters);
 }
 
 function filterReports(reports) {
@@ -1778,6 +1784,36 @@ function historyRangeDates(range) {
     };
   }
   return { from: "", to: "" };
+}
+
+function hasHistoryFilters() {
+  const { kind, from, to, query, range } = state.reportFilters;
+  return kind !== "all" || Boolean(from || to || query || range);
+}
+
+function historyFilterScope() {
+  const { kind, from, to, query, range } = state.reportFilters;
+  const parts = [];
+  parts.push(kind === "all" ? "全部报告" : kind);
+  if (range) {
+    parts.push({ week: "本周", month: "本月", 7: "最近 7 天", 30: "最近 30 天" }[range] || "日期筛选");
+  } else if (from || to) {
+    parts.push(`${from || "最早"} 至 ${to || "今天"}`);
+  }
+  if (query) parts.push(`搜索：${query}`);
+  return parts.join(" · ");
+}
+
+function clearHistoryFilters() {
+  state.reportFilters = {
+    kind: "all",
+    range: "",
+    query: "",
+    from: "",
+    to: "",
+  };
+  renderReportHistoryTable(state.data?.reports || []);
+  toast("已清空历史报告筛选");
 }
 
 function renderChat(messages) {
@@ -3249,6 +3285,7 @@ function bindEvents() {
   });
   $("#refreshReports").addEventListener("click", () => refreshReports().catch((error) => toast(error.message)));
   $("#historyRefreshReports").addEventListener("click", () => refreshReports().catch((error) => toast(error.message)));
+  $("#historyClearFilters").addEventListener("click", clearHistoryFilters);
   $("#historyKindFilter").addEventListener("click", (event) => {
     const button = event.target.closest("[data-report-kind]");
     if (!button) return;

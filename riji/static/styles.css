@@ -1191,7 +1191,7 @@ select {
 
 .report-filter-bar {
   display: grid;
-  grid-template-columns: auto minmax(220px, 1fr) auto;
+  grid-template-columns: auto minmax(220px, 1fr) auto auto;
   align-items: center;
   gap: 8px;
   margin-bottom: 10px;
@@ -1199,6 +1199,11 @@ select {
   border: 1px solid var(--line-soft);
   border-radius: 8px;
   background: var(--surface-soft);
+}
+
+.history-clear-filter:disabled {
+  opacity: 0.48;
+  cursor: default;
 }
 
 .report-date-filter-bar {
