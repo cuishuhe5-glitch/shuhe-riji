@@ -683,6 +683,7 @@ function renderReportKindTabs() {
   $$("#reportKindTabs [data-kind-value]").forEach((button) => {
     button.classList.toggle("active", button.dataset.kindValue === value);
   });
+  renderTemplateSelection();
 }
 
 function renderStyleHint() {
@@ -711,9 +712,10 @@ function renderTemplateCatalog(catalog) {
     .map(
       (item) => `
         <button class="template-card" type="button" data-template-name="${escapeHtml(item.name)}">
-          <span>${escapeHtml(item.group || item.source || "模板")}</span>
+          <span class="template-check">✓</span>
           <strong>${escapeHtml(item.name)}</strong>
           <small>${escapeHtml(item.audience || item.prompt || "")}</small>
+          <em>${escapeHtml(templateSourceLabel(item))}</em>
         </button>
       `,
     )
@@ -731,8 +733,48 @@ function renderTemplateSelection() {
   const item = catalog.find((entry) => entry.name === selected);
   const source = $("#templateSource");
   const preview = $("#templatePreview");
-  if (source) source.textContent = item ? `${item.source || "内置"} · ${item.audience || "通用"}` : "-";
-  if (preview) preview.textContent = item?.preview || state.data?.style_descriptions?.[selected] || "选择模板后查看结构。";
+  if (source) source.textContent = item ? `${templateSourceLabel(item)} · ${item.audience || "通用"}` : "-";
+  if (preview) preview.innerHTML = renderTemplatePreview(item, selected);
+}
+
+function templateSourceLabel(item) {
+  const value = item?.source || item?.group || "内置";
+  return value.includes("云") ? "云端" : value;
+}
+
+function renderTemplatePreview(item, selected) {
+  if (!item && !selected) return `<div class="empty">选择模板后查看结构。</div>`;
+  const kind = reportKindLabel($("#kindSelect")?.value || "day");
+  const start = $("#reportStartDate")?.value || reportRangeForKind($("#kindSelect")?.value || "day").start;
+  const end = $("#reportEndDate")?.value || reportRangeForKind($("#kindSelect")?.value || "day").end;
+  const title = item?.name || selected || "报告模板";
+  const source = templateSourceLabel(item);
+  const lines = String(item?.preview || state.data?.style_descriptions?.[selected] || "今日工作\n- ...\n\n进展与产出\n- ...\n\n明日计划\n- ...")
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .slice(0, 8);
+  return `
+    <div class="template-preview-head">
+      <span>文</span>
+      <div>
+        <strong>${escapeHtml(title)}</strong>
+        <small>${escapeHtml(source)} · ${escapeHtml(kind)} · 时间范围：${escapeHtml(start)} 至 ${escapeHtml(end)}</small>
+      </div>
+    </div>
+    <div class="template-preview-lines">
+      ${lines
+        .map((line, index) => `
+          <div class="template-preview-line">
+            <i></i>
+            <span>${escapeHtml(line)}</span>
+            <b style="width:${Math.max(34, 92 - index * 7)}%"></b>
+          </div>
+        `)
+        .join("")}
+    </div>
+    <p>实际内容将基于你的工作记录自动生成</p>
+  `;
 }
 
 function renderSearchControls(categories) {
@@ -1741,6 +1783,13 @@ function reportRangeLabel(day, kind) {
   if (value === "week") return `${addDays(day, -6)} ~ ${day}`;
   if (value === "month") return `${addDays(day, -29)} ~ ${day}`;
   return day;
+}
+
+function reportRangeForKind(kind, day = state.date) {
+  const value = reportKindValue(kind);
+  if (value === "week") return { start: addDays(day, -6), end: day };
+  if (value === "month") return { start: addDays(day, -29), end: day };
+  return { start: day, end: day };
 }
 
 function safeDownloadName(value) {
