@@ -1576,9 +1576,22 @@ function readHeatmapRange() {
 }
 
 async function refreshHeatmapRange() {
+  const button = $("#refreshHeatmap");
+  const originalText = button?.textContent || "生成热力图";
+  if (button) {
+    button.disabled = true;
+    button.textContent = "生成中...";
+  }
   state.heatmapRange = readHeatmapRange();
-  await loadSummary();
-  toast("热力图已生成");
+  try {
+    await loadSummary();
+    toast("热力图已生成");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = originalText;
+    }
+  }
 }
 
 function syncHeatmapRangeStatus(heatmap = state.data?.time_heatmap, requested = {}) {
