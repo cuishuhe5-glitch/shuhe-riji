@@ -28,6 +28,7 @@ const state = {
   dayNoteTouched: false,
   summarySeq: 0,
   logs: null,
+  requestLogs: null,
   search: {
     query: "",
     category: "",
@@ -672,6 +673,40 @@ function renderLogs(logs) {
         )
         .join("")
     : `<div class="empty log-empty">还没有日志文件。启动菜单栏助手或开机自启后会写入这里。</div>`;
+}
+
+function renderRequestLogs(requestLogs) {
+  const table = $("#requestLogTable");
+  if (!table) return;
+  const items = requestLogs?.items || [];
+  $("#requestLogMeta").textContent = `共 ${requestLogs?.total || 0} 条记录，每页 ${requestLogs?.page_size || 20} 条`;
+  $("#requestLogPage").textContent = `第 ${requestLogs?.page || 1} 页 / 共 ${requestLogs?.pages || 1} 页`;
+  table.innerHTML = items.length
+    ? `
+      <div class="request-log-head">
+        <span>时间</span>
+        <span>方法</span>
+        <span>路径</span>
+        <span>参数</span>
+        <span>状态</span>
+        <span>来源</span>
+      </div>
+      ${items
+        .map(
+          (item) => `
+          <div class="request-log-row">
+            <span>${escapeHtml(formatDateTime(item.time))}</span>
+            <strong>${escapeHtml(item.method || "-")}</strong>
+            <span>${escapeHtml(item.path || "-")}</span>
+            <span>${escapeHtml(formatRequestParams(item.params))}</span>
+            <span class="${Number(item.status || 0) >= 400 ? "bad" : "good"}">${escapeHtml(String(item.status || "-"))}</span>
+            <span>${escapeHtml(item.source || "-")}</span>
+          </div>
+        `,
+        )
+        .join("")}
+    `
+    : `<div class="empty request-log-empty">暂无请求记录。</div>`;
 }
 
 function renderStyles(styles) {
@@ -1746,6 +1781,13 @@ function formatLogMeta(file) {
   return modified ? `${size} · ${modified}` : size;
 }
 
+function formatRequestParams(params) {
+  if (!params || !Object.keys(params).length) return "-";
+  return Object.entries(params)
+    .map(([key, values]) => `${key}=${Array.isArray(values) ? values.join(",") : values}`)
+    .join("&");
+}
+
 function formatBytes(value) {
   const bytes = Number(value) || 0;
   if (bytes < 1024) return `${bytes} B`;
@@ -1792,6 +1834,31 @@ function escapeHtml(value) {
     const map = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
     return map[char];
   });
+}
+
+async function loadRequestLogs({ show = false, notify = false } = {}) {
+  const result = await api("/api/request-logs");
+  state.requestLogs = result.request_logs;
+  renderRequestLogs(state.requestLogs);
+  if (show) openRequestLogModal();
+  if (notify) toast("请求日志已刷新");
+}
+
+function openRequestLogModal() {
+  $("#requestLogModal").classList.add("show");
+  $("#requestLogModal").setAttribute("aria-hidden", "false");
+}
+
+function closeRequestLogModal() {
+  $("#requestLogModal").classList.remove("show");
+  $("#requestLogModal").setAttribute("aria-hidden", "true");
+}
+
+async function clearRequestLogs() {
+  const result = await api("/api/request-logs/clear", { method: "POST", body: "{}" });
+  state.requestLogs = result.request_logs;
+  renderRequestLogs(state.requestLogs);
+  toast(`已清空 ${result.cleared || 0} 条请求日志`);
 }
 
 function normalizeStyleName(style) {
@@ -3082,7 +3149,10 @@ function bindEvents() {
   $("#openDataDir").addEventListener("click", () => openLocalPath("data").catch((error) => toast(error.message)));
   $("#openReportsDir").addEventListener("click", () => openLocalPath("reports").catch((error) => toast(error.message)));
   $("#openLogsDir").addEventListener("click", () => openLocalPath("logs").catch((error) => toast(error.message)));
-  $("#agentOpenLogs").addEventListener("click", () => navigateTo("settings"));
+  $("#agentOpenLogs").addEventListener("click", () => loadRequestLogs({ show: true }).catch((error) => toast(error.message)));
+  $("#requestLogClose").addEventListener("click", closeRequestLogModal);
+  $("#requestLogBackdrop").addEventListener("click", closeRequestLogModal);
+  $("#clearRequestLogs").addEventListener("click", () => clearRequestLogs().catch((error) => toast(error.message)));
   $("#openBackupsDir").addEventListener("click", () => openLocalPath("backups").catch((error) => toast(error.message)));
   $("#openExportsDir").addEventListener("click", () => openLocalPath("exports").catch((error) => toast(error.message)));
   $("#openDesktopApp").addEventListener("click", () => openLocalPath("app").catch((error) => toast(error.message)));

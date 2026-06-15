@@ -4113,6 +4113,85 @@ select {
   line-height: 1.25;
 }
 
+.request-log-sheet {
+  max-width: 980px;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.request-log-sheet .detail-head span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.request-log-table {
+  overflow: auto;
+  margin: 0 18px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.request-log-head,
+.request-log-row {
+  min-width: 820px;
+  display: grid;
+  grid-template-columns: 150px 76px minmax(180px, 1.2fr) minmax(180px, 1fr) 70px 110px;
+  gap: 10px;
+  align-items: center;
+}
+
+.request-log-head {
+  padding: 10px 12px;
+  background: var(--surface-soft);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.request-log-row {
+  padding: 11px 12px;
+  border-top: 1px solid var(--line-soft);
+  color: #33413e;
+  font-size: 12px;
+}
+
+.request-log-row span,
+.request-log-row strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.request-log-row .good {
+  color: #0f766e;
+  font-weight: 800;
+}
+
+.request-log-row .bad {
+  color: #b42318;
+  font-weight: 800;
+}
+
+.request-log-pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin: 12px 18px 18px;
+}
+
+.request-log-pager span {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.request-log-empty {
+  min-height: 120px;
+}
+
 .detail-actions {
   display: flex;
   align-items: center;
@@ -4570,6 +4649,45 @@ select {
 
   .app-record-row > span:nth-of-type(n + 3) {
     display: none;
+  }
+
+  .request-log-table {
+    margin: 0 14px;
+    overflow: visible;
+    border: 0;
+    background: transparent;
+  }
+
+  .request-log-head {
+    display: none;
+  }
+
+  .request-log-row {
+    min-width: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px 10px;
+    margin-bottom: 8px;
+    border: 1px solid var(--line-soft);
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .request-log-row span:nth-of-type(n + 3) {
+    display: none;
+  }
+
+  .request-log-row strong {
+    justify-self: end;
+  }
+
+  .request-log-pager {
+    align-items: stretch;
+    flex-direction: column;
+    margin: 12px 14px 14px;
+  }
+
+  .request-log-pager span {
+    margin-right: 0;
   }
 
   .detail-meta-grid {

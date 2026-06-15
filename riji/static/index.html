@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-agent" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-agent-logs" />
   </head>
   <body>
     <div class="shell">
@@ -1374,6 +1374,29 @@
         <div class="detail-body" id="detailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-agent"></script>
+    <div class="detail-modal request-log-modal" id="requestLogModal" aria-hidden="true">
+      <div class="detail-backdrop" id="requestLogBackdrop"></div>
+      <section class="detail-sheet request-log-sheet" role="dialog" aria-modal="true" aria-labelledby="requestLogTitle">
+        <div class="detail-head">
+          <div>
+            <p class="eyebrow">请求日志</p>
+            <h3 id="requestLogTitle">请求日志</h3>
+            <span id="requestLogMeta">共 0 条记录，每页 20 条</span>
+          </div>
+          <div class="detail-actions">
+            <button class="button subtle compact-button" id="clearRequestLogs" type="button">清空日志</button>
+            <button class="detail-close" id="requestLogClose" type="button" aria-label="关闭">×</button>
+          </div>
+        </div>
+        <p class="path-note">展示其他 Agent 对本机 API 的请求情况。</p>
+        <div class="request-log-table" id="requestLogTable"></div>
+        <div class="request-log-pager">
+          <span id="requestLogPage">第 1 页 / 共 1 页</span>
+          <button class="button subtle compact-button" id="requestLogPrev" type="button" disabled>上一页</button>
+          <button class="button subtle compact-button" id="requestLogNext" type="button" disabled>下一页</button>
+        </div>
+      </section>
+    </div>
+    <script src="/static/app.js?v=20260615-agent-logs"></script>
   </body>
 </html>
