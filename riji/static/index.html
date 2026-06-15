@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260616-agent-doc-clean" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260616-apps-topbar-clean" />
   </head>
   <body>
     <div class="shell">
@@ -90,12 +90,11 @@
             <p class="page-label">今日工作</p>
             <h2>今日工作</h2>
           </div>
-          <div class="top-actions" hidden>
+          <div class="top-actions">
             <label class="date-control">
               <span>日期</span>
               <input id="dateInput" type="date" />
             </label>
-            <div class="provider" id="providerStatus">Hermes 本地网关</div>
             <button class="button subtle" id="captureNowButton">立即记录</button>
             <button class="button primary" id="recordButton">开始记录</button>
           </div>
@@ -525,8 +524,8 @@
             <section class="panel apps-panel" data-section="apps">
               <div class="section-head">
                 <div>
-                  <p class="eyebrow">应用记录</p>
-                  <h3>查看各应用使用时长分布，了解时间花费结构</h3>
+                  <h3>应用记录</h3>
+                  <p>查看各应用使用时长分布，了解时间花费结构</p>
                 </div>
                 <div class="segmented app-periods">
                   <button class="active" type="button" data-app-period="day">今日</button>
@@ -1576,6 +1575,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260616-agent-doc-clean"></script>
+    <script src="/static/app.js?v=20260616-apps-topbar-clean"></script>
   </body>
 </html>
