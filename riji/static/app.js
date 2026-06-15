@@ -478,6 +478,7 @@ function renderAgentDocs(text) {
     "",
     "【强制规则 — 必须遵守】",
     `1. 每次处理用户请求前，你必须先调用 GET ${serviceUrl}/api/agent-docs 获取最新 API 文档。`,
+    `   如果只拿到了服务根地址，也可以用 GET ${serviceUrl}/?format=agent 读取同一份 Markdown 文档。`,
     "   该接口返回的是一份 Markdown 格式的文档，其中详细说明当前所有可用接口、参数和响应结构。",
     "   绝对不可以依赖记忆中的固定 API 列表，必须以实时拉取的文档为准。",
     "",
