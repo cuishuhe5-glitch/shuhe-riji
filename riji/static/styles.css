@@ -972,6 +972,49 @@ select {
   font-size: 12px;
 }
 
+.app-empty-state {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fff, var(--surface-soft));
+  text-align: center;
+}
+
+.app-records-table .app-empty-state {
+  min-height: 170px;
+  border: 0;
+  border-radius: 0;
+}
+
+.app-empty-state span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #edf7f3;
+  color: var(--accent-strong);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.app-empty-state strong {
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.app-empty-state p {
+  max-width: 390px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .app-records-table {
   overflow: auto;
   border: 1px solid var(--line-soft);
@@ -5336,6 +5379,22 @@ select {
 
   .timeline-category-modes {
     width: 100%;
+  }
+
+  .app-custom-range {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+    justify-content: stretch;
+  }
+
+  .app-custom-range input,
+  .app-custom-range .button {
+    width: 100%;
+  }
+
+  .app-custom-range span {
+    justify-self: center;
   }
 
   .donut {
