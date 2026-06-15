@@ -1360,6 +1360,15 @@ select {
   gap: 8px;
 }
 
+.history-open-dir {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.history-open-dir:hover {
+  color: var(--accent-strong);
+}
+
 .history-clear-filter:disabled {
   opacity: 0.48;
   cursor: default;
