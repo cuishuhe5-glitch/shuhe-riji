@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-app-record-range" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-history-filter-clear" />
   </head>
   <body>
     <div class="shell">
@@ -853,6 +853,7 @@
                   <button type="button" data-report-kind="月报">月报</button>
                 </div>
                 <input id="historySearchInput" type="search" placeholder="搜索报告..." />
+                <button class="button subtle compact-button history-clear-filter" id="historyClearFilters" type="button">清空筛选</button>
                 <button class="button subtle compact-button" id="historyRefreshReports">刷新</button>
               </div>
               <div class="report-date-filter-bar">
@@ -870,7 +871,7 @@
               <div class="history-report-card">
                 <div class="mini-head">
                   <strong>报告列表</strong>
-                  <span id="historyFilterMeta">共 0 份</span>
+                  <span id="historyFilterMeta">全部报告 · 共 0 份</span>
                 </div>
                 <div class="history-report-table" id="historyReportTable"></div>
               </div>
@@ -1446,6 +1447,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-app-record-range"></script>
+    <script src="/static/app.js?v=20260615-history-filter-clear"></script>
   </body>
 </html>
