@@ -26,7 +26,7 @@ DEFAULTS: dict[str, Any] = {
     "auto_record_enabled": False,
     "auto_report_enabled": False,
     "auto_report_time": "18:30",
-    "auto_report_style": "标准",
+    "auto_report_style": "标准日报",
     "auto_report_last_day": "",
     "activity_categories": config.CATEGORIES,
     "work_categories": config.CATEGORIES[:8],
@@ -61,7 +61,7 @@ def load() -> dict[str, Any]:
     merged["auto_record_enabled"] = bool(merged.get("auto_record_enabled"))
     merged["auto_report_enabled"] = bool(merged.get("auto_report_enabled"))
     merged["auto_report_time"] = _time_value(merged.get("auto_report_time"), "18:30")
-    merged["auto_report_style"] = _text_value(merged.get("auto_report_style"), "标准")
+    merged["auto_report_style"] = _text_value(merged.get("auto_report_style"), "标准日报")
     merged["auto_report_last_day"] = _text_value(merged.get("auto_report_last_day"), "")
     merged["activity_categories"] = _categories(merged.get("activity_categories"))
     merged["work_categories"] = _work_categories(merged.get("work_categories"), merged["activity_categories"])
@@ -119,7 +119,7 @@ def save(patch: dict[str, Any]) -> dict[str, Any]:
     current["auto_record_enabled"] = bool(current.get("auto_record_enabled"))
     current["auto_report_enabled"] = bool(current.get("auto_report_enabled"))
     current["auto_report_time"] = _time_value(current.get("auto_report_time"), "18:30")
-    current["auto_report_style"] = _text_value(current.get("auto_report_style"), "标准")
+    current["auto_report_style"] = _text_value(current.get("auto_report_style"), "标准日报")
     current["auto_report_last_day"] = _text_value(current.get("auto_report_last_day"), "")
     current["activity_categories"] = _categories(current.get("activity_categories"))
     current["work_categories"] = _work_categories(current.get("work_categories"), current["activity_categories"])

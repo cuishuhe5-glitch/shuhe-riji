@@ -917,7 +917,7 @@
                   <input id="historySearchInput" type="search" placeholder="搜索报告..." />
                   <button class="button subtle compact-button history-clear-filter" id="historyClearFilters" type="button" hidden>清空筛选</button>
                   <button class="button subtle compact-button" id="historyRefreshReports" type="button">刷新</button>
-                  <button class="text-button history-open-dir" id="historyOpenReportsDir" type="button">打开目录</button>
+                  <button class="text-button history-open-dir" id="historyOpenReportsDir" type="button" hidden>打开目录</button>
                 </div>
               </div>
               <div class="report-date-filter-bar">
@@ -957,7 +957,7 @@
                   <button class="button primary" id="generateReport">开始生成报告</button>
                 </div>
               </div>
-              <p class="report-config-summary" id="reportConfigSummary" hidden>当前配置：日报 · 今日 · 标准模板</p>
+              <p class="report-config-summary" id="reportConfigSummary" hidden>当前配置：日报 · 今日 · 标准日报</p>
 
               <div class="report-workspace">
                 <div class="report-config-column">
@@ -1516,6 +1516,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-report-workbench-quiet"></script>
+    <script src="/static/app.js?v=20260615-history-report-clean"></script>
   </body>
 </html>
