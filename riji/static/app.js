@@ -379,9 +379,11 @@ function renderHealth(health) {
 function renderAgent(modelConfig, health, projectContext, settings) {
   if (!$("#agentProvider")) return;
   const cfg = modelConfig || {};
+  const serviceUrl = window.location.origin || "http://127.0.0.1:8765";
   $("#agentProvider").textContent = cfg.provider === "openai" ? "OpenAI-compatible / Hermes" : (cfg.provider || "-");
   $("#agentModel").textContent = cfg.model || "-";
   $("#agentBaseUrl").textContent = cfg.base_url || "-";
+  $("#agentServiceUrl").textContent = serviceUrl;
   $("#agentKeyStatus").textContent = cfg.provider === "openai"
     ? (cfg.api_key_present ? `已配置${cfg.api_key_source === "keychain" ? "（钥匙串）" : ""}` : "缺失")
     : "无需 key";
@@ -393,14 +395,27 @@ function renderAgent(modelConfig, health, projectContext, settings) {
 function renderAgentDocs(text) {
   const preview = $("#agentDocsPreview");
   if (!preview) return;
-  const service = "服务地址：`http://127.0.0.1:8765`";
+  const serviceUrl = window.location.origin || "http://127.0.0.1:8765";
   const intro = [
-    "请把书赫日报助手接入为本地工作日报数据源。",
+    "请根据下面的说明把书赫日报助手的 API 接入成你的 skill，保存到你的 skill 技能中。",
     "",
-    "强制规则：每次调用前先读取 GET http://127.0.0.1:8765/api/agent-docs，接口以实时文档为准。",
+    "【服务信息】",
+    `本地 HTTP 服务地址：${serviceUrl}`,
+    "",
+    "【强制规则 — 必须遵守】",
+    `1. 每次处理用户请求前，你必须先调用 GET ${serviceUrl}/api/agent-docs 获取最新 API 文档。`,
+    "   该接口返回的是一份 Markdown 格式的文档，其中详细说明当前所有可用接口、参数和响应结构。",
+    "   绝对不可以依赖记忆中的固定 API 列表，必须以实时拉取的文档为准。",
+    "",
+    "2. 读取 Markdown 文档后，解析接口列表、参数定义、请求示例和响应结构，再动态选择接口并构造请求。",
+    "",
+    "3. 所有能力都只读取本机数据；不要把数据库、截图或密钥发送到外部服务，除非用户明确要求。",
+    "",
+    "【已知能力范围】（仅供参考，实际以 GET /api/agent-docs 返回的 Markdown 文档为准）",
+    "• 今日工作、时间线、应用记录、报告历史、日报生成和项目上下文查询。",
     "",
   ].join("\n");
-  preview.textContent = text ? `${intro}${text}` : `正在读取本地 API 文档...\n\n${service}`;
+  preview.textContent = text ? `${intro}${text}` : `${intro}正在读取本地 API 文档...`;
 }
 
 async function loadAgentDocs({ notify = false } = {}) {
@@ -3067,6 +3082,7 @@ function bindEvents() {
   $("#openDataDir").addEventListener("click", () => openLocalPath("data").catch((error) => toast(error.message)));
   $("#openReportsDir").addEventListener("click", () => openLocalPath("reports").catch((error) => toast(error.message)));
   $("#openLogsDir").addEventListener("click", () => openLocalPath("logs").catch((error) => toast(error.message)));
+  $("#agentOpenLogs").addEventListener("click", () => navigateTo("settings"));
   $("#openBackupsDir").addEventListener("click", () => openLocalPath("backups").catch((error) => toast(error.message)));
   $("#openExportsDir").addEventListener("click", () => openLocalPath("exports").catch((error) => toast(error.message)));
   $("#openDesktopApp").addEventListener("click", () => openLocalPath("app").catch((error) => toast(error.message)));

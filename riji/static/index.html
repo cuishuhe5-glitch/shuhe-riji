@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-history" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-agent" />
   </head>
   <body>
     <div class="shell">
@@ -514,9 +514,20 @@
               <div class="section-head">
                 <div>
                   <p class="eyebrow">接入 Agent</p>
-                  <h3>本地模型网关</h3>
+                  <h3>本地 HTTP 服务运行中</h3>
                 </div>
                 <span class="section-meta" id="agentStatusText">检测中</span>
+              </div>
+              <div class="agent-service-card">
+                <div class="agent-service-main">
+                  <span class="agent-service-icon">◎</span>
+                  <div>
+                    <strong>本地 HTTP 服务运行中</strong>
+                    <p>其他 Agent 可通过以下地址接入</p>
+                  </div>
+                </div>
+                <button class="button subtle compact-button" id="agentOpenLogs" type="button">请求日志</button>
+                <code id="agentServiceUrl">http://127.0.0.1:8765</code>
               </div>
               <div class="agent-grid">
                 <div class="agent-card">
@@ -542,7 +553,7 @@
               </div>
               <div class="agent-doc-card">
                 <div class="mini-head">
-                  <strong>Agent 接入说明</strong>
+                  <strong>Agent 接入配置文本</strong>
                   <div class="mini-actions">
                     <button class="text-button" id="refreshAgentDocs" type="button">刷新文档</button>
                     <button class="text-button" id="copyAgentDocs" type="button">一键复制</button>
@@ -1363,6 +1374,6 @@
         <div class="detail-body" id="detailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-history"></script>
+    <script src="/static/app.js?v=20260615-agent"></script>
   </body>
 </html>
