@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260615-manual-default-time" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260615-record-mode-entry" />
   </head>
   <body>
     <div class="shell">
@@ -434,6 +434,16 @@
                   <button class="button subtle compact-button" id="toggleManualActivity" type="button">展开</button>
                 </div>
                 <div class="manual-body" id="manualActivityBody">
+                  <div class="manual-mode-row" aria-label="记录方式">
+                    <button class="manual-mode active" id="manualTextMode" type="button">
+                      <strong>文本记录</strong>
+                      <span>直接补充一段工作描述</span>
+                    </button>
+                    <button class="manual-mode" id="manualImageMode" type="button">
+                      <strong>传图记录</strong>
+                      <span>先保留入口，后续接入截图解析</span>
+                    </button>
+                  </div>
                   <div class="manual-grid">
                     <label>
                       <span>日期</span>
@@ -1472,6 +1482,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260615-manual-default-time"></script>
+    <script src="/static/app.js?v=20260615-record-mode-entry"></script>
   </body>
 </html>

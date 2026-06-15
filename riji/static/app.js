@@ -3085,6 +3085,12 @@ function resetManualActivity(clearSummary = true) {
   }
 }
 
+function setManualRecordMode(mode = "text") {
+  const textActive = mode === "text";
+  $("#manualTextMode").classList.toggle("active", textActive);
+  $("#manualImageMode").classList.toggle("active", !textActive);
+}
+
 async function saveManualActivity(event) {
   event.preventDefault();
   const button = $("#saveManualActivity");
@@ -3636,6 +3642,7 @@ function bindEvents() {
   $("#copyTimelineLog").addEventListener("click", () => copyTimelineLog().catch((error) => toast(error.message)));
   $("#timelineAddRecord").addEventListener("click", () => {
     if (!state.manualOpen) toggleManualActivity();
+    setManualRecordMode("text");
     resetManualActivity(false);
     $("#manualSummary").focus();
   });
@@ -3679,6 +3686,15 @@ function bindEvents() {
   $("#toggleManualActivity").addEventListener("click", toggleManualActivity);
   $("#manualActivityForm").addEventListener("submit", saveManualActivity);
   $("#resetManualActivity").addEventListener("click", () => resetManualActivity(true));
+  $("#manualTextMode").addEventListener("click", () => {
+    setManualRecordMode("text");
+    $("#manualSummary").focus();
+  });
+  $("#manualImageMode").addEventListener("click", () => {
+    setManualRecordMode("image");
+    toast("传图记录入口已预留，当前先使用文本记录");
+    setManualRecordMode("text");
+  });
   $("#searchQuery").addEventListener("keydown", (event) => {
     if (event.key === "Enter") runSearch();
   });
