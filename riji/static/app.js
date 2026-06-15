@@ -818,6 +818,7 @@ function renderTemplateSelection() {
   const preview = $("#templatePreview");
   if (source) source.textContent = item ? `${templateSourceLabel(item)} · ${item.audience || "通用"}` : "-";
   if (preview) preview.innerHTML = renderTemplatePreview(item, selected);
+  syncReportConfigSummary();
 }
 
 function templateSourceLabel(item) {
@@ -2209,6 +2210,17 @@ function currentReportRangeLabel(kind = $("#kindSelect")?.value || "day") {
   return start === end ? start : `${start} ~ ${end}`;
 }
 
+function syncReportConfigSummary() {
+  const el = $("#reportConfigSummary");
+  if (!el) return;
+  const kindValue = $("#kindSelect")?.value || "day";
+  const kind = reportKindLabel(kindValue);
+  const range = currentReportRangeLabel(kindValue);
+  const template = $("#styleSelect")?.value || "标准";
+  const instruction = $("#reportInstructionInput")?.value.trim() ? "已加自定义指令" : "未加自定义指令";
+  el.textContent = `当前配置：${kind} · ${range} · ${template} · ${instruction}`;
+}
+
 function syncReportDateRange({ force = false } = {}) {
   const startInput = $("#reportStartDate");
   const endInput = $("#reportEndDate");
@@ -2217,6 +2229,7 @@ function syncReportDateRange({ force = false } = {}) {
   const range = reportRangeForKind($("#kindSelect")?.value || "day");
   startInput.value = range.start;
   endInput.value = range.end;
+  syncReportConfigSummary();
 }
 
 function handleReportKindChange() {
@@ -3331,6 +3344,7 @@ function bindEvents() {
   $("#clearReportInstruction").addEventListener("click", focusReportInstruction);
   $("#reportInstructionInput").addEventListener("input", () => {
     $("#reportInstructionCard")?.classList.remove("is-focused");
+    syncReportConfigSummary();
   });
   $("#saveDayNote").addEventListener("click", () => saveDayNote().catch((error) => toast(error.message)));
   $("#dayNoteInput").addEventListener("input", () => {
