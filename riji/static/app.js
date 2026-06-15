@@ -987,7 +987,20 @@ function renderOverview(data) {
         .join("")
     : `<div class="empty">还没有可统计的活动。<br />点击开始记录，或先用命令行导入几条记录。</div>`;
   $("#workOverviewEmpty").hidden = Number(data.total || 0) > 0;
+  renderTodayStatus(data);
   renderQuickStart(data);
+}
+
+function renderTodayStatus(data) {
+  const total = Number(data.total || 0);
+  const running = Boolean(data.recording?.running);
+  const reports = data.reports || [];
+  const hasDayReport = reports.some((item) => item.day === data.day && reportKindValue(item.kind) === "day");
+  if ($("#todayRecordStatus")) $("#todayRecordStatus").textContent = total ? `今日 ${total} 条记录` : "等待记录";
+  if ($("#todayRecordingStatus")) $("#todayRecordingStatus").textContent = running ? "后台记录中" : "后台已暂停";
+  if ($("#todayReportStatus")) {
+    $("#todayReportStatus").textContent = hasDayReport ? "日报已生成" : total ? "可生成日报" : "暂无报告素材";
+  }
 }
 
 function setQuickStep(id, ok, text) {

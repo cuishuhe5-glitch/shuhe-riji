@@ -529,6 +529,23 @@ select {
   font-weight: 700;
 }
 
+.today-status-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.today-status-strip span {
+  padding: 5px 9px;
+  border: 1px solid #d5e7e1;
+  border-radius: 999px;
+  background: #f8fcfa;
+  color: #31534b;
+  font-size: 12px;
+  font-weight: 780;
+}
+
 .work-overview-card,
 .timeline-category-card,
 .timeline-card,
