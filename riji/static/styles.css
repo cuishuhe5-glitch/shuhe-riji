@@ -2927,6 +2927,10 @@ select {
   min-height: 0;
 }
 
+.timeline-category-meta[hidden] {
+  display: none;
+}
+
 .inline-check {
   display: flex;
   align-items: center;
