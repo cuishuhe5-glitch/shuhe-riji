@@ -3506,6 +3506,12 @@ select {
   background: var(--surface-soft);
 }
 
+.report-instruction-card.is-focused {
+  border-color: #54c7a5;
+  background: #f2fbf7;
+  box-shadow: 0 0 0 3px rgba(84, 199, 165, 0.16);
+}
+
 .report-instruction-card textarea,
 .day-note-card textarea {
   width: 100%;
