@@ -10,6 +10,8 @@ from . import config
 SETTINGS_PATH = config.DATA_DIR / "settings.json"
 
 DEFAULTS: dict[str, Any] = {
+    "settings_version": 2,
+    "auto_record_default_migrated": True,
     "privacy_mode": True,
     "keep_shots": config.KEEP_SHOT_FILES,
     "shot_retention_days": 7,
@@ -23,7 +25,7 @@ DEFAULTS: dict[str, Any] = {
     "woodfish_enabled": False,
     "ai_analysis_source": "screen",
     "analysis_prompt": "",
-    "auto_record_enabled": False,
+    "auto_record_enabled": True,
     "auto_report_enabled": False,
     "auto_report_time": "18:30",
     "auto_report_style": "标准日报",
@@ -40,11 +42,22 @@ DEFAULTS: dict[str, Any] = {
 def load() -> dict[str, Any]:
     config.ensure_dirs()
     data: dict[str, Any] = {}
+    migrated = False
     try:
         data = json.loads(SETTINGS_PATH.read_text(encoding="utf-8"))
     except (FileNotFoundError, json.JSONDecodeError):
         pass
+    if data and not data.get("auto_record_default_migrated"):
+        if data.get("auto_record_enabled") is False:
+            data["auto_record_enabled"] = True
+        data["auto_record_default_migrated"] = True
+        migrated = True
+    if data and int(data.get("settings_version") or 1) < 2:
+        data["settings_version"] = 2
+        migrated = True
     merged = {**DEFAULTS, **data}
+    merged["settings_version"] = _positive_int(merged.get("settings_version"), DEFAULTS["settings_version"])
+    merged["auto_record_default_migrated"] = bool(merged.get("auto_record_default_migrated", True))
     merged["shot_retention_days"] = _non_negative_int(merged.get("shot_retention_days"), 7)
     merged["capture_interval"] = _positive_int(merged.get("capture_interval"), config.CAPTURE_INTERVAL)
     merged["idle_pause_after"] = _positive_int(merged.get("idle_pause_after"), config.IDLE_PAUSE_AFTER)
@@ -69,6 +82,11 @@ def load() -> dict[str, Any]:
     merged["project_paths"] = _project_paths(merged.get("project_paths"))
     merged["ignore_apps"] = _clean_list(merged.get("ignore_apps"))
     merged["ignore_keywords"] = _clean_list(merged.get("ignore_keywords"))
+    if migrated:
+        SETTINGS_PATH.write_text(
+            json.dumps(merged, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
     return merged
 
 
@@ -99,6 +117,8 @@ def save(patch: dict[str, Any]) -> dict[str, Any]:
         "project_paths",
         "ignore_apps",
         "ignore_keywords",
+        "settings_version",
+        "auto_record_default_migrated",
     }
     for key in allowed:
         if key in patch:
@@ -127,6 +147,8 @@ def save(patch: dict[str, Any]) -> dict[str, Any]:
     current["project_paths"] = _project_paths(current.get("project_paths"))
     current["ignore_apps"] = _clean_list(current.get("ignore_apps"))
     current["ignore_keywords"] = _clean_list(current.get("ignore_keywords"))
+    current["settings_version"] = DEFAULTS["settings_version"]
+    current["auto_record_default_migrated"] = True
     config.ensure_dirs()
     SETTINGS_PATH.write_text(
         json.dumps(current, ensure_ascii=False, indent=2),

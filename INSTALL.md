@@ -2,7 +2,7 @@
 
 下载页：
 
-https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.1
+https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.2
 
 ## macOS
 
@@ -10,7 +10,7 @@ https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.1
 2. 打开 DMG 后，把 `书赫日报助手.app` 拖到 `Applications` 或 `~/Applications`。
 3. 如果下载的是 `shuhe-riji-macos-app.zip`，先解压再拖动 `.app`。
 4. 首次启动后，在系统设置里授权屏幕录制和辅助功能。
-5. 打开设置页，确认模型网关和 API Key。
+5. 打开设置页，确认模型网关和 API Key。另一台电脑需要单独配置，不能沿用这台 Mac 的钥匙串。
 
 ## Windows
 

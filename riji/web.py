@@ -97,31 +97,31 @@ PROJECT_CONTEXT_SECRET_HINTS = {
     "private",
 }
 RELEASE_INFO = {
-    "version": "v0.1.1",
-    "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.1",
+    "version": "v0.1.2",
+    "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.2",
     "assets": [
         {
             "name": "macOS DMG",
             "filename": "shuhe-riji-macos.dmg",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.1/shuhe-riji-macos.dmg",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.2/shuhe-riji-macos.dmg",
             "sha256": "",
         },
         {
             "name": "macOS 独立版",
             "filename": "shuhe-riji-macos-app.zip",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.1/shuhe-riji-macos-app.zip",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.2/shuhe-riji-macos-app.zip",
             "sha256": "",
         },
         {
             "name": "Windows 便携版",
             "filename": "shuhe-riji-windows-portable.zip",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.1/shuhe-riji-windows-portable.zip",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.2/shuhe-riji-windows-portable.zip",
             "sha256": "",
         },
         {
             "name": "校验文件",
             "filename": "SHA256SUMS",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.1/SHA256SUMS",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.2/SHA256SUMS",
             "sha256": "",
         },
     ],
@@ -283,6 +283,11 @@ class Recorder:
     def start(self) -> bool:
         with self._lock:
             if self.running:
+                return False
+            health = _health()
+            if not health.get("ok"):
+                self.last_error = "；".join(health.get("blockers") or ["启动前检查未通过"])
+                self.last_message = f"后台记录未启动：{self.last_error}"
                 return False
             self._stop.clear()
             self._thread = threading.Thread(target=self._loop, daemon=True)

@@ -635,10 +635,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.1";
+  const version = release?.version || "v0.1.2";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>首次安装自动记录</strong>
+      <p>新安装默认尝试后台记录；首页会明确提示网关、权限或记录器状态。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.1</span>
       <strong>自动更新弹窗</strong>
       <p>启动后自动检查 GitHub Release，发现新版会弹出下载提醒，并支持跳过此版本和立即更新。</p>
     </div>
@@ -1248,9 +1253,40 @@ function renderOverview(data) {
     : `<div class="empty">还没有可统计的活动。<br />点击开始记录，或先用命令行导入几条记录。</div>`;
   const hasOverviewRecords = Number(data.total || 0) > 0;
   $("#workOverviewEmpty").hidden = hasOverviewRecords;
+  if (!hasOverviewRecords) renderOverviewEmptyState(data);
   if ($("#summaryGrid")) $("#summaryGrid").hidden = !hasOverviewRecords;
   renderTodayStatus(data);
   renderQuickStart(data);
+}
+
+function renderOverviewEmptyState(data) {
+  const empty = $("#workOverviewEmpty");
+  if (!empty) return;
+  const screenOk = data.permissions?.screen_recording?.state === "granted";
+  const accessOk = data.permissions?.accessibility?.state === "granted";
+  const modelOk = Boolean(data.health?.model?.ready);
+  const running = Boolean(data.recording?.running);
+  const error = data.recording?.last_error || "";
+  let title = "正在等待第一条工作记录";
+  let text = "后台已启动，开始工作或切换屏幕后，稍等一个采集间隔即可看到记录。";
+  if (!modelOk) {
+    title = "模型网关未配置";
+    text = "请在设置里填写网关地址和 API Key；另一台电脑需要单独配置，不能沿用这台 Mac 的钥匙串。";
+  } else if (!screenOk || !accessOk) {
+    title = "需要授权系统权限";
+    text = "请打开屏幕录制和辅助功能权限，授权后重启书赫日报助手。";
+  } else if (!running) {
+    title = "后台记录未启动";
+    text = "点击右上角“开始记录”，或在设置里开启“启动后自动记录”。";
+  } else if (error) {
+    title = "本轮记录失败";
+    text = error;
+  }
+  empty.innerHTML = `
+    <span>◉</span>
+    <strong>${escapeHtml(title)}</strong>
+    <p>${escapeHtml(text)}</p>
+  `;
 }
 
 function renderTodayStatus(data) {
