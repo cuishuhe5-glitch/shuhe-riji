@@ -1,18 +1,48 @@
-"""全局配置。所有路径默认落在用户主目录下的 ~/.xiaohei-riji，跨平台。"""
+"""全局配置。所有数据默认落在用户主目录下，跨平台。"""
 
 import os
+import shlex
 from pathlib import Path
 
 from . import keychain
 
 # ---- 数据存储（纯本地）----
-DATA_DIR = Path(os.environ.get("RIJI_HOME", Path.home() / ".xiaohei-riji"))
+DATA_DIR = Path(os.environ.get("RIJI_HOME", Path.home() / ".shuhe-riji"))
 DB_PATH = DATA_DIR / "riji.db"
 SHOTS_DIR = DATA_DIR / "shots"
 REPORTS_DIR = DATA_DIR / "reports"
 LOGS_DIR = DATA_DIR / "logs"
 BACKUPS_DIR = DATA_DIR / "backups"
 EXPORTS_DIR = DATA_DIR / "exports"
+
+
+def _load_env_file(path: Path) -> None:
+    if not path.exists():
+        return
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return
+    for raw in lines:
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export ") :].strip()
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        if not key or key in os.environ:
+            continue
+        try:
+            parsed = shlex.split(value, posix=True)
+        except ValueError:
+            parsed = [value.strip().strip("\"'")]
+        os.environ[key] = parsed[0] if parsed else ""
+
+
+_load_env_file(DATA_DIR / "env.sh")
 
 # ---- 截图 ----
 CAPTURE_INTERVAL = int(os.environ.get("RIJI_INTERVAL", "120"))  # 抓图间隔（秒）
@@ -23,9 +53,8 @@ IDLE_PAUSE_AFTER = int(os.environ.get("RIJI_IDLE_PAUSE", "600"))  # 连续无变
 THUMB_MAX_EDGE = int(os.environ.get("RIJI_THUMB_EDGE", "1280"))
 KEEP_SHOT_FILES = os.environ.get("RIJI_KEEP_SHOTS", "0") == "1"  # 是否保留截图原图
 
-# ---- 模型后端 ----
-# ollama: 调本机 Ollama /api/generate
-# openai: 调 OpenAI-compatible /v1/chat/completions，例如 Hermes: http://localhost:55021/v1
+# ---- 模型网关 ----
+# 调 OpenAI-compatible /v1/chat/completions，例如 Hermes: http://localhost:55021/v1
 LLM_PROVIDER = os.environ.get("RIJI_LLM_PROVIDER", "").strip().lower()
 OPENAI_BASE_URL = os.environ.get(
     "RIJI_OPENAI_BASE_URL",
@@ -40,18 +69,12 @@ if not OPENAI_API_KEY:
     OPENAI_API_KEY = keychain.get_password()
     OPENAI_API_KEY_SOURCE = "keychain" if OPENAI_API_KEY else ""
 
-if not LLM_PROVIDER:
-    LLM_PROVIDER = "openai" if OPENAI_BASE_URL else "ollama"
-
-OLLAMA_HOST = os.environ.get("OLLAMA_HOST", "http://127.0.0.1:11434").rstrip("/")
+if LLM_PROVIDER != "openai":
+    LLM_PROVIDER = "openai"
 
 _OPENAI_DEFAULT_MODEL = os.environ.get("RIJI_OPENAI_MODEL", "gpt-5.5")
-if LLM_PROVIDER == "openai":
-    VISION_MODEL = os.environ.get("RIJI_VISION_MODEL", _OPENAI_DEFAULT_MODEL)
-    TEXT_MODEL = os.environ.get("RIJI_TEXT_MODEL", _OPENAI_DEFAULT_MODEL)
-else:
-    VISION_MODEL = os.environ.get("RIJI_VISION_MODEL", "qwen2.5vl:7b")  # 识别截图的多模态模型
-    TEXT_MODEL = os.environ.get("RIJI_TEXT_MODEL", "qwen2.5:7b")        # 生成报告的文本模型
+VISION_MODEL = os.environ.get("RIJI_VISION_MODEL", _OPENAI_DEFAULT_MODEL)
+TEXT_MODEL = os.environ.get("RIJI_TEXT_MODEL", _OPENAI_DEFAULT_MODEL)
 
 # 活动分类（识别时让模型从中择一，保证可统计）
 CATEGORIES = [

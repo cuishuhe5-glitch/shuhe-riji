@@ -268,12 +268,12 @@ function renderStatus(recording) {
 }
 
 function renderSettings(settings) {
-  $("#modelProvider").textContent = settings.provider;
+  $("#modelProvider").textContent = "OpenAI-compatible / Hermes";
   $("#visionModel").textContent = settings.vision_model;
   $("#dataDir").textContent = settings.data_dir;
   $("#settingsPath").textContent = settings.settings_path || "-";
   if (!state.settingsTouched && !isSettingsFocused()) {
-    $("#modelProviderInput").value = settings.provider || "openai";
+    $("#modelProviderInput").value = "openai";
     $("#modelBaseUrlInput").value = settings.base_url || "";
     $("#modelNameInput").value = settings.text_model || settings.vision_model || "";
     $("#autoRecordEnabled").checked = Boolean(settings.auto_record_enabled);
@@ -2708,7 +2708,7 @@ async function saveModelConfig() {
     }
     renderSettings(state.data.settings);
     const keySource = cfg.api_key_source === "keychain" ? "，key 已保存到钥匙串" : (cfg.api_key_present ? "，key 已配置" : "");
-    $("#modelConfigStatus").textContent = `网关配置已保存到 ${cfg.env_path || "本机 env.sh"}${keySource}`;
+    $("#modelConfigStatus").textContent = `网关配置已保存到本机${keySource}`;
     toast("模型配置已保存");
   } catch (error) {
     $("#modelConfigStatus").textContent = error.message;

@@ -39,5 +39,5 @@ Get-FileHash .\shuhe-riji-windows-portable.zip -Algorithm SHA256
 
 ## 默认数据位置
 
-- macOS: `~/.xiaohei-riji`
-- Windows: `%USERPROFILE%\.xiaohei-riji`
+- macOS: `~/.shuhe-riji`
+- Windows: `%USERPROFILE%\.shuhe-riji`

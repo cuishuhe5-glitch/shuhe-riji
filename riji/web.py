@@ -522,8 +522,8 @@ def _summary(day: str, heatmap_from: str = "", heatmap_to: str = "") -> dict[str
             **runtime,
             "data_dir": str(config.DATA_DIR),
             "settings_path": str(settings.SETTINGS_PATH),
-            "provider": config.LLM_PROVIDER,
-            "base_url": config.OPENAI_BASE_URL or config.OLLAMA_HOST,
+            "provider": "openai",
+            "base_url": config.OPENAI_BASE_URL,
             "text_model": config.TEXT_MODEL,
             "vision_model": config.VISION_MODEL,
         },
@@ -911,23 +911,12 @@ def _answer_chat(day: str, scope: str, question: str) -> dict[str, Any]:
             f"=== 项目文件摘要 ===\n{project_context or '未配置或没有可读取的文本文件'}\n=== 项目文件摘要结束 ===\n\n"
             f"用户问题：{question}"
         )
-        if config.LLM_PROVIDER == "openai":
-            answer = llm.openai_chat_completion(
-                [{"role": "user", "content": prompt}],
-                config.TEXT_MODEL,
-                timeout=120,
-                temperature=0.2,
-            )
-        else:
-            payload = {
-                "model": config.TEXT_MODEL,
-                "prompt": prompt,
-                "stream": False,
-                "options": {"temperature": 0.2},
-            }
-            resp = requests.post(f"{config.OLLAMA_HOST}/api/generate", json=payload, timeout=120)
-            resp.raise_for_status()
-            answer = resp.json().get("response", "").strip()
+        answer = llm.openai_chat_completion(
+            [{"role": "user", "content": prompt}],
+            config.TEXT_MODEL,
+            timeout=120,
+            temperature=0.2,
+        )
         answer = answer or "模型没有返回内容。"
     chat_id = db.add_chat_message(day=day, scope=scope, question=question, answer=answer)
     return {
@@ -1220,15 +1209,11 @@ def _health() -> dict[str, Any]:
     perms = permissions.status()
     data_writable = _is_writable(config.DATA_DIR)
     shots_writable = _is_writable(config.SHOTS_DIR)
-    model_ready = (
-        bool(config.OPENAI_BASE_URL and config.OPENAI_API_KEY)
-        if config.LLM_PROVIDER == "openai"
-        else bool(config.OLLAMA_HOST)
-    )
+    model_ready = bool(config.OPENAI_BASE_URL and config.OPENAI_API_KEY)
     blockers: list[str] = []
-    if config.LLM_PROVIDER == "openai" and not config.OPENAI_BASE_URL:
+    if not config.OPENAI_BASE_URL:
         blockers.append("缺少 OpenAI-compatible base URL")
-    if config.LLM_PROVIDER == "openai" and not config.OPENAI_API_KEY:
+    if not config.OPENAI_API_KEY:
         blockers.append("缺少本地网关 key")
     if not data_writable:
         blockers.append("数据目录不可写")
@@ -1238,10 +1223,10 @@ def _health() -> dict[str, Any]:
         "ok": not blockers,
         "blockers": blockers,
         "model": {
-            "provider": config.LLM_PROVIDER,
-            "base_url": config.OPENAI_BASE_URL or config.OLLAMA_HOST,
+            "provider": "openai",
+            "base_url": config.OPENAI_BASE_URL,
             "model": config.VISION_MODEL,
-            "api_key_present": bool(config.OPENAI_API_KEY) if config.LLM_PROVIDER == "openai" else True,
+            "api_key_present": bool(config.OPENAI_API_KEY),
             "ready": model_ready,
         },
         "storage": {
@@ -1258,49 +1243,27 @@ def _health() -> dict[str, Any]:
 
 def _test_model_connection() -> dict[str, Any]:
     started = datetime.now()
-    if config.LLM_PROVIDER == "openai":
-        if not config.OPENAI_BASE_URL:
-            raise ValueError("缺少 OpenAI-compatible base URL")
-        if not config.OPENAI_API_KEY:
-            raise ValueError("缺少本地网关 key")
-        resp = requests.get(
-            f"{config.OPENAI_BASE_URL}/models",
-            headers={"Authorization": f"Bearer {config.OPENAI_API_KEY}"},
-            timeout=8,
-        )
-        resp.raise_for_status()
-        payload = resp.json()
-        models = payload.get("data") if isinstance(payload, dict) else []
-        names = [
-            str(item.get("id") or item.get("name") or "")
-            for item in models
-            if isinstance(item, dict)
-        ]
-        elapsed_ms = round((datetime.now() - started).total_seconds() * 1000)
-        return {
-            "provider": "openai",
-            "base_url": config.OPENAI_BASE_URL,
-            "model": config.VISION_MODEL,
-            "ok": True,
-            "elapsed_ms": elapsed_ms,
-            "models_count": len(names),
-            "model_found": config.VISION_MODEL in names if names else None,
-            "sample_models": names[:8],
-        }
-
-    resp = requests.get(f"{config.OLLAMA_HOST}/api/tags", timeout=8)
+    if not config.OPENAI_BASE_URL:
+        raise ValueError("缺少 OpenAI-compatible base URL")
+    if not config.OPENAI_API_KEY:
+        raise ValueError("缺少本地网关 key")
+    resp = requests.get(
+        f"{config.OPENAI_BASE_URL}/models",
+        headers={"Authorization": f"Bearer {config.OPENAI_API_KEY}"},
+        timeout=8,
+    )
     resp.raise_for_status()
     payload = resp.json()
-    models = payload.get("models") if isinstance(payload, dict) else []
+    models = payload.get("data") if isinstance(payload, dict) else []
     names = [
-        str(item.get("name") or item.get("model") or "")
+        str(item.get("id") or item.get("name") or "")
         for item in models
         if isinstance(item, dict)
     ]
     elapsed_ms = round((datetime.now() - started).total_seconds() * 1000)
     return {
-        "provider": "ollama",
-        "base_url": config.OLLAMA_HOST,
+        "provider": "openai",
+        "base_url": config.OPENAI_BASE_URL,
         "model": config.VISION_MODEL,
         "ok": True,
         "elapsed_ms": elapsed_ms,
@@ -1312,32 +1275,27 @@ def _test_model_connection() -> dict[str, Any]:
 
 def _model_config() -> dict[str, Any]:
     return {
-        "provider": config.LLM_PROVIDER,
-        "base_url": config.OPENAI_BASE_URL or config.OLLAMA_HOST,
+        "provider": "openai",
+        "base_url": config.OPENAI_BASE_URL,
         "model": config.TEXT_MODEL,
-        "api_key_present": bool(config.OPENAI_API_KEY) if config.LLM_PROVIDER == "openai" else False,
-        "api_key_source": config.OPENAI_API_KEY_SOURCE if config.LLM_PROVIDER == "openai" else "",
+        "api_key_present": bool(config.OPENAI_API_KEY),
+        "api_key_source": config.OPENAI_API_KEY_SOURCE,
         "keychain_available": keychain.available(),
-        "env_path": str(config.DATA_DIR / "env.sh"),
     }
 
 
 def _save_model_config(body: dict[str, Any]) -> dict[str, Any]:
-    provider = str(body.get("provider") or config.LLM_PROVIDER or "openai").strip().lower()
-    if provider not in {"openai", "ollama"}:
+    provider = str(body.get("provider") or "openai").strip().lower()
+    if provider != "openai":
         raise ValueError("模型后端无效")
     base_url = str(body.get("base_url") or "").strip().rstrip("/")
     model = str(body.get("model") or "").strip()
     api_key = str(body.get("api_key") or "").strip()
-    if provider == "openai":
-        base_url = base_url or config.OPENAI_BASE_URL or "http://localhost:55021/v1"
-        model = model or config.TEXT_MODEL or "gpt-5.5"
-        api_key = api_key or config.OPENAI_API_KEY
-        if not api_key:
-            raise ValueError("OpenAI-compatible key 不能为空")
-    else:
-        base_url = base_url or config.OLLAMA_HOST or "http://127.0.0.1:11434"
-        model = model or config.TEXT_MODEL or "qwen2.5:7b"
+    base_url = base_url or config.OPENAI_BASE_URL or "http://localhost:55021/v1"
+    model = model or config.TEXT_MODEL or "gpt-5.5"
+    api_key = api_key or config.OPENAI_API_KEY
+    if not api_key:
+        raise ValueError("OpenAI-compatible key 不能为空")
 
     config.ensure_dirs()
     env_path = config.DATA_DIR / "env.sh"
@@ -1346,48 +1304,28 @@ def _save_model_config(body: dict[str, Any]) -> dict[str, Any]:
         "# Finder 双击 .app 或开机自启时会读取这个文件。",
         f"export RIJI_LLM_PROVIDER={shlex.quote(provider)}",
     ]
-    if provider == "openai":
-        lines.extend(
-            [
-                f"export RIJI_OPENAI_BASE_URL={shlex.quote(base_url)}",
-                f"export RIJI_OPENAI_MODEL={shlex.quote(model)}",
-                "# API key 会优先保存到 macOS 钥匙串；非 macOS 可取消下一行注释手动填写。",
-                "# export RIJI_OPENAI_API_KEY=...",
-            ]
-        )
-    else:
-        lines.extend(
-            [
-                f"export OLLAMA_HOST={shlex.quote(base_url)}",
-                f"export RIJI_TEXT_MODEL={shlex.quote(model)}",
-                f"export RIJI_VISION_MODEL={shlex.quote(model)}",
-            ]
-        )
+    lines.extend(
+        [
+            f"export RIJI_OPENAI_BASE_URL={shlex.quote(base_url)}",
+            f"export RIJI_OPENAI_MODEL={shlex.quote(model)}",
+            "# API key 会优先保存到 macOS 钥匙串；非 macOS 可取消下一行注释手动填写。",
+            "# export RIJI_OPENAI_API_KEY=...",
+        ]
+    )
     env_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
     env_path.chmod(0o600)
 
     os.environ["RIJI_LLM_PROVIDER"] = provider
     config.LLM_PROVIDER = provider
-    if provider == "openai":
-        key_saved_to_keychain = keychain.set_password(api_key)
-        os.environ["RIJI_OPENAI_BASE_URL"] = base_url
-        os.environ["RIJI_OPENAI_MODEL"] = model
-        os.environ["RIJI_OPENAI_API_KEY"] = api_key
-        config.OPENAI_BASE_URL = base_url
-        config.OPENAI_API_KEY = api_key
-        config.OPENAI_API_KEY_SOURCE = "keychain" if key_saved_to_keychain else "environment"
-        config.TEXT_MODEL = model
-        config.VISION_MODEL = model
-    else:
-        os.environ["OLLAMA_HOST"] = base_url
-        os.environ["RIJI_TEXT_MODEL"] = model
-        os.environ["RIJI_VISION_MODEL"] = model
-        config.OLLAMA_HOST = base_url
-        config.TEXT_MODEL = model
-        config.VISION_MODEL = model
-        config.OPENAI_BASE_URL = ""
-        config.OPENAI_API_KEY = ""
-        config.OPENAI_API_KEY_SOURCE = ""
+    key_saved_to_keychain = keychain.set_password(api_key)
+    os.environ["RIJI_OPENAI_BASE_URL"] = base_url
+    os.environ["RIJI_OPENAI_MODEL"] = model
+    os.environ["RIJI_OPENAI_API_KEY"] = api_key
+    config.OPENAI_BASE_URL = base_url
+    config.OPENAI_API_KEY = api_key
+    config.OPENAI_API_KEY_SOURCE = "keychain" if key_saved_to_keychain else "environment"
+    config.TEXT_MODEL = model
+    config.VISION_MODEL = model
     return _model_config()
 
 

@@ -1,4 +1,4 @@
-"""调用本地 Ollama 视觉模型，识别一张截图里"用户在干嘛"。
+"""调用本地模型网关，识别一张截图里"用户在干嘛"。
 
 输出结构化结果 {category, summary, app}，全程本地，截图不出门。
 """
@@ -50,42 +50,27 @@ def recognize(jpeg_bytes: bytes, timeout: int = 120, categories: list[str] | Non
     b64 = base64.b64encode(jpeg_bytes).decode()
     prompt = _PROMPT.format(cats="、".join(categories))
     try:
-        if config.LLM_PROVIDER == "openai":
-            text = llm.openai_chat_completion(
-                [
-                    {
-                        "role": "user",
-                        "content": [
-                            {"type": "text", "text": prompt},
-                            {
-                                "type": "image_url",
-                                "image_url": {
-                                    "url": f"data:image/jpeg;base64,{b64}",
-                                    "detail": "low",
-                                },
+        text = llm.openai_chat_completion(
+            [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{b64}",
+                                "detail": "low",
                             },
-                        ],
-                    }
-                ],
-                config.VISION_MODEL,
-                timeout=timeout,
-                temperature=0.1,
-                response_format={"type": "json_object"},
-            )
-        else:
-            payload = {
-                "model": config.VISION_MODEL,
-                "prompt": prompt,
-                "images": [b64],
-                "stream": False,
-                "format": "json",          # 让 Ollama 强制 JSON 输出
-                "options": {"temperature": 0.1},
-            }
-            resp = requests.post(
-                f"{config.OLLAMA_HOST}/api/generate", json=payload, timeout=timeout
-            )
-            resp.raise_for_status()
-            text = resp.json().get("response", "")
+                        },
+                    ],
+                }
+            ],
+            config.VISION_MODEL,
+            timeout=timeout,
+            temperature=0.1,
+            response_format={"type": "json_object"},
+        )
         data = _extract_json(text)
     except (requests.RequestException, ValueError) as e:
         return {"category": "其他", "summary": f"识别失败：{e}", "app": None}

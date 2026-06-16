@@ -1,4 +1,4 @@
-"""Small model-client helpers for Ollama and OpenAI-compatible endpoints."""
+"""Small model-client helpers for OpenAI-compatible endpoints."""
 
 from __future__ import annotations
 

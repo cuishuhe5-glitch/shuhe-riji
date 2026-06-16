@@ -650,7 +650,7 @@
                   <strong>项目上下文</strong>
                   <button class="text-button" id="saveAgentContext" type="button">保存</button>
                 </div>
-                <textarea id="projectPathsInput" rows="3" placeholder="/Users/shuhe/项目/claude/xiaohei-riji"></textarea>
+                <textarea id="projectPathsInput" rows="3" placeholder="/Users/shuhe/项目/书赫日报"></textarea>
                 <div class="agent-context-status-grid">
                   <div>
                     <span>状态</span>
@@ -1103,7 +1103,7 @@
                 <div class="model-test-card">
                   <div>
                     <strong>模型连通性</strong>
-                    <p>轻量检查本地模型网关是否可访问，不会生成报告或记录截图。</p>
+                    <p>轻量检查当前网关是否可访问，不会生成报告或记录截图。</p>
                   </div>
                   <button class="button subtle compact-button" id="testModelConnection">测试连接</button>
                   <p class="path-note" id="modelTestStatus">尚未测试。</p>
@@ -1117,7 +1117,6 @@
                     <span>模型后端</span>
                     <select id="modelProviderInput">
                       <option value="openai">OpenAI-compatible / Hermes</option>
-                      <option value="ollama">Ollama</option>
                     </select>
                   </label>
                   <label class="field-row">
@@ -1132,7 +1131,7 @@
                     <span>API Key</span>
                     <input id="modelApiKeyInput" type="password" placeholder="留空则沿用已保存 key" autocomplete="off" />
                   </label>
-                  <p class="path-note" id="modelConfigStatus">网关配置保存到本机 env.sh，API Key 优先保存到 macOS 钥匙串，不会在面板回显。</p>
+                  <p class="path-note" id="modelConfigStatus">网关配置保存在本机，API Key 优先保存到 macOS 钥匙串，不会在面板回显。</p>
                 </div>
 
                 <div class="permission-grid">

@@ -269,25 +269,12 @@ def _generate(
         "只输出报告正文，不要解释、不要复述原始记录。如果某类活动占比很低可合并或略写。\n\n"
         f"=== 活动记录 ===\n{context}\n=== 记录结束 ==="
     )
-    if config.LLM_PROVIDER == "openai":
-        return llm.openai_chat_completion(
-            [{"role": "user", "content": prompt}],
-            config.TEXT_MODEL,
-            timeout=timeout,
-            temperature=0.4,
-        )
-
-    payload = {
-        "model": config.TEXT_MODEL,
-        "prompt": prompt,
-        "stream": False,
-        "options": {"temperature": 0.4},
-    }
-    resp = requests.post(
-        f"{config.OLLAMA_HOST}/api/generate", json=payload, timeout=timeout
+    return llm.openai_chat_completion(
+        [{"role": "user", "content": prompt}],
+        config.TEXT_MODEL,
+        timeout=timeout,
+        temperature=0.4,
     )
-    resp.raise_for_status()
-    return resp.json().get("response", "").strip()
 
 
 def daily_report(

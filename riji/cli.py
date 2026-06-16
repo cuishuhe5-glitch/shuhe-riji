@@ -156,7 +156,7 @@ def main() -> None:
     bp.add_argument("--output", default="/Users/shuhe/临时文件")
     bp.add_argument("--mode", choices=["desktop", "menubar", "panel"], default="desktop")
     bp.add_argument("--portable", action="store_true", help="把源码和当前依赖打进 .app，便于拷到其他 Mac")
-    bp.add_argument("--write-env", action="store_true", help="同时生成 ~/.xiaohei-riji/env.sh 模板")
+    bp.add_argument("--write-env", action="store_true", help="同时生成本机环境变量模板")
     bp.set_defaults(func=_cmd_package_app)
 
     ip = sub.add_parser("install-app", help="安装 macOS .app 到应用目录")
@@ -165,7 +165,7 @@ def main() -> None:
     ip.add_argument("--mode", choices=["desktop", "menubar", "panel"], default="desktop")
     ip.add_argument("--portable", action="store_true", help="未指定 --source 时生成独立版 .app")
     ip.add_argument("--no-replace", action="store_true", help="目标存在时不覆盖")
-    ip.add_argument("--write-env", action="store_true", help="同时生成 ~/.xiaohei-riji/env.sh 模板")
+    ip.add_argument("--write-env", action="store_true", help="同时生成本机环境变量模板")
     ip.set_defaults(func=_cmd_install_app)
 
     wp = sub.add_parser("package-windows", help="生成 Windows 便携 zip 包")
@@ -187,7 +187,7 @@ def main() -> None:
     ep.add_argument("--api-key", help="保存到 macOS 钥匙串；非 macOS 可手动写入 env.sh")
     ep.add_argument("--base-url", default="http://localhost:55021/v1", help="OpenAI-compatible base URL")
     ep.add_argument("--model", default="gpt-5.5", help="OpenAI-compatible 模型名")
-    ep.add_argument("--provider", default="openai", choices=["openai", "ollama"], help="模型后端")
+    ep.add_argument("--provider", default="openai", choices=["openai"], help="模型后端")
     ep.add_argument("--force", action="store_true", help="覆盖已有 env.sh")
     ep.set_defaults(func=_cmd_write_env)
 

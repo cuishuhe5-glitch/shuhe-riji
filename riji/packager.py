@@ -149,7 +149,7 @@ def write_env_template(
     provider: str = "openai",
     overwrite: bool = False,
 ) -> Path:
-    target = Path(path) if path else Path.home() / ".xiaohei-riji" / "env.sh"
+    target = Path(path) if path else Path.home() / ".shuhe-riji" / "env.sh"
     target.parent.mkdir(parents=True, exist_ok=True)
     if target.exists() and not overwrite:
         return target
@@ -200,7 +200,7 @@ def _windows_launcher_script() -> str:
             exit /b 1
           )
         )
-        if exist "%USERPROFILE%\.xiaohei-riji\env.cmd" call "%USERPROFILE%\.xiaohei-riji\env.cmd"
+        if exist "%USERPROFILE%\.shuhe-riji\env.cmd" call "%USERPROFILE%\.shuhe-riji\env.cmd"
         start "书赫日报助手" http://127.0.0.1:8765/
         ".venv\Scripts\python.exe" -m riji panel --host 127.0.0.1 --port 8765 --no-open
         endlocal
@@ -214,7 +214,7 @@ def _windows_env_script() -> str:
         @echo off
         chcp 65001 >nul
         setlocal
-        set CONFIG_DIR=%USERPROFILE%\.xiaohei-riji
+        set CONFIG_DIR=%USERPROFILE%\.shuhe-riji
         if not exist "%CONFIG_DIR%" mkdir "%CONFIG_DIR%"
         echo 正在写入 %CONFIG_DIR%\env.cmd
         > "%CONFIG_DIR%\env.cmd" echo @echo off
@@ -239,7 +239,7 @@ def _windows_readme() -> str:
         3. 双击 start-shuhe-riji.cmd。
         4. 浏览器会打开 http://127.0.0.1:8765/。
 
-        数据默认保存在：%USERPROFILE%\\.xiaohei-riji
+        数据默认保存在：%USERPROFILE%\\.shuhe-riji
         截图采集使用 mss，前台窗口标题通过 Windows API 获取。
         """
     )
@@ -314,8 +314,8 @@ def _launcher_script(root: Path, mode: str, portable: bool = False) -> str:
             export RIJI_LLM_PROVIDER="${{RIJI_LLM_PROVIDER:-openai}}"
             export RIJI_OPENAI_BASE_URL="${{RIJI_OPENAI_BASE_URL:-http://localhost:55021/v1}}"
             export RIJI_OPENAI_MODEL="${{RIJI_OPENAI_MODEL:-gpt-5.5}}"
-            if [ -f "$HOME/.xiaohei-riji/env.sh" ]; then
-              source "$HOME/.xiaohei-riji/env.sh"
+            if [ -f "$HOME/.shuhe-riji/env.sh" ]; then
+              source "$HOME/.shuhe-riji/env.sh"
             fi
             if [ -z "$RIJI_OPENAI_API_KEY" ] && command -v security >/dev/null 2>&1; then
               RIJI_KEYCHAIN_KEY="$(security find-generic-password -s "书赫日报助手" -a "RIJI_OPENAI_API_KEY" -w 2>/dev/null || true)"
@@ -339,8 +339,8 @@ def _launcher_script(root: Path, mode: str, portable: bool = False) -> str:
         export RIJI_LLM_PROVIDER="${{RIJI_LLM_PROVIDER:-openai}}"
         export RIJI_OPENAI_BASE_URL="${{RIJI_OPENAI_BASE_URL:-http://localhost:55021/v1}}"
         export RIJI_OPENAI_MODEL="${{RIJI_OPENAI_MODEL:-gpt-5.5}}"
-        if [ -f "$HOME/.xiaohei-riji/env.sh" ]; then
-          source "$HOME/.xiaohei-riji/env.sh"
+        if [ -f "$HOME/.shuhe-riji/env.sh" ]; then
+          source "$HOME/.shuhe-riji/env.sh"
         fi
         if [ -z "$RIJI_OPENAI_API_KEY" ] && command -v security >/dev/null 2>&1; then
           RIJI_KEYCHAIN_KEY="$(security find-generic-password -s "书赫日报助手" -a "RIJI_OPENAI_API_KEY" -w 2>/dev/null || true)"

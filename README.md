@@ -2,7 +2,7 @@
 
 参考「小黑日报助手」做出的自用版，核心闭环是：**定时截屏 → 前台应用/窗口识别 → 本地 AI 识别在干嘛 → 存本地库 → 面板查看 → 一键生成日报/周报/月报**。
 
-- ✅ **可本地**：默认可走本地 [Ollama](https://ollama.com)，也支持 OpenAI-compatible `/v1` 网关（例如 Hermes），数据落在 `~/.xiaohei-riji`
+- ✅ **可本地**：通过 OpenAI-compatible `/v1` 网关（例如 Hermes）接入，数据落在本机用户目录
 - ✅ **跨平台**：Mac / Windows（`mss` 截图 + `sqlite3`），支持主显示器、指定显示器或全部显示器采集，并在面板里查看已连接显示器
 - ✅ **省算力**：支持启动后自动后台记录；画面没明显变化就跳过识别，闲置自动暂停
 - ✅ **隐私控制**：有独立「隐私保护」面板；默认隐私模式下截图分析后即删，只保留文字记录；也可手动关闭隐私模式后设置截图留存、保留天数、采集间隔、闲置暂停、活动分类、排除应用、敏感关键词，并清理已保存截图
@@ -13,7 +13,7 @@
 - ✅ **易恢复**：有独立「历史报告」入口；支持本地 zip 备份，报告可编辑、保存、复制、导出 Markdown、单份/批量归档和删除
 - ✅ **项目上下文**：可在「接入 Agent」里显式配置项目目录，追问日报助手会读取少量安全文本文件，与本地活动记录一起回答问题
 - ✅ **自动日报**：可设置每天固定时间自动生成并归档日报，也可在设置页立即生成一次，并显示计划时间、上次生成日期和运行状态
-- ✅ **可诊断**：有独立「接入 Agent」入口；可保存本地模型网关配置，并一键测试连通性，确认目标模型是否可见；记录器异常会在侧栏和健康卡里直接标红
+- ✅ **可诊断**：有独立「接入 Agent」入口；可保存模型网关配置，并一键测试连通性，确认目标模型是否可见；记录器异常会在侧栏和健康卡里直接标红
 - ✅ **有帮助**：有独立「帮助」入口，集中展示快速开始、工作原理、隐私边界、当前状态、权限设置、模型测试、数据目录和日志目录
 - ✅ **桌面可用**：可打包成原生 macOS 窗口 `.app`，面板内可直接打开已安装应用；也支持菜单栏常驻、开始/暂停记录、立即记录当前屏幕、打开报告/数据目录
 - ✅ **小窗可用**：面板支持窄窗口响应式布局，概览、搜索、补记和时间线会自动改单列
@@ -24,16 +24,7 @@
 pip install -r requirements.txt
 ```
 
-装并启动 Ollama，拉好两个模型（一个看图、一个写字）：
-
-```bash
-ollama pull qwen2.5vl:7b   # 视觉模型：识别截图
-ollama pull qwen2.5:7b     # 文本模型：写报告
-```
-
-> 想换模型：设环境变量 `RIJI_VISION_MODEL` / `RIJI_TEXT_MODEL` 即可。
-
-如果要走 Hermes / OpenAI-compatible 网关：
+配置 Hermes / OpenAI-compatible 网关：
 
 ```bash
 export RIJI_LLM_PROVIDER=openai
@@ -132,23 +123,22 @@ python -m riji package-windows --output dist
 
 | 变量 | 默认 | 说明 |
 |---|---|---|
-| `RIJI_HOME` | `~/.xiaohei-riji` | 数据目录 |
+| `RIJI_HOME` | `~/.shuhe-riji` | 数据目录 |
 | `RIJI_INTERVAL` | `120` | 截图间隔（秒） |
 | `RIJI_CHANGE_THRESHOLD` | `0.04` | 画面变化阈值，低于则跳过识别 |
 | `RIJI_IDLE_PAUSE` | `600` | 连续无变化判定为闲置（秒） |
 | 面板设置：隐私模式 | 开启 | 开启后截图只用于当次 AI 分析，不留存原图，并自动清理历史截图 |
 | `RIJI_KEEP_SHOTS` | `0` | 是否保留截图原图；隐私模式开启时会强制关闭留存 |
 | 面板设置：截图保留天数 | `7` | 开启截图留存时自动清理超过该天数的截图，设 `0` 表示不自动清理 |
-| `OLLAMA_HOST` | `http://127.0.0.1:11434` | Ollama 地址 |
-| `RIJI_LLM_PROVIDER` | 自动 | `ollama` 或 `openai`；设置了 OpenAI base URL 时默认 `openai` |
+| `RIJI_LLM_PROVIDER` | `openai` | OpenAI-compatible 网关 |
 | `RIJI_OPENAI_BASE_URL` / `OPENAI_BASE_URL` | 空 | OpenAI-compatible 地址，例如 `http://localhost:55021/v1` |
 | `RIJI_OPENAI_API_KEY` / `OPENAI_API_KEY` | 空 | OpenAI-compatible 鉴权 key；macOS 可保存到系统钥匙串 |
 | `RIJI_OPENAI_MODEL` | `gpt-5.5` | OpenAI-compatible 默认模型 |
 
-面板里的运行时设置会保存到 `~/.xiaohei-riji/settings.json`，优先用于 Web 面板和 `watch` 采集循环。
+面板里的运行时设置会保存到本机用户目录，优先用于 Web 面板和 `watch` 采集循环。
 启动后自动记录、活动分类和工作分类也保存在面板设置里：启动后自动记录用于让桌面窗口或菜单栏助手启动时直接进入后台记录状态；活动分类用于截图识别、搜索筛选、手动补记和记录修正；工作分类用于专注分、工作/休息筛选、小时分布和趋势工作占比。
 自定义报告模板也会保存在面板设置里，并出现在手动生成报告和自动日报的模板下拉框中。
-模型网关地址、模型名会保存到 `~/.xiaohei-riji/env.sh`，保存后当前面板会立即使用新地址和模型；macOS 上 API key 会优先保存到系统钥匙串，不会在面板回显，也不会明文写入 env.sh。
+模型网关地址、模型名会保存到本机用户目录，保存后当前面板会立即使用新地址和模型；macOS 上 API key 会优先保存到系统钥匙串，不会在面板回显。
 
 Finder 双击 `.app` 或开机自启时不会继承终端里的环境变量。先运行 `python -m riji write-env`，
 必要时带上 `--api-key` 和 `--force`；macOS 会把 key 放到系统钥匙串，启动器会自动读取。

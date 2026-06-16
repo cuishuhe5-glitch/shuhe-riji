@@ -74,10 +74,10 @@ def _plist(host: str, port: int) -> dict[str, Any]:
     env = {
         key: value
         for key, value in os.environ.items()
-        if key.startswith("RIJI_") or key in {"OPENAI_BASE_URL", "OPENAI_API_KEY", "OLLAMA_HOST"}
+        if key.startswith("RIJI_") or key in {"OPENAI_BASE_URL", "OPENAI_API_KEY"}
     }
     env.setdefault("PATH", os.environ.get("PATH", "/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"))
-    log_dir = Path.home() / ".xiaohei-riji" / "logs"
+    log_dir = Path.home() / ".shuhe-riji" / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     return {
         "Label": LABEL,
@@ -111,7 +111,7 @@ def _launchctl(*args: str, check: bool = True) -> subprocess.CompletedProcess[st
 
 def _install_windows(host: str, port: int) -> Path:
     WINDOWS_STARTUP.mkdir(parents=True, exist_ok=True)
-    log_dir = Path.home() / ".xiaohei-riji" / "logs"
+    log_dir = Path.home() / ".shuhe-riji" / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
     script = f"""@echo off
 set RIJI_LLM_PROVIDER=%RIJI_LLM_PROVIDER%
