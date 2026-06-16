@@ -97,31 +97,31 @@ PROJECT_CONTEXT_SECRET_HINTS = {
     "private",
 }
 RELEASE_INFO = {
-    "version": "v0.1.0",
-    "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.0",
+    "version": "v0.1.1",
+    "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.1",
     "assets": [
         {
             "name": "macOS DMG",
             "filename": "shuhe-riji-macos.dmg",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.0/shuhe-riji-macos.dmg",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.1/shuhe-riji-macos.dmg",
             "sha256": "",
         },
         {
             "name": "macOS 独立版",
             "filename": "shuhe-riji-macos-app.zip",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.0/shuhe-riji-macos-app.zip",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.1/shuhe-riji-macos-app.zip",
             "sha256": "",
         },
         {
             "name": "Windows 便携版",
             "filename": "shuhe-riji-windows-portable.zip",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.0/shuhe-riji-windows-portable.zip",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.1/shuhe-riji-windows-portable.zip",
             "sha256": "",
         },
         {
             "name": "校验文件",
             "filename": "SHA256SUMS",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.0/SHA256SUMS",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.1/SHA256SUMS",
             "sha256": "",
         },
     ],
@@ -158,10 +158,46 @@ def _release_check() -> dict[str, Any]:
         "current_url": RELEASE_INFO["url"],
         "latest_version": None,
         "latest_url": None,
+        "body": "",
         "update_available": False,
         "checked_at": checked_at,
         "assets": [],
     }
+    def fallback_latest(message: str) -> dict[str, Any]:
+        try:
+            latest_resp = requests.get(
+                f"https://github.com/{RELEASE_REPO}/releases/latest",
+                headers={"User-Agent": "ShuheRiji/0.1"},
+                timeout=8,
+                allow_redirects=True,
+            )
+            latest_resp.raise_for_status()
+            latest_url = latest_resp.url
+            latest_version = latest_url.rstrip("/").split("/")[-1]
+            if not latest_version.startswith("v"):
+                return {**base, "message": message}
+            filenames = [asset["filename"] for asset in RELEASE_INFO["assets"]]
+            assets = [
+                {
+                    "name": filename,
+                    "filename": filename,
+                    "url": f"https://github.com/{RELEASE_REPO}/releases/download/{latest_version}/{filename}",
+                    "size": 0,
+                }
+                for filename in filenames
+            ]
+            return {
+                **base,
+                "ok": True,
+                "message": "检查完成",
+                "latest_version": latest_version,
+                "latest_url": latest_url,
+                "update_available": _is_newer_version(latest_version, current_version),
+                "assets": assets,
+            }
+        except requests.RequestException:
+            return {**base, "message": message}
+
     try:
         response = requests.get(f"https://api.github.com/repos/{RELEASE_REPO}/releases/latest", headers=headers, timeout=8)
         if response.status_code == 404:
@@ -172,11 +208,11 @@ def _release_check() -> dict[str, Any]:
         response.raise_for_status()
         payload = response.json()
     except requests.Timeout:
-        return {**base, "message": "连接 GitHub 超时，请稍后再试。"}
+        return fallback_latest("连接 GitHub 超时，请稍后再试。")
     except requests.RequestException as exc:
         status = getattr(exc.response, "status_code", None)
         detail = f"GitHub 返回 {status}" if status else "无法连接 GitHub"
-        return {**base, "message": f"{detail}，请稍后再试。"}
+        return fallback_latest(f"{detail}，请稍后再试。")
     except ValueError:
         return {**base, "message": "GitHub 返回内容无法解析，请稍后再试。"}
 
@@ -197,6 +233,7 @@ def _release_check() -> dict[str, Any]:
         "message": "检查完成",
         "latest_version": latest_version,
         "latest_url": payload.get("html_url") or RELEASE_INFO["url"],
+        "body": payload.get("body") or "",
         "update_available": _is_newer_version(latest_version, current_version),
         "assets": assets,
     }

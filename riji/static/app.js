@@ -48,8 +48,12 @@ const state = {
   },
   manualOpen: false,
   detailItem: null,
+  updateCheckDone: false,
+  updateInfo: null,
   currentView: "overview",
 };
+
+const UPDATE_SKIP_KEY = "shuheRijiSkippedUpdateVersion";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
@@ -631,12 +635,12 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.0";
+  const version = release?.version || "v0.1.1";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
-      <strong>小黑式模块补齐</strong>
-      <p>新增订阅、邀请激励、客服、通知中心入口；补齐设置里的识别当前屏幕、数据导入、清理历史和版本日志。</p>
+      <strong>自动更新弹窗</strong>
+      <p>启动后自动检查 GitHub Release，发现新版会弹出下载提醒，并支持跳过此版本和立即更新。</p>
     </div>
     <div class="version-item">
       <span>v0.1.0</span>
@@ -692,7 +696,7 @@ function renderReleaseInfo(release) {
     : `<div class="empty release-empty">还没有发布包。</div>`;
 }
 
-function renderReleaseCheck(result) {
+function renderReleaseCheck(result, options = {}) {
   const status = $("#releaseCheckStatus");
   if (!status || !result) return;
   status.dataset.checked = "true";
@@ -712,10 +716,136 @@ function renderReleaseCheck(result) {
       page.href = result.latest_url;
       page.textContent = `打开 ${latest}`;
     }
+    showUpdateModal(result, { force: Boolean(options.force) });
     return;
   }
   status.textContent = `当前已是最新版本 ${current}${checked}`;
   status.className = "release-check-status good";
+}
+
+function skippedUpdateVersion() {
+  try {
+    return window.localStorage.getItem(UPDATE_SKIP_KEY) || "";
+  } catch (error) {
+    return "";
+  }
+}
+
+function setSkippedUpdateVersion(version) {
+  try {
+    window.localStorage.setItem(UPDATE_SKIP_KEY, version || "");
+  } catch (error) {
+    // localStorage may be unavailable in restrictive browser modes.
+  }
+}
+
+function formatReleaseNotes(body) {
+  const text = String(body || "").trim();
+  if (!text) {
+    return `
+      <ul>
+        <li><strong>书赫日报助手已发布新版</strong>：建议下载最新安装包，获得最近的界面、安装和稳定性更新。</li>
+        <li><strong>安装包已同步更新</strong>：macOS 和 Windows 下载入口会自动选择当前系统更合适的文件。</li>
+      </ul>
+    `;
+  }
+  const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const html = [];
+  let listOpen = false;
+  const closeList = () => {
+    if (listOpen) {
+      html.push("</ul>");
+      listOpen = false;
+    }
+  };
+  for (const line of lines.slice(0, 24)) {
+    const heading = line.match(/^#{1,4}\s+(.+)$/);
+    if (heading) {
+      closeList();
+      html.push(`<h5>${escapeHtml(heading[1])}</h5>`);
+      continue;
+    }
+    const bullet = line.match(/^[-*]\s+(.+)$/);
+    if (bullet) {
+      if (!listOpen) {
+        html.push("<ul>");
+        listOpen = true;
+      }
+      html.push(`<li>${formatReleaseNoteLine(bullet[1])}</li>`);
+      continue;
+    }
+    closeList();
+    html.push(`<p>${formatReleaseNoteLine(line)}</p>`);
+  }
+  closeList();
+  return html.join("") || `<p>${escapeHtml(text)}</p>`;
+}
+
+function formatReleaseNoteLine(line) {
+  return escapeHtml(line).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+}
+
+function preferredUpdateUrl(result) {
+  const assets = result?.assets || [];
+  const platform = `${navigator.platform || ""} ${navigator.userAgent || ""}`.toLowerCase();
+  const matchAsset = (patterns) => assets.find((asset) => {
+    const name = `${asset.filename || ""} ${asset.name || ""}`.toLowerCase();
+    return patterns.some((pattern) => name.includes(pattern));
+  });
+  if (platform.includes("mac")) {
+    return matchAsset(["macos.dmg", ".dmg", "macos-app", "mac"])?.url || result?.latest_url || state.data?.release?.url || "";
+  }
+  if (platform.includes("win")) {
+    return matchAsset(["windows", "win"])?.url || result?.latest_url || state.data?.release?.url || "";
+  }
+  return result?.latest_url || assets[0]?.url || state.data?.release?.url || "";
+}
+
+function showUpdateModal(result, options = {}) {
+  if (!result?.ok || !result.update_available) return;
+  const latest = result.latest_version || "";
+  if (!options.force && latest && skippedUpdateVersion() === latest) return;
+  state.updateInfo = result;
+  $("#updateVersion").textContent = latest || "新版本";
+  $("#updateSummary").textContent = `当前版本 ${result.current_version || "-"}，新版本已可用。`;
+  $("#updateNotes").innerHTML = formatReleaseNotes(result.body);
+  $("#updateModal").classList.add("show");
+  $("#updateModal").setAttribute("aria-hidden", "false");
+}
+
+function closeUpdateModal() {
+  $("#updateModal")?.classList.remove("show");
+  $("#updateModal")?.setAttribute("aria-hidden", "true");
+}
+
+function skipUpdateVersion() {
+  const version = state.updateInfo?.latest_version || "";
+  if (version) setSkippedUpdateVersion(version);
+  closeUpdateModal();
+  toast(version ? `已跳过 ${version}` : "已跳过此版本");
+}
+
+function openUpdateDownload() {
+  const url = preferredUpdateUrl(state.updateInfo);
+  if (!url) {
+    toast("暂时没有可用下载地址");
+    return;
+  }
+  window.open(url, "_blank", "noreferrer");
+  closeUpdateModal();
+}
+
+async function autoCheckReleaseUpdate() {
+  if (state.updateCheckDone) return;
+  state.updateCheckDone = true;
+  try {
+    const data = await api("/api/release/check");
+    const result = data.release_check;
+    renderReleaseCheck(result);
+    showUpdateModal(result);
+  } catch (error) {
+    // Silent on startup; manual check still shows errors in the settings/help area.
+  }
 }
 
 async function checkReleaseUpdate() {
@@ -726,7 +856,7 @@ async function checkReleaseUpdate() {
   }
   try {
     const data = await api("/api/release/check");
-    renderReleaseCheck(data.release_check);
+    renderReleaseCheck(data.release_check, { force: true });
     toast(data.release_check?.ok ? "更新检查完成" : "暂时无法检查更新");
   } finally {
     if (button) {
@@ -4192,6 +4322,11 @@ function bindEvents() {
     navigateTo("settings");
   });
   $("#checkReleaseUpdate").addEventListener("click", () => checkReleaseUpdate().catch((error) => toast(error.message)));
+  $("#updateClose").addEventListener("click", closeUpdateModal);
+  $("#updateCancel").addEventListener("click", closeUpdateModal);
+  $("#updateBackdrop").addEventListener("click", closeUpdateModal);
+  $("#updateSkip").addEventListener("click", skipUpdateVersion);
+  $("#updateNow").addEventListener("click", openUpdateDownload);
   $("#subscriptionOpenRelease").addEventListener("click", () => {
     const url = state.data?.release?.url;
     if (url) window.open(url, "_blank", "noreferrer");
@@ -4267,6 +4402,7 @@ function bindEvents() {
     if (event.key === "Escape") closeTemplateDetail();
     if (event.key === "Escape") closeAddRecordModal();
     if (event.key === "Escape") closeTextRecordModal();
+    if (event.key === "Escape") closeUpdateModal();
   });
 
   [
@@ -4322,5 +4458,7 @@ function bindEvents() {
 navigateTo(normalizeView(window.location.hash), { replace: true, instant: true });
 bindEvents();
 window.addEventListener("hashchange", () => navigateTo(window.location.hash, { replace: true, instant: true }));
-loadSummary().catch((error) => toast(error.message));
+loadSummary()
+  .then(() => window.setTimeout(() => autoCheckReleaseUpdate(), 800))
+  .catch((error) => toast(error.message));
 window.setInterval(() => loadSummary().catch(() => {}), 15000);
