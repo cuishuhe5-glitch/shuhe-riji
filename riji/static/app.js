@@ -638,10 +638,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.4";
+  const version = release?.version || "v0.1.5";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>macOS Dock 身份优化</strong>
+      <p>启动时把运行身份指回书赫日报助手 App，减少 Dock 显示 Python 图标的问题。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.4</span>
       <strong>应用内更新下载</strong>
       <p>发现新版后可直接在弹窗里下载当前系统安装包，下载完成自动打开，失败时自动切到浏览器下载。</p>
     </div>

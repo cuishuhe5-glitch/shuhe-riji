@@ -253,45 +253,93 @@ def _write_native_launcher(target: Path) -> None:
     compiler = shutil.which("clang") or shutil.which("cc")
     if compiler is None:
         raise RuntimeError("当前系统缺少 clang/cc，无法生成可双击启动的 macOS 应用。")
-    source = target.with_suffix(".c")
+    source = target.with_suffix(".m")
     source.write_text(
         dedent(
             r"""\
-            #include <limits.h>
-            #include <stdio.h>
-            #include <stdlib.h>
-            #include <string.h>
-            #include <unistd.h>
+            #import <Cocoa/Cocoa.h>
+            #import <WebKit/WebKit.h>
 
-            int main(int argc, char *argv[]) {
-                char exe_path[PATH_MAX];
-                if (realpath(argv[0], exe_path) == NULL) {
-                    perror("realpath");
-                    return 1;
-                }
-                char *macos_dir = strrchr(exe_path, '/');
-                if (macos_dir == NULL) {
-                    fprintf(stderr, "Cannot resolve executable directory\n");
-                    return 1;
-                }
-                *macos_dir = '\0';
+            @interface AppDelegate : NSObject <NSApplicationDelegate, NSWindowDelegate>
+            @property(nonatomic, strong) NSTask *serverTask;
+            @property(nonatomic, strong) NSWindow *window;
+            @property(nonatomic, strong) WKWebView *webView;
+            @end
 
-                char script_path[PATH_MAX];
-                int written = snprintf(script_path, sizeof(script_path), "%s/../Resources/launcher.zsh", exe_path);
-                if (written < 0 || written >= (int)sizeof(script_path)) {
-                    fprintf(stderr, "Launcher path is too long\n");
-                    return 1;
-                }
+            @implementation AppDelegate
 
-                execl("/bin/zsh", "zsh", script_path, (char *)NULL);
-                perror("execl");
-                return 1;
+            - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+                [self startServer];
+                [self createWindow];
+                [NSApp activateIgnoringOtherApps:YES];
+                [self performSelector:@selector(loadDashboard) withObject:nil afterDelay:1.0];
+            }
+
+            - (void)startServer {
+                NSString *scriptPath = [[[NSBundle mainBundle] resourcePath] stringByAppendingPathComponent:@"launcher.zsh"];
+                NSMutableDictionary *environment = [[[NSProcessInfo processInfo] environment] mutableCopy];
+                environment[@"SHUHE_RIJI_NATIVE_SHELL"] = @"1";
+                self.serverTask = [[NSTask alloc] init];
+                self.serverTask.launchPath = @"/bin/zsh";
+                self.serverTask.arguments = @[scriptPath];
+                self.serverTask.environment = environment;
+                NSError *error = nil;
+                if (![self.serverTask launchAndReturnError:&error]) {
+                    NSLog(@"Failed to start Shuhe Riji service: %@", error);
+                }
+            }
+
+            - (void)createWindow {
+                NSRect rect = NSMakeRect(0, 0, 1180, 780);
+                NSUInteger style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable;
+                self.window = [[NSWindow alloc] initWithContentRect:rect styleMask:style backing:NSBackingStoreBuffered defer:NO];
+                self.window.title = @"书赫日报助手";
+                self.window.minSize = NSMakeSize(960, 620);
+                self.window.delegate = self;
+                [self.window center];
+
+                WKWebViewConfiguration *configuration = [[WKWebViewConfiguration alloc] init];
+                self.webView = [[WKWebView alloc] initWithFrame:rect configuration:configuration];
+                self.window.contentView = self.webView;
+                [self.window makeKeyAndOrderFront:nil];
+            }
+
+            - (void)loadDashboard {
+                NSURL *url = [NSURL URLWithString:@"http://127.0.0.1:8765/"];
+                [self.webView loadRequest:[NSURLRequest requestWithURL:url]];
+            }
+
+            - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)sender {
+                return YES;
+            }
+
+            - (void)applicationWillTerminate:(NSNotification *)notification {
+                if (self.serverTask && self.serverTask.isRunning) {
+                    [self.serverTask terminate];
+                    [self.serverTask waitUntilExit];
+                }
+            }
+
+            @end
+
+            int main(int argc, const char * argv[]) {
+                @autoreleasepool {
+                    NSApplication *app = [NSApplication sharedApplication];
+                    AppDelegate *delegate = [[AppDelegate alloc] init];
+                    app.delegate = delegate;
+                    [app setActivationPolicy:NSApplicationActivationPolicyRegular];
+                    [app run];
+                }
+                return 0;
             }
             """
         ),
         encoding="utf-8",
     )
-    subprocess.run([compiler, str(source), "-o", str(target)], check=True)
+    subprocess.run(
+        [compiler, "-fobjc-arc", str(source), "-o", str(target), "-framework", "Cocoa", "-framework", "WebKit"],
+        check=True,
+    )
     source.unlink(missing_ok=True)
     target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
@@ -311,6 +359,7 @@ def _launcher_script(root: Path, mode: str, portable: bool = False) -> str:
             set -e
             APP_ROOT="${{0:A:h:h}}"
             RESOURCES="$APP_ROOT/Resources"
+            export PYTHONEXECUTABLE="$APP_ROOT/MacOS/shuhe-riji"
             export RIJI_LLM_PROVIDER="${{RIJI_LLM_PROVIDER:-openai}}"
             export RIJI_OPENAI_BASE_URL="${{RIJI_OPENAI_BASE_URL:-http://localhost:55021/v1}}"
             export RIJI_OPENAI_MODEL="${{RIJI_OPENAI_MODEL:-gpt-5.5}}"
@@ -326,16 +375,22 @@ def _launcher_script(root: Path, mode: str, portable: bool = False) -> str:
             fi
             export PYTHONPATH="$RESOURCES/app:$RESOURCES/site-packages${{PYTHONPATH:+:$PYTHONPATH}}"
             cd "$RESOURCES/app"
-            if [ -x "$RESOURCES/venv/bin/python" ]; then
-              exec "$RESOURCES/venv/bin/python" -m riji {command}
+            RIJI_COMMAND=({command})
+            if [ "$SHUHE_RIJI_NATIVE_SHELL" = "1" ]; then
+              RIJI_COMMAND=(panel --no-open)
             fi
-            exec /usr/bin/python3 -m riji {command}
+            if [ -x "$RESOURCES/venv/bin/python" ]; then
+              exec "$RESOURCES/venv/bin/python" -m riji "${{RIJI_COMMAND[@]}}"
+            fi
+            exec /usr/bin/python3 -m riji "${{RIJI_COMMAND[@]}}"
             """
         )
     return dedent(
         f"""\
         #!/bin/zsh
         set -e
+        APP_ROOT="${{0:A:h:h}}"
+        export PYTHONEXECUTABLE="$APP_ROOT/MacOS/shuhe-riji"
         export RIJI_LLM_PROVIDER="${{RIJI_LLM_PROVIDER:-openai}}"
         export RIJI_OPENAI_BASE_URL="${{RIJI_OPENAI_BASE_URL:-http://localhost:55021/v1}}"
         export RIJI_OPENAI_MODEL="${{RIJI_OPENAI_MODEL:-gpt-5.5}}"
@@ -350,7 +405,11 @@ def _launcher_script(root: Path, mode: str, portable: bool = False) -> str:
           unset RIJI_KEYCHAIN_KEY
         fi
         cd "{root}"
-        exec "{python}" -m riji {command}
+        RIJI_COMMAND=({command})
+        if [ "$SHUHE_RIJI_NATIVE_SHELL" = "1" ]; then
+          RIJI_COMMAND=(panel --no-open)
+        fi
+        exec "{python}" -m riji "${{RIJI_COMMAND[@]}}"
         """
     )
 
