@@ -97,31 +97,31 @@ PROJECT_CONTEXT_SECRET_HINTS = {
     "private",
 }
 RELEASE_INFO = {
-    "version": "v0.1.2",
-    "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.2",
+    "version": "v0.1.3",
+    "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.3",
     "assets": [
         {
             "name": "macOS DMG",
             "filename": "shuhe-riji-macos.dmg",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.2/shuhe-riji-macos.dmg",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.3/shuhe-riji-macos.dmg",
             "sha256": "",
         },
         {
             "name": "macOS 独立版",
             "filename": "shuhe-riji-macos-app.zip",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.2/shuhe-riji-macos-app.zip",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.3/shuhe-riji-macos-app.zip",
             "sha256": "",
         },
         {
             "name": "Windows 便携版",
             "filename": "shuhe-riji-windows-portable.zip",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.2/shuhe-riji-windows-portable.zip",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.3/shuhe-riji-windows-portable.zip",
             "sha256": "",
         },
         {
             "name": "校验文件",
             "filename": "SHA256SUMS",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.2/SHA256SUMS",
+            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.3/SHA256SUMS",
             "sha256": "",
         },
     ],

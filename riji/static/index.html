@@ -1094,44 +1094,25 @@
             <section class="panel settings-panel" data-section="settings">
               <div class="section-head compact">
                 <div>
-                  <p class="eyebrow">隐私与本地</p>
-                  <h3>权限与记录</h3>
+                  <p class="eyebrow">设置</p>
+                  <h3>本地助手设置</h3>
                 </div>
               </div>
               <div class="setting-list">
-                <div class="health-grid" id="healthGrid"></div>
-                <div class="model-test-card">
-                  <div>
-                    <strong>模型连通性</strong>
-                    <p>轻量检查当前网关是否可访问，不会生成报告或记录截图。</p>
-                  </div>
-                  <button class="button subtle compact-button" id="testModelConnection">测试连接</button>
-                  <p class="path-note" id="modelTestStatus">尚未测试。</p>
-                </div>
-                <div class="model-config-card">
+                <div class="settings-card settings-primary-card">
                   <div class="mini-head">
-                    <strong>模型网关配置</strong>
-                    <button class="text-button" id="saveModelConfig" type="button">保存</button>
+                    <strong>工作记录</strong>
+                    <label class="switch">
+                      <input id="autoRecordEnabled" type="checkbox" />
+                      <span></span>
+                    </label>
                   </div>
-                  <label class="field-row">
-                    <span>模型后端</span>
-                    <select id="modelProviderInput">
-                      <option value="openai">OpenAI-compatible / Hermes</option>
-                    </select>
-                  </label>
-                  <label class="field-row">
-                    <span>网关地址</span>
-                    <input id="modelBaseUrlInput" placeholder="http://localhost:55021/v1" />
-                  </label>
-                  <label class="field-row">
-                    <span>模型名</span>
-                    <input id="modelNameInput" placeholder="gpt-5.5" />
-                  </label>
-                  <label class="field-row">
-                    <span>API Key</span>
-                    <input id="modelApiKeyInput" type="password" placeholder="留空则沿用已保存 key" autocomplete="off" />
-                  </label>
-                  <p class="path-note" id="modelConfigStatus">网关配置保存在本机，API Key 优先保存到 macOS 钥匙串，不会在面板回显。</p>
+                  <p>启动后自动进入后台记录。页面仍然可以手动“开始记录”或“暂停记录”。</p>
+                  <div class="settings-inline-actions">
+                    <button class="button primary compact-button" id="settingsCaptureNow">立即识别</button>
+                    <button class="button subtle compact-button" id="testModelConnection">测试网关</button>
+                  </div>
+                  <p class="path-note" id="modelTestStatus">尚未测试。</p>
                 </div>
 
                 <div class="permission-grid">
@@ -1153,6 +1134,38 @@
                   </div>
                 </div>
 
+                <div class="settings-card agent-config-card">
+                  <div class="mini-head">
+                    <strong>接入 Agent</strong>
+                    <button class="text-button" id="copySettingsAgentDocs" type="button">一键复制</button>
+                  </div>
+                  <p>推荐复制下面的接入文本，发送给龙虾、Hermes、Codex 或任意 Agent，它会自动读取本地 API 文档完成 skill 接入。</p>
+                  <pre id="settingsAgentDocsPreview">正在读取本地 API 文档...</pre>
+                  <p class="agent-doc-hint">复制上方文本，发送给你的龙虾/Hermes/任意Agent，它会自动读取本地 API 文档并完成 skill 接入。</p>
+                </div>
+
+                <div class="settings-card model-config-card">
+                  <div class="mini-head">
+                    <strong>手动配置网关</strong>
+                    <button class="text-button" id="saveModelConfig" type="button">保存</button>
+                  </div>
+                  <p>如果 Agent 不能自动接入，或者换了一台电脑，可以在这里手动填写本机网关和 API Key。</p>
+                  <input id="modelProviderInput" type="hidden" value="openai" />
+                  <label class="field-row">
+                    <span>网关地址</span>
+                    <input id="modelBaseUrlInput" placeholder="http://localhost:55021/v1" />
+                  </label>
+                  <label class="field-row">
+                    <span>模型名</span>
+                    <input id="modelNameInput" placeholder="gpt-5.5" />
+                  </label>
+                  <label class="field-row">
+                    <span>API Key</span>
+                    <input id="modelApiKeyInput" type="password" placeholder="留空则沿用已保存 key" autocomplete="off" />
+                  </label>
+                  <p class="path-note" id="modelConfigStatus">网关配置保存在本机，API Key 优先保存到 macOS 钥匙串，不会在面板回显。</p>
+                </div>
+
                 <div class="autostart-card">
                   <div>
                     <span id="autostartDot" class="mini-dot"></span>
@@ -1167,7 +1180,83 @@
                   </div>
                   <p class="path-note" id="autostartPath">-</p>
                 </div>
-                <div class="preferences-card">
+
+                <details class="settings-details">
+                  <summary>
+                    <span>状态诊断</span>
+                    <small>网关、权限、存储、记录器</small>
+                  </summary>
+                  <div class="settings-details-body">
+                    <div class="health-grid" id="healthGrid"></div>
+                  </div>
+                </details>
+
+                <details class="settings-details">
+                  <summary>
+                    <span>记录与隐私</span>
+                    <small>采集范围、截图留存、敏感过滤</small>
+                  </summary>
+                  <div class="settings-details-body">
+                    <div class="setting-row">
+                      <span>隐私模式</span>
+                      <label class="switch">
+                        <input id="privacyModeInput" type="checkbox" />
+                        <span></span>
+                      </label>
+                    </div>
+                    <p class="path-note">开启后截图仅用于当次 AI 分析，分析完成不留存，并自动清理历史截图文件。</p>
+
+                    <div class="setting-row">
+                      <span>截图留存</span>
+                      <label class="switch">
+                        <input id="keepShotsInput" type="checkbox" />
+                        <span></span>
+                      </label>
+                    </div>
+                    <label class="field-row">
+                      <span>截图保留天数</span>
+                      <input id="shotRetentionInput" type="number" min="0" max="3650" step="1" />
+                    </label>
+                    <label class="field-row">
+                      <span>采集间隔（秒）</span>
+                      <input id="intervalInput" type="number" min="5" max="3600" step="5" />
+                    </label>
+                    <label class="field-row">
+                      <span>闲置暂停（秒）</span>
+                      <input id="idlePauseInput" type="number" min="5" max="3600" step="5" />
+                    </label>
+                    <label class="field-row">
+                      <span>采集范围</span>
+                      <select id="captureScopeInput">
+                        <option value="primary">主显示器</option>
+                        <option value="all">全部显示器</option>
+                      </select>
+                    </label>
+                    <p class="path-note">双屏办公时默认只记录主显示器；如果两块屏都承载工作，选择“全部显示器”。如副屏有微信、密码、客户敏感信息，建议只选主屏或指定某一块显示器。</p>
+                    <div class="display-card">
+                      <div class="mini-head">
+                        <strong>已连接显示器</strong>
+                        <span id="displayCount">-</span>
+                      </div>
+                      <div class="display-list" id="displayList"></div>
+                    </div>
+                    <label class="field-row">
+                      <span>排除应用</span>
+                      <textarea id="ignoreAppsInput" rows="3" placeholder="1Password, Keychain Access"></textarea>
+                    </label>
+                    <label class="field-row">
+                      <span>敏感关键词</span>
+                      <textarea id="ignoreKeywordsInput" rows="3" placeholder="密码, 验证码, 银行"></textarea>
+                    </label>
+                  </div>
+                </details>
+
+                <details class="settings-details">
+                  <summary>
+                    <span>产品偏好</span>
+                    <small>语言、Dock、分类和提示词</small>
+                  </summary>
+                  <div class="settings-details-body preferences-card">
                   <div class="mini-head">
                     <strong>产品偏好</strong>
                     <span>本机保存</span>
@@ -1220,15 +1309,21 @@
                     <textarea id="analysisPromptInput" rows="3" placeholder="例如：识别时更关注项目推进、会议结论、交付物和阻塞。"></textarea>
                   </label>
                   <p class="path-note">偏好会写入本机设置；Dock 图标属于桌面壳行为，通常需要下次启动应用后体现。</p>
-                </div>
-                <div class="setting-row">
-                  <span>启动后自动记录</span>
-                  <label class="switch">
-                    <input id="autoRecordEnabled" type="checkbox" />
-                    <span></span>
+                  <label class="field-row">
+                    <span>活动分类</span>
+                    <textarea id="activityCategoriesInput" rows="4" placeholder="编码开发, 会议沟通, 文档写作, 其他"></textarea>
                   </label>
-                </div>
-                <p class="path-note">开启后，桌面窗口或菜单栏助手启动时会自动进入后台记录状态。</p>
+                  <label class="field-row">
+                    <span>工作分类</span>
+                    <textarea id="workCategoriesInput" rows="3" placeholder="编码开发, 会议沟通, 文档写作"></textarea>
+                  </label>
+                  <label class="field-row">
+                    <span>自定义报告模板</span>
+                    <textarea id="customReportStylesInput" rows="4" placeholder="老板汇报=突出产出、风险、需要支持的事项&#10;周会=按项目列出进展、阻塞和下周计划"></textarea>
+                  </label>
+                  </div>
+                </details>
+
                 <div class="auto-report-card">
                   <div class="mini-head">
                     <strong>自动日报</strong>
@@ -1272,90 +1367,28 @@
                   <p class="path-note" id="autoReportStatus">未启用自动日报。</p>
                 </div>
 
-                <div class="setting-row">
-                  <span>隐私模式</span>
-                  <label class="switch">
-                    <input id="privacyModeInput" type="checkbox" />
-                    <span></span>
-                  </label>
-                </div>
-                <p class="path-note">开启后截图仅用于当次 AI 分析，分析完成不留存，并自动清理历史截图文件。</p>
-
-                <div class="setting-row">
-                  <span>截图留存</span>
-                  <label class="switch">
-                    <input id="keepShotsInput" type="checkbox" />
-                    <span></span>
-                  </label>
-                </div>
-                <label class="field-row">
-                  <span>截图保留天数</span>
-                  <input id="shotRetentionInput" type="number" min="0" max="3650" step="1" />
-                </label>
-                <label class="field-row">
-                  <span>采集间隔（秒）</span>
-                  <input id="intervalInput" type="number" min="5" max="3600" step="5" />
-                </label>
-                <label class="field-row">
-                  <span>闲置暂停（秒）</span>
-                  <input id="idlePauseInput" type="number" min="5" max="3600" step="5" />
-                </label>
-                <label class="field-row">
-                  <span>采集范围</span>
-                  <select id="captureScopeInput">
-                    <option value="primary">主显示器</option>
-                    <option value="all">全部显示器</option>
-                  </select>
-                </label>
-                <p class="path-note">双屏办公时默认只记录主显示器；如果两块屏都承载工作，选择“全部显示器”。如副屏有微信、密码、客户敏感信息，建议只选主屏或指定某一块显示器。</p>
-                <div class="identify-card">
-                  <div>
-                    <strong>识别当前屏幕</strong>
-                    <p>立即抓取当前采集范围，送入 AI 分析，并写入今天的时间线。</p>
-                  </div>
-                  <button class="button primary compact-button" id="settingsCaptureNow">立即识别</button>
-                </div>
-                <div class="display-card">
-                  <div class="mini-head">
-                    <strong>已连接显示器</strong>
-                    <span id="displayCount">-</span>
-                  </div>
-                  <div class="display-list" id="displayList"></div>
-                </div>
-                <label class="field-row">
-                  <span>排除应用</span>
-                  <textarea id="ignoreAppsInput" rows="3" placeholder="1Password, Keychain Access"></textarea>
-                </label>
-                <label class="field-row">
-                  <span>敏感关键词</span>
-                  <textarea id="ignoreKeywordsInput" rows="3" placeholder="密码, 验证码, 银行"></textarea>
-                </label>
-                <label class="field-row">
-                  <span>活动分类</span>
-                  <textarea id="activityCategoriesInput" rows="4" placeholder="编码开发, 会议沟通, 文档写作, 其他"></textarea>
-                </label>
-                <label class="field-row">
-                  <span>工作分类</span>
-                  <textarea id="workCategoriesInput" rows="3" placeholder="编码开发, 会议沟通, 文档写作"></textarea>
-                </label>
-                <label class="field-row">
-                  <span>自定义报告模板</span>
-                  <textarea id="customReportStylesInput" rows="4" placeholder="老板汇报=突出产出、风险、需要支持的事项&#10;周会=按项目列出进展、阻塞和下周计划"></textarea>
-                </label>
                 <button class="button primary wide" id="saveSettings">保存设置</button>
-                <div class="setting-row">
-                  <span>设置文件</span>
-                  <strong id="settingsPath">-</strong>
+                <div class="settings-card storage-summary-card">
+                  <div class="setting-row">
+                    <span>设置文件</span>
+                    <strong id="settingsPath">-</strong>
+                  </div>
+                  <div class="setting-row">
+                    <span>截图文件</span>
+                    <strong id="shotStorage">-</strong>
+                  </div>
+                  <div class="setting-row">
+                    <span>活动记录</span>
+                    <strong id="activityStorage">-</strong>
+                  </div>
+                  <button class="button subtle wide" id="clearShots">清理截图文件</button>
                 </div>
-                <div class="setting-row">
-                  <span>截图文件</span>
-                  <strong id="shotStorage">-</strong>
-                </div>
-                <div class="setting-row">
-                  <span>活动记录</span>
-                  <strong id="activityStorage">-</strong>
-                </div>
-                <button class="button subtle wide" id="clearShots">清理截图文件</button>
+                <details class="settings-details">
+                  <summary>
+                    <span>应用、备份与日志</span>
+                    <small>安装包、导入导出、运行日志</small>
+                  </summary>
+                  <div class="settings-details-body">
                 <div class="desktop-app-card">
                   <div>
                     <strong>桌面应用</strong>
@@ -1459,6 +1492,8 @@
                     <div class="empty log-empty">点击刷新查看本地日志。</div>
                   </div>
                 </div>
+                  </div>
+                </details>
               </div>
             </section>
           </aside>
@@ -1606,6 +1641,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260616-first-run-status"></script>
+    <script src="/static/app.js?v=20260616-settings-agent"></script>
   </body>
 </html>

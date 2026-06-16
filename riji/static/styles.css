@@ -4634,6 +4634,105 @@ select {
   gap: 8px;
 }
 
+.settings-card,
+.settings-details {
+  min-width: 0;
+  border: 1px solid var(--line-soft);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.settings-card {
+  display: grid;
+  gap: 10px;
+  padding: 11px 10px;
+}
+
+.settings-card > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.settings-primary-card {
+  background: #f3fbf7;
+  border-color: #cfe9df;
+}
+
+.settings-inline-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.agent-config-card pre {
+  max-height: 380px;
+  min-height: 220px;
+  margin: 0;
+  overflow: auto;
+  padding: 14px 16px;
+  border-radius: 8px;
+  background: #1f1f1f;
+  color: #d8dde5;
+  font: 12px/1.65 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.settings-details {
+  overflow: hidden;
+}
+
+.settings-details summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 46px;
+  padding: 0 10px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.settings-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-details summary::after {
+  content: "⌄";
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  transition: transform 0.16s ease;
+}
+
+.settings-details[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.settings-details summary span {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.settings-details summary small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-details-body {
+  display: grid;
+  gap: 10px;
+  padding: 0 10px 11px;
+  border-top: 1px solid var(--line-soft);
+}
+
 .health-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

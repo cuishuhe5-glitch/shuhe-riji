@@ -497,7 +497,8 @@ function renderAgent(modelConfig, health, projectContext, settings) {
 
 function renderAgentDocs(text) {
   const preview = $("#agentDocsPreview");
-  if (!preview) return;
+  const settingsPreview = $("#settingsAgentDocsPreview");
+  if (!preview && !settingsPreview) return;
   const serviceUrl = window.location.origin || "http://127.0.0.1:8765";
   const intro = [
     "请根据下面的说明把书赫日报助手的 API 接入成你的 skill，保存到你的 skill 技能中。",
@@ -543,7 +544,9 @@ function renderAgentDocs(text) {
     "• 本地查询不做分页，直接返回全量数据，无需处理翻页逻辑",
     "",
   ].join("\n");
-  preview.textContent = text ? `${intro}${extractAgentInterfaceDocs(text)}` : `${intro}正在读取本地 API 文档...`;
+  const content = text ? `${intro}${extractAgentInterfaceDocs(text)}` : `${intro}正在读取本地 API 文档...`;
+  if (preview) preview.textContent = content;
+  if (settingsPreview) settingsPreview.textContent = content;
 }
 
 function extractAgentInterfaceDocs(text) {
@@ -635,10 +638,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.2";
+  const version = release?.version || "v0.1.3";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>设置页复刻小黑风格</strong>
+      <p>设置页改为简洁模块，接入 Agent 文本前置，一键复制自动接入；手动网关配置保留。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.2</span>
       <strong>首次安装自动记录</strong>
       <p>新安装默认尝试后台记录；首页会明确提示网关、权限或记录器状态。</p>
     </div>
@@ -3877,20 +3885,27 @@ async function copyReport() {
 }
 
 async function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return;
+    } catch (error) {
+      // Fall back to the legacy selection path when clipboard permission is denied.
+    }
+  }
   const textarea = document.createElement("textarea");
   textarea.value = text;
   textarea.setAttribute("readonly", "");
   textarea.style.position = "fixed";
   textarea.style.left = "-9999px";
+  textarea.style.top = "0";
   document.body.appendChild(textarea);
+  textarea.focus();
   textarea.select();
+  textarea.setSelectionRange(0, textarea.value.length);
   const copied = document.execCommand("copy");
   textarea.remove();
   if (copied) return;
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(text);
-    return;
-  }
   throw new Error("复制失败，请手动选择内容复制");
 }
 
@@ -4304,6 +4319,16 @@ function bindEvents() {
     try {
       if (!state.agentDocs) await loadAgentDocs();
       const text = $("#agentDocsPreview").textContent || state.agentDocs;
+      await copyText(text);
+      toast("Agent 接入说明已复制");
+    } catch (error) {
+      toast(error.message);
+    }
+  });
+  $("#copySettingsAgentDocs").addEventListener("click", async () => {
+    try {
+      if (!state.agentDocs) await loadAgentDocs();
+      const text = $("#settingsAgentDocsPreview").textContent || $("#agentDocsPreview").textContent || state.agentDocs;
       await copyText(text);
       toast("Agent 接入说明已复制");
     } catch (error) {
