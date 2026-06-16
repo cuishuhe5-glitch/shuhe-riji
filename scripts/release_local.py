@@ -25,6 +25,7 @@ def main() -> None:
     _run([sys.executable, "-m", "riji", "package-app", "--output", str(DIST), "--mode", "desktop", "--portable"])
     _zip_mac_app()
     _run([sys.executable, "-m", "riji", "package-dmg", "--output", str(DIST), "--mode", "desktop"])
+    _remove_staging_app()
     _run([sys.executable, "-m", "riji", "package-windows", "--output", str(DIST)])
     _write_checksums([MAC_ZIP, MAC_DMG, WIN_ZIP])
     print(f"macOS:   {MAC_ZIP}")
@@ -47,6 +48,11 @@ def _zip_mac_app() -> None:
 
 def _run(args: list[str]) -> None:
     subprocess.run(args, cwd=ROOT, check=True)
+
+
+def _remove_staging_app() -> None:
+    if MAC_APP.exists():
+        shutil.rmtree(MAC_APP)
 
 
 def _write_checksums(paths: list[Path]) -> None:
