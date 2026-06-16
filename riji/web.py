@@ -8,12 +8,13 @@ import os
 import platform
 import plistlib
 import re
+import shutil
 import shlex
 import subprocess
 import threading
 import webbrowser
-import zipfile
 import csv
+import zipfile
 from collections import Counter
 from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -23,7 +24,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 import requests
 
-from . import app_icons, autostart, capture, config, db, keychain, llm, permissions, recognize, report, settings, storage, timeline, window
+from . import __version__, app_icons, autostart, capture, config, db, keychain, llm, permissions, recognize, report, settings, storage, timeline, window
 
 STATIC_DIR = Path(__file__).with_name("static")
 WORK_CATEGORIES = {
@@ -97,31 +98,31 @@ PROJECT_CONTEXT_SECRET_HINTS = {
     "private",
 }
 RELEASE_INFO = {
-    "version": "v0.1.3",
-    "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.3",
+    "version": f"v{__version__}",
+    "url": f"https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v{__version__}",
     "assets": [
         {
             "name": "macOS DMG",
             "filename": "shuhe-riji-macos.dmg",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.3/shuhe-riji-macos.dmg",
+            "url": f"https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v{__version__}/shuhe-riji-macos.dmg",
             "sha256": "",
         },
         {
             "name": "macOS 独立版",
             "filename": "shuhe-riji-macos-app.zip",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.3/shuhe-riji-macos-app.zip",
+            "url": f"https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v{__version__}/shuhe-riji-macos-app.zip",
             "sha256": "",
         },
         {
             "name": "Windows 便携版",
             "filename": "shuhe-riji-windows-portable.zip",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.3/shuhe-riji-windows-portable.zip",
+            "url": f"https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v{__version__}/shuhe-riji-windows-portable.zip",
             "sha256": "",
         },
         {
             "name": "校验文件",
             "filename": "SHA256SUMS",
-            "url": "https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v0.1.3/SHA256SUMS",
+            "url": f"https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v{__version__}/SHA256SUMS",
             "sha256": "",
         },
     ],
@@ -201,10 +202,7 @@ def _release_check() -> dict[str, Any]:
     try:
         response = requests.get(f"https://api.github.com/repos/{RELEASE_REPO}/releases/latest", headers=headers, timeout=8)
         if response.status_code == 404:
-            return {
-                **base,
-                "message": "没有权限读取 GitHub Release，或仓库仍是私有状态；下载入口仍可使用当前发布包。",
-            }
+            return fallback_latest("没有权限读取 GitHub Release，或仓库仍是私有状态。")
         response.raise_for_status()
         payload = response.json()
     except requests.Timeout:
@@ -236,6 +234,92 @@ def _release_check() -> dict[str, Any]:
         "body": payload.get("body") or "",
         "update_available": _is_newer_version(latest_version, current_version),
         "assets": assets,
+    }
+
+
+def _preferred_release_asset(release: dict[str, Any]) -> dict[str, Any] | None:
+    assets = release.get("assets") or []
+    system = platform.system().lower()
+
+    def matches(patterns: list[str]) -> dict[str, Any] | None:
+        for asset in assets:
+            name = f"{asset.get('filename') or ''} {asset.get('name') or ''}".lower()
+            if any(pattern in name for pattern in patterns):
+                return asset
+        return None
+
+    if system == "darwin":
+        return matches(["macos.dmg", ".dmg", "macos-app", "mac"])
+    if system == "windows":
+        return matches(["windows", "win"])
+    return assets[0] if assets else None
+
+
+def _safe_download_filename(asset: dict[str, Any], url: str) -> str:
+    raw = str(asset.get("filename") or asset.get("name") or Path(urlparse(url).path).name or "shuhe-riji-update")
+    filename = re.sub(r"[^A-Za-z0-9._ -]+", "-", raw).strip(" .-")
+    return filename or "shuhe-riji-update"
+
+
+def _validate_release_download_url(url: str) -> None:
+    parsed = urlparse(url)
+    host = parsed.netloc.lower()
+    path = parsed.path
+    allowed_hosts = {"github.com", "objects.githubusercontent.com"}
+    if host not in allowed_hosts or not parsed.scheme.startswith("http"):
+        raise ValueError("下载地址不是可信的 GitHub Release 链接")
+    if host == "github.com" and f"/{RELEASE_REPO}/releases/download/" not in path:
+        raise ValueError("下载地址不是书赫日报助手的发布包")
+
+
+def _open_downloaded_update(path: Path) -> None:
+    try:
+        if platform.system() == "Darwin":
+            subprocess.Popen(["open", str(path)])
+        elif platform.system() == "Windows":
+            os.startfile(str(path))  # type: ignore[attr-defined]
+        else:
+            opener = shutil.which("xdg-open")
+            if opener:
+                subprocess.Popen([opener, str(path)])
+    except Exception:
+        return
+
+
+def _download_latest_release() -> dict[str, Any]:
+    release = _release_check()
+    if not release.get("ok"):
+        raise RuntimeError(release.get("message") or "暂时无法检查更新")
+    asset = _preferred_release_asset(release)
+    url = str((asset or {}).get("url") or release.get("latest_url") or "").strip()
+    if not asset or not url:
+        raise RuntimeError("暂时没有可用下载地址")
+    _validate_release_download_url(url)
+
+    downloads = Path.home() / "Downloads"
+    downloads.mkdir(parents=True, exist_ok=True)
+    filename = _safe_download_filename(asset, url)
+    target = downloads / filename
+    if target.exists():
+        stem = target.stem
+        suffix = target.suffix
+        target = downloads / f"{stem}-{datetime.now().strftime('%Y%m%d-%H%M%S')}{suffix}"
+
+    with requests.get(url, headers={"User-Agent": "ShuheRiji/0.1"}, stream=True, timeout=30, allow_redirects=True) as response:
+        response.raise_for_status()
+        with target.open("wb") as file:
+            for chunk in response.iter_content(chunk_size=1024 * 256):
+                if chunk:
+                    file.write(chunk)
+
+    _open_downloaded_update(target)
+    return {
+        "ok": True,
+        "path": str(target),
+        "filename": target.name,
+        "version": release.get("latest_version"),
+        "url": url,
+        "opened": True,
     }
 
 
@@ -2158,6 +2242,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             body = self._read_json()
             url = permissions.open_settings(body.get("kind", "screen_recording"))
             self._send_json({"ok": True, "url": url})
+        elif parsed.path == "/api/release/download":
+            try:
+                self._send_json({"download": _download_latest_release()})
+            except Exception as exc:
+                self._send_json({"ok": False, "error": str(exc)}, status=500)
         elif parsed.path == "/api/open-path":
             try:
                 opened = _open_local_path(self._read_json().get("kind", "data"))

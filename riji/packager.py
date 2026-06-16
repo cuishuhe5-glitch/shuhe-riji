@@ -14,7 +14,7 @@ from textwrap import dedent
 
 from PIL import Image, ImageDraw, ImageFont
 
-from . import keychain
+from . import __version__, keychain
 
 APP_NAME = "书赫日报助手"
 BUNDLE_ID = "com.shuhe.riji"
@@ -55,8 +55,8 @@ def build(output_dir: str | Path | None = None, mode: str = "desktop", portable:
         "CFBundleInfoDictionaryVersion": "6.0",
         "CFBundleName": APP_NAME,
         "CFBundlePackageType": "APPL",
-        "CFBundleShortVersionString": "0.1.3",
-        "CFBundleVersion": "0.1.3",
+        "CFBundleShortVersionString": __version__,
+        "CFBundleVersion": __version__,
         "LSMinimumSystemVersion": "11.0",
         "LSUIElement": mode == "menubar",
         "NSHighResolutionCapable": True,

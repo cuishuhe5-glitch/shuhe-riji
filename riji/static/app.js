@@ -638,10 +638,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.3";
+  const version = release?.version || "v0.1.4";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>应用内更新下载</strong>
+      <p>发现新版后可直接在弹窗里下载当前系统安装包，下载完成自动打开，失败时自动切到浏览器下载。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.3</span>
       <strong>设置页复刻小黑风格</strong>
       <p>设置页改为简洁模块，接入 Agent 文本前置，一键复制自动接入；手动网关配置保留。</p>
     </div>
@@ -822,6 +827,7 @@ function showUpdateModal(result, options = {}) {
   $("#updateVersion").textContent = latest || "新版本";
   $("#updateSummary").textContent = `当前版本 ${result.current_version || "-"}，新版本已可用。`;
   $("#updateNotes").innerHTML = formatReleaseNotes(result.body);
+  $("#updateDownloadStatus").textContent = "";
   $("#updateModal").classList.add("show");
   $("#updateModal").setAttribute("aria-hidden", "false");
 }
@@ -838,14 +844,40 @@ function skipUpdateVersion() {
   toast(version ? `已跳过 ${version}` : "已跳过此版本");
 }
 
-function openUpdateDownload() {
+async function openUpdateDownload() {
   const url = preferredUpdateUrl(state.updateInfo);
   if (!url) {
     toast("暂时没有可用下载地址");
     return;
   }
-  window.open(url, "_blank", "noreferrer");
-  closeUpdateModal();
+  const button = $("#updateNow");
+  const status = $("#updateDownloadStatus");
+  const oldText = button?.textContent || "↓ 立即更新";
+  if (button) {
+    button.disabled = true;
+    button.textContent = "下载中";
+  }
+  if (status) status.textContent = "正在下载更新包，请稍候...";
+  try {
+    const data = await api("/api/release/download", { method: "POST", body: JSON.stringify({}) });
+    const download = data.download || {};
+    if (download.ok) {
+      if (status) status.textContent = `已下载到 ${download.filename || "Downloads"}，正在打开安装包。`;
+      toast("更新包已下载");
+      setTimeout(closeUpdateModal, 900);
+      return;
+    }
+    throw new Error(data.error || "下载失败");
+  } catch (error) {
+    if (status) status.textContent = "自动下载失败，已打开浏览器下载页。";
+    window.open(url, "_blank", "noreferrer");
+    toast(error.message || "已打开下载页");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = oldText;
+    }
+  }
 }
 
 async function autoCheckReleaseUpdate() {
