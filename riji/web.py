@@ -117,15 +117,15 @@ RELEASE_INFO = {
     "url": f"https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v{__version__}",
     "assets": [
         {
-            "name": "macOS DMG",
-            "filename": "shuhe-riji-macos.dmg",
-            "url": f"https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v{__version__}/shuhe-riji-macos.dmg",
-            "sha256": "",
-        },
-        {
             "name": "macOS 独立版",
             "filename": "shuhe-riji-macos-app.zip",
             "url": f"https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v{__version__}/shuhe-riji-macos-app.zip",
+            "sha256": "",
+        },
+        {
+            "name": "macOS DMG",
+            "filename": "shuhe-riji-macos.dmg",
+            "url": f"https://github.com/cuishuhe5-glitch/shuhe-riji/releases/download/v{__version__}/shuhe-riji-macos.dmg",
             "sha256": "",
         },
         {

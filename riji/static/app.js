@@ -639,10 +639,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.9";
+  const version = release?.version || "v0.1.10";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>自动安装入口加固</strong>
+      <p>macOS 更新优先下载可自动覆盖安装的 App zip，避免把 DMG 或普通文件包交给用户手动处理。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.9</span>
       <strong>macOS 权限检测优化</strong>
       <p>录屏和辅助功能状态改为静默预检查，避免每次打开都因为检测权限弹出系统授权。</p>
     </div>
