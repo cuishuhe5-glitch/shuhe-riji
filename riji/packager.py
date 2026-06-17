@@ -441,7 +441,8 @@ def _copy_portable_payload(root: Path, resources: Path) -> None:
         if path.exists():
             shutil.rmtree(path)
     app_payload.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(root / "riji", app_payload / "riji", ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    ignore = shutil.ignore_patterns("__pycache__", "*.pyc", "._*", ".DS_Store", "__MACOSX")
+    shutil.copytree(root / "riji", app_payload / "riji", ignore=ignore)
     for filename in ["requirements.txt", "README.md"]:
         source = root / filename
         if source.exists():
@@ -456,6 +457,9 @@ def _copy_portable_payload(root: Path, resources: Path) -> None:
             ignore=shutil.ignore_patterns(
                 "__pycache__",
                 "*.pyc",
+                "._*",
+                ".DS_Store",
+                "__MACOSX",
                 "pip*",
                 "setuptools*",
                 "wheel*",
@@ -468,7 +472,7 @@ def _copy_portable_payload(root: Path, resources: Path) -> None:
             source_venv,
             venv_payload,
             symlinks=True,
-            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "pip*", "setuptools*", "wheel*"),
+            ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "._*", ".DS_Store", "__MACOSX", "pip*", "setuptools*", "wheel*"),
         )
 
 

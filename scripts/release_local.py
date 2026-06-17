@@ -6,6 +6,7 @@ import shutil
 import subprocess
 import sys
 import hashlib
+import os
 from pathlib import Path
 
 
@@ -40,14 +41,16 @@ def _zip_mac_app() -> None:
     if MAC_ZIP.exists():
         MAC_ZIP.unlink()
     if shutil.which("ditto"):
-        _run(["ditto", "-c", "-k", "--keepParent", str(MAC_APP), str(MAC_ZIP)])
+        _run(["ditto", "-c", "-k", "--norsrc", "--keepParent", str(MAC_APP), str(MAC_ZIP)])
         return
     archive_base = DIST / "shuhe-riji-macos-app"
     shutil.make_archive(str(archive_base), "zip", root_dir=DIST, base_dir=MAC_APP.name)
 
 
 def _run(args: list[str]) -> None:
-    subprocess.run(args, cwd=ROOT, check=True)
+    env = os.environ.copy()
+    env["COPYFILE_DISABLE"] = "1"
+    subprocess.run(args, cwd=ROOT, check=True, env=env)
 
 
 def _remove_staging_app() -> None:

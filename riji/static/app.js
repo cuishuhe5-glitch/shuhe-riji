@@ -639,10 +639,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.8";
+  const version = release?.version || "v0.1.9";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>macOS 权限检测优化</strong>
+      <p>录屏和辅助功能状态改为静默预检查，避免每次打开都因为检测权限弹出系统授权。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.8</span>
       <strong>macOS 授权身份修复</strong>
       <p>安装包增加完整 App 签名和稳定标识，减少录屏授权反复提示的问题。</p>
     </div>

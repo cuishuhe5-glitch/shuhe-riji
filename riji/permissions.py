@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import platform
 import subprocess
+import ctypes
 from typing import Any
 
 import mss
@@ -33,6 +34,11 @@ def open_settings(kind: str) -> str:
 def _screen_recording_status() -> dict[str, str]:
     if platform.system() != "Darwin":
         return {"state": "not_required", "message": "当前平台不需要 macOS 屏幕录制权限"}
+    preflight = _mac_screen_recording_preflight()
+    if preflight is True:
+        return {"state": "granted", "message": "屏幕录制权限可用"}
+    if preflight is False:
+        return {"state": "missing", "message": "需要开启屏幕录制权限"}
     try:
         with mss.mss() as sct:
             mon = sct.monitors[1]
@@ -47,7 +53,34 @@ def _screen_recording_status() -> dict[str, str]:
 def _accessibility_status() -> dict[str, str]:
     if platform.system() != "Darwin":
         return {"state": "not_required", "message": "当前平台不需要 macOS 辅助功能权限"}
+    trusted = _mac_accessibility_preflight()
+    if trusted is True:
+        return {"state": "granted", "message": "辅助功能权限可用"}
+    if trusted is False:
+        return {"state": "missing", "message": "需要开启辅助功能权限"}
     info = window.frontmost()
     if info.app:
         return {"state": "granted", "message": f"辅助功能权限可用，当前应用：{info.app}"}
     return {"state": "unknown", "message": "无法读取前台应用；如窗口标题为空，请开启辅助功能权限"}
+
+
+def _mac_screen_recording_preflight() -> bool | None:
+    try:
+        core_graphics = ctypes.CDLL("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics")
+        preflight = core_graphics.CGPreflightScreenCaptureAccess
+        preflight.argtypes = []
+        preflight.restype = ctypes.c_bool
+        return bool(preflight())
+    except Exception:
+        return None
+
+
+def _mac_accessibility_preflight() -> bool | None:
+    try:
+        app_services = ctypes.CDLL("/System/Library/Frameworks/ApplicationServices.framework/ApplicationServices")
+        trusted = app_services.AXIsProcessTrusted
+        trusted.argtypes = []
+        trusted.restype = ctypes.c_bool
+        return bool(trusted())
+    except Exception:
+        return None
