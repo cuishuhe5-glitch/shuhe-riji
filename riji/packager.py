@@ -20,6 +20,8 @@ APP_NAME = "书赫日报助手"
 BUNDLE_ID = "com.shuhe.riji"
 DEFAULT_OUTPUT_DIR = Path("/Users/shuhe/临时文件")
 DEFAULT_INSTALL_DIR = Path.home() / "Applications"
+LOCAL_CODESIGN_IDENTITY = "Shuhe Riji Local Code Signing"
+LOCAL_CODESIGN_KEYCHAIN = Path.home() / ".shuhe-riji" / "codesign.keychain-db"
 
 
 def build(output_dir: str | Path | None = None, mode: str = "desktop", portable: bool = False) -> Path:
@@ -348,18 +350,59 @@ def _write_native_launcher(target: Path) -> None:
 def _sign_app(app: Path) -> None:
     if shutil.which("codesign") is None:
         return
+    identity = _codesign_identity()
+    args = [
+        "codesign",
+        "--force",
+        "--deep",
+        "--sign",
+        identity,
+        "--identifier",
+        BUNDLE_ID,
+    ]
+    if identity != "-" and LOCAL_CODESIGN_KEYCHAIN.exists():
+        args.extend(["--keychain", str(LOCAL_CODESIGN_KEYCHAIN)])
+    args.append(str(app))
+    subprocess.run(args, check=True)
+
+
+def _codesign_identity() -> str:
+    configured = os.environ.get("SHUHE_RIJI_CODESIGN_IDENTITY", "").strip()
+    if configured:
+        return configured
+    if shutil.which("security") and LOCAL_CODESIGN_KEYCHAIN.exists():
+        _prepare_codesign_keychain()
+        result = subprocess.run(
+            ["security", "find-identity", "-v", "-p", "codesigning", str(LOCAL_CODESIGN_KEYCHAIN)],
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        for line in result.stdout.splitlines():
+            if LOCAL_CODESIGN_IDENTITY in line:
+                parts = line.strip().split()
+                if len(parts) >= 2:
+                    return parts[1]
+    return "-"
+
+
+def _prepare_codesign_keychain() -> None:
     subprocess.run(
-        [
-            "codesign",
-            "--force",
-            "--deep",
-            "--sign",
-            "-",
-            "--identifier",
-            BUNDLE_ID,
-            str(app),
-        ],
-        check=True,
+        ["security", "unlock-keychain", "-p", "", str(LOCAL_CODESIGN_KEYCHAIN)],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+    login_keychain = Path.home() / "Library" / "Keychains" / "login.keychain-db"
+    keychains = [str(LOCAL_CODESIGN_KEYCHAIN)]
+    if login_keychain.exists():
+        keychains.append(str(login_keychain))
+    subprocess.run(
+        ["security", "list-keychains", "-d", "user", "-s", *keychains],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
     )
 
 
@@ -474,6 +517,20 @@ def _copy_portable_payload(root: Path, resources: Path) -> None:
             symlinks=True,
             ignore=shutil.ignore_patterns("__pycache__", "*.pyc", "._*", ".DS_Store", "__MACOSX", "pip*", "setuptools*", "wheel*"),
         )
+        _normalize_portable_venv(venv_payload)
+
+
+def _normalize_portable_venv(venv_payload: Path) -> None:
+    bin_dir = venv_payload / "bin"
+    if not bin_dir.exists():
+        return
+    python_shim = "#!/bin/sh\nexec /usr/bin/python3 \"$@\"\n"
+    for name in ["python", "python3", "python3.9"]:
+        path = bin_dir / name
+        if path.exists() or path.is_symlink():
+            path.unlink()
+        path.write_text(python_shim, encoding="utf-8")
+        path.chmod(0o755)
 
 
 def _current_site_packages() -> Path | None:

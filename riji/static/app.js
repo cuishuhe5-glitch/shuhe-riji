@@ -262,14 +262,40 @@ function renderStatus(recording) {
   const running = Boolean(recording.running);
   const stopping = Boolean(recording.stopping);
   const failed = Boolean(recording.last_error);
-  $("#recordButton").textContent = stopping ? "正在暂停" : running ? "暂停记录" : "开始记录";
-  $("#recordButton").disabled = stopping;
-  $("#recordButton").classList.toggle("is-running", running);
-  $("#recordButton").classList.toggle("has-error", failed);
+  const message = failed ? recording.last_error : (recording.message || "等待操作");
+  const statusText = failed
+    ? "记录异常"
+    : stopping
+      ? (message.includes("暂停") ? "正在暂停" : "正在停止")
+      : running
+        ? "正在记录"
+        : (message.includes("停止") ? "已停止" : "已暂停");
+  const legacyButton = $("#recordButton");
+  if (legacyButton) {
+    legacyButton.textContent = stopping ? "正在暂停" : running ? "暂停记录" : "开始记录";
+    legacyButton.disabled = stopping;
+    legacyButton.classList.toggle("is-running", running);
+    legacyButton.classList.toggle("has-error", failed);
+  }
+  const pill = $("#recordStatePill");
+  if (pill) {
+    pill.classList.toggle("running", running && !failed);
+    pill.classList.toggle("stopping", stopping && !failed);
+    pill.classList.toggle("error", failed);
+    pill.classList.toggle("stopped", !running && !stopping && !failed);
+  }
+  const stateText = $("#recordStateText");
+  if (stateText) stateText.textContent = statusText;
+  const startButton = $("#recordStartButton");
+  const pauseButton = $("#recordPauseButton");
+  const stopButton = $("#recordStopButton");
+  if (startButton) startButton.disabled = running || stopping;
+  if (pauseButton) pauseButton.disabled = !running || stopping;
+  if (stopButton) stopButton.disabled = !running || stopping;
   $("#sideDot").classList.toggle("running", running);
   $("#sideDot").classList.toggle("error", failed);
-  $("#sideStatus").textContent = failed ? "记录异常" : stopping ? "正在暂停" : running ? "正在记录" : "已暂停";
-  $("#sideMessage").textContent = failed ? recording.last_error : (recording.message || "等待操作");
+  $("#sideStatus").textContent = statusText;
+  $("#sideMessage").textContent = message;
 }
 
 function renderSettings(settings) {
@@ -639,10 +665,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.11";
+  const version = release?.version || "v0.1.12";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>记录控制按钮</strong>
+      <p>今日工作页新增开始、暂停、停止三个按钮，并用状态标识明确显示当前是否正在后台记录。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.11</span>
       <strong>自动清理重复 App</strong>
       <p>macOS 自动更新后会清理常见位置里的旧版同名副本，只保留正式安装位置的书赫日报助手。</p>
     </div>
@@ -2894,13 +2925,29 @@ function safeDownloadName(value) {
     .slice(0, 90) || "书赫报告";
 }
 
+function setRecordingButtonsBusy(busy) {
+  [$("#recordStartButton"), $("#recordPauseButton"), $("#recordStopButton")].filter(Boolean).forEach((button) => {
+    button.disabled = busy;
+  });
+}
+
+async function setRecording(action) {
+  const endpoint = action === "start" ? "/api/recording/start" : "/api/recording/stop";
+  const body = action === "start" ? {} : { mode: action };
+  setRecordingButtonsBusy(true);
+  try {
+    const result = await api(endpoint, { method: "POST", body: JSON.stringify(body) });
+    state.data.recording = result;
+    renderStatus(result);
+    toast(action === "start" ? "已开始后台记录" : action === "pause" ? "已暂停记录" : "已停止记录");
+  } finally {
+    renderStatus(state.data?.recording || {});
+  }
+}
+
 async function toggleRecording() {
   const running = state.data?.recording?.running;
-  const endpoint = running ? "/api/recording/stop" : "/api/recording/start";
-  const result = await api(endpoint, { method: "POST", body: "{}" });
-  state.data.recording = result;
-  renderStatus(result);
-  toast(running ? "已暂停记录" : "已开始后台记录");
+  await setRecording(running ? "pause" : "start");
 }
 
 async function captureNow() {
@@ -4133,12 +4180,15 @@ function bindEvents() {
     loadSummary().catch((error) => toast(error.message));
   });
   $("#refreshButton").addEventListener("click", () => loadSummary().then(() => toast("已刷新")));
-  $("#recordButton").addEventListener("click", () => toggleRecording().catch((error) => toast(error.message)));
+  $("#recordButton")?.addEventListener("click", () => toggleRecording().catch((error) => toast(error.message)));
+  $("#recordStartButton")?.addEventListener("click", () => setRecording("start").catch((error) => toast(error.message)));
+  $("#recordPauseButton")?.addEventListener("click", () => setRecording("pause").catch((error) => toast(error.message)));
+  $("#recordStopButton")?.addEventListener("click", () => setRecording("stop").catch((error) => toast(error.message)));
   $("#captureNowButton").addEventListener("click", () => captureNow().catch((error) => toast(error.message)));
   $("#quickCaptureNow").addEventListener("click", () => captureNow().catch((error) => toast(error.message)));
   $("#quickStartRecording").addEventListener("click", () => {
     if (!state.data?.recording?.running) {
-      toggleRecording().catch((error) => toast(error.message));
+      setRecording("start").catch((error) => toast(error.message));
     } else {
       toast("后台记录已经在运行");
     }

@@ -353,6 +353,8 @@ select {
   display: flex;
   align-items: center;
   gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .top-actions[hidden] {
@@ -448,6 +450,78 @@ select {
   border-color: #f2c6c1;
   background: #fff7f6;
   color: var(--danger);
+}
+
+.record-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #f8fbfa;
+}
+
+.record-control .button {
+  height: 34px;
+  padding: 0 12px;
+}
+
+.record-state-pill {
+  min-width: 94px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #eef3f1;
+  color: #64736f;
+  font-size: 12px;
+  font-weight: 760;
+  white-space: nowrap;
+}
+
+.record-state-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: #9aa8a5;
+}
+
+.record-state-pill.running {
+  background: #e7f8f0;
+  color: var(--accent-strong);
+}
+
+.record-state-pill.running .record-state-dot {
+  background: var(--accent);
+  box-shadow: 0 0 0 5px rgba(15, 139, 127, 0.12);
+}
+
+.record-state-pill.stopping {
+  background: #fff8e5;
+  color: #9a6400;
+}
+
+.record-state-pill.stopping .record-state-dot {
+  background: #d97706;
+}
+
+.record-state-pill.error {
+  background: #fff1f2;
+  color: var(--danger);
+}
+
+.record-state-pill.error .record-state-dot {
+  background: var(--danger);
+}
+
+.record-state-pill.stopped .record-state-dot {
+  background: #94a3b8;
 }
 
 .content-grid {
@@ -5968,6 +6042,22 @@ select {
   .top-actions .button {
     width: 100%;
     justify-content: center;
+  }
+
+  .record-control {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .record-state-pill {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .record-control .button {
+    width: 100%;
+    padding: 0 8px;
   }
 
   .content-grid {

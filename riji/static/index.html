@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>书赫日报助手</title>
-    <link rel="stylesheet" href="/static/styles.css?v=20260616-app-chart-scale" />
+    <link rel="stylesheet" href="/static/styles.css?v=20260617-record-controls" />
   </head>
   <body>
     <div class="shell">
@@ -98,13 +98,22 @@
             <p class="page-label">今日工作</p>
             <h2>今日工作</h2>
           </div>
-          <div class="top-actions" hidden>
+          <div class="top-actions">
             <label class="date-control">
               <span>日期</span>
               <input id="dateInput" type="date" />
             </label>
+            <div class="record-control" aria-label="记录控制">
+              <div class="record-state-pill" id="recordStatePill">
+                <span class="record-state-dot" id="recordStateDot"></span>
+                <strong id="recordStateText">读取中</strong>
+              </div>
+              <button class="button primary" id="recordStartButton" type="button">开始记录</button>
+              <button class="button subtle" id="recordPauseButton" type="button">暂停</button>
+              <button class="button danger-subtle" id="recordStopButton" type="button">停止</button>
+            </div>
             <button class="button subtle" id="captureNowButton">立即记录</button>
-            <button class="button primary" id="recordButton">开始记录</button>
+            <button class="button primary" id="recordButton" hidden>开始记录</button>
           </div>
         </header>
 

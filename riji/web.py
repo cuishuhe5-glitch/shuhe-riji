@@ -523,6 +523,7 @@ class Recorder:
         self._lock = threading.Lock()
         self.last_message = "尚未开始记录"
         self.last_error: str | None = None
+        self._stop_message = "已暂停记录"
 
     @property
     def running(self) -> bool:
@@ -538,24 +539,26 @@ class Recorder:
                 self.last_message = f"后台记录未启动：{self.last_error}"
                 return False
             self._stop.clear()
+            self._stop_message = "已暂停记录"
             self._thread = threading.Thread(target=self._loop, daemon=True)
             self._thread.start()
             self.last_message = "正在后台记录"
             self.last_error = None
             return True
 
-    def stop(self) -> bool:
+    def stop(self, final_message: str = "已暂停记录", progress_message: str = "正在暂停...") -> bool:
         with self._lock:
             if not self.running:
-                self.last_message = "已暂停记录"
+                self.last_message = final_message
                 return False
             thread = self._thread
+            self._stop_message = final_message
             self._stop.set()
-            self.last_message = "正在暂停..."
+            self.last_message = progress_message
         if thread is not None:
             thread.join(timeout=2)
         if not self.running:
-            self.last_message = "已暂停记录"
+            self.last_message = final_message
         return True
 
     def snapshot(self) -> dict[str, Any]:
@@ -658,7 +661,7 @@ class Recorder:
                 self.last_error = str(exc)
                 self.last_message = f"本轮记录失败：{exc}"
             self._stop.wait(settings.load()["capture_interval"])
-        self.last_message = "已暂停记录"
+        self.last_message = self._stop_message
 
 
 RECORDER = Recorder()
@@ -2291,7 +2294,11 @@ class DashboardHandler(BaseHTTPRequestHandler):
             else:
                 self._send_json(result, status=500)
         elif parsed.path == "/api/recording/stop":
-            changed = RECORDER.stop()
+            body = self._read_json()
+            mode = str(body.get("mode") or "pause").lower()
+            final_message = "已停止记录" if mode == "stop" else "已暂停记录"
+            progress_message = "正在停止..." if mode == "stop" else "正在暂停..."
+            changed = RECORDER.stop(final_message, progress_message)
             self._send_json({"changed": changed, **RECORDER.snapshot()})
         elif parsed.path == "/api/report":
             body = self._read_json()
