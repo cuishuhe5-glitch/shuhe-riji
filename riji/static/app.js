@@ -50,6 +50,7 @@ const state = {
   detailItem: null,
   updateCheckDone: false,
   updateInfo: null,
+  updatePollTimer: null,
   currentView: "overview",
 };
 
@@ -638,10 +639,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.6";
+  const version = release?.version || "v0.1.7";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>更新下载进度条</strong>
+      <p>应用内更新会显示下载百分比和安装阶段，覆盖安装只替换 App，不影响本地数据。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.6</span>
       <strong>macOS 自动安装更新</strong>
       <p>更新包下载后自动解压、覆盖安装并重启应用，不再把 zip 压缩包交给用户处理。</p>
     </div>
@@ -844,6 +850,7 @@ function showUpdateModal(result, options = {}) {
   $("#updateSummary").textContent = `当前版本 ${result.current_version || "-"}，新版本已可用。`;
   $("#updateNotes").innerHTML = formatReleaseNotes(result.body);
   $("#updateDownloadStatus").textContent = "";
+  resetUpdateProgress();
   $("#updateModal").classList.add("show");
   $("#updateModal").setAttribute("aria-hidden", "false");
 }
@@ -851,6 +858,7 @@ function showUpdateModal(result, options = {}) {
 function closeUpdateModal() {
   $("#updateModal")?.classList.remove("show");
   $("#updateModal")?.setAttribute("aria-hidden", "true");
+  stopUpdateProgressPolling();
 }
 
 function skipUpdateVersion() {
@@ -874,31 +882,84 @@ async function openUpdateDownload() {
     button.textContent = "下载中";
   }
   if (status) status.textContent = "正在下载更新包，请稍候...";
+  setUpdateProgress({ percent: 0, message: "正在准备下载..." });
   try {
-    const data = await api("/api/release/download", { method: "POST", body: JSON.stringify({}) });
-    const download = data.download || {};
-    if (download.ok) {
-      if (download.installing) {
-        if (status) status.textContent = download.message || "更新包已解压，正在自动安装并重启应用。";
-        toast("正在自动安装更新");
-        return;
-      }
-      if (status) status.textContent = `已下载到 ${download.filename || "Downloads"}，正在打开安装包。`;
-      toast("更新包已下载");
-      setTimeout(closeUpdateModal, 900);
-      return;
-    }
-    throw new Error(data.error || "下载失败");
+    await api("/api/release/download", { method: "POST", body: JSON.stringify({}) });
+    pollUpdateDownloadStatus({ fallbackUrl: url, button, oldText });
   } catch (error) {
     if (status) status.textContent = "自动下载失败，已打开浏览器下载页。";
     window.open(url, "_blank", "noreferrer");
     toast(error.message || "已打开下载页");
-  } finally {
     if (button) {
       button.disabled = false;
       button.textContent = oldText;
     }
   }
+}
+
+function resetUpdateProgress() {
+  stopUpdateProgressPolling();
+  const progress = $("#updateProgress");
+  if (progress) progress.hidden = true;
+  const fill = $("#updateProgressFill");
+  if (fill) fill.style.width = "0%";
+  const text = $("#updateProgressText");
+  if (text) text.textContent = "0%";
+}
+
+function setUpdateProgress(download = {}) {
+  const progress = $("#updateProgress");
+  const fill = $("#updateProgressFill");
+  const text = $("#updateProgressText");
+  const status = $("#updateDownloadStatus");
+  const percent = Math.max(0, Math.min(100, Number(download.percent || 0)));
+  if (progress) progress.hidden = false;
+  if (fill) fill.style.width = `${percent}%`;
+  if (text) text.textContent = `${Math.round(percent)}%`;
+  if (status && download.message) status.textContent = download.message;
+}
+
+function stopUpdateProgressPolling() {
+  if (state.updatePollTimer) {
+    window.clearTimeout(state.updatePollTimer);
+    state.updatePollTimer = null;
+  }
+}
+
+async function pollUpdateDownloadStatus({ fallbackUrl, button, oldText }) {
+  stopUpdateProgressPolling();
+  const tick = async () => {
+    try {
+      const data = await api("/api/release/download/status");
+      const download = data.download || {};
+      setUpdateProgress(download);
+      if (download.running) {
+        state.updatePollTimer = window.setTimeout(tick, 500);
+        return;
+      }
+      if (download.ok) {
+        if (download.installing) {
+          toast("正在自动安装更新");
+          return;
+        }
+        toast("更新包已下载");
+        setTimeout(closeUpdateModal, 900);
+        return;
+      }
+      throw new Error(download.error || "下载失败");
+    } catch (error) {
+      $("#updateDownloadStatus").textContent = "自动下载失败，已打开浏览器下载页。";
+      window.open(fallbackUrl, "_blank", "noreferrer");
+      toast(error.message || "已打开下载页");
+    } finally {
+      const stillRunning = $("#updateDownloadStatus")?.textContent?.includes("正在") && !$("#updateDownloadStatus")?.textContent?.includes("自动安装");
+      if (button && !stillRunning) {
+        button.disabled = false;
+        button.textContent = oldText;
+      }
+    }
+  };
+  tick();
 }
 
 async function autoCheckReleaseUpdate() {

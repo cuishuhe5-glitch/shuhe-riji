@@ -1518,6 +1518,12 @@
           <div class="update-divider"></div>
           <h4>更新内容</h4>
           <div class="update-notes" id="updateNotes"></div>
+          <div class="update-progress" id="updateProgress" hidden>
+            <div class="update-progress-track">
+              <div class="update-progress-fill" id="updateProgressFill"></div>
+            </div>
+            <span id="updateProgressText">0%</span>
+          </div>
           <p class="update-download-status" id="updateDownloadStatus"></p>
         </div>
         <div class="update-actions">
@@ -1642,6 +1648,6 @@
         <div class="template-detail-body" id="templateDetailBody"></div>
       </section>
     </div>
-    <script src="/static/app.js?v=20260616-update-download"></script>
+    <script src="/static/app.js?v=20260617-update-progress"></script>
   </body>
 </html>

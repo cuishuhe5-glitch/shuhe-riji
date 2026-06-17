@@ -87,6 +87,20 @@ PROJECT_CONTEXT_PRIORITY_NAMES = {
 REQUEST_LOGS: list[dict[str, Any]] = []
 REQUEST_LOGS_LOCK = threading.Lock()
 REQUEST_LOG_LIMIT = 200
+UPDATE_STATE_LOCK = threading.Lock()
+UPDATE_STATE: dict[str, Any] = {
+    "running": False,
+    "ok": False,
+    "error": "",
+    "phase": "idle",
+    "percent": 0,
+    "received": 0,
+    "total": 0,
+    "message": "",
+    "filename": "",
+    "version": "",
+    "installing": False,
+}
 PROJECT_CONTEXT_SECRET_HINTS = {
     ".env",
     "secret",
@@ -336,10 +350,66 @@ def _install_macos_app_zip(path: Path, version: str | None) -> dict[str, Any]:
     }
 
 
+def _update_state(**patch: Any) -> dict[str, Any]:
+    with UPDATE_STATE_LOCK:
+        UPDATE_STATE.update(patch)
+        return dict(UPDATE_STATE)
+
+
+def _download_status() -> dict[str, Any]:
+    with UPDATE_STATE_LOCK:
+        return dict(UPDATE_STATE)
+
+
+def _start_release_download() -> dict[str, Any]:
+    with UPDATE_STATE_LOCK:
+        if UPDATE_STATE.get("running"):
+            return dict(UPDATE_STATE)
+        UPDATE_STATE.update(
+            {
+                "running": True,
+                "ok": False,
+                "error": "",
+                "phase": "checking",
+                "percent": 0,
+                "received": 0,
+                "total": 0,
+                "message": "正在检查更新包...",
+                "filename": "",
+                "version": "",
+                "installing": False,
+            }
+        )
+        snapshot = dict(UPDATE_STATE)
+
+    thread = threading.Thread(target=_download_latest_release_worker, daemon=True)
+    thread.start()
+    return snapshot
+
+
+def _download_latest_release_worker() -> None:
+    try:
+        result = _download_latest_release()
+        result.update(
+            {
+                "running": False,
+                "ok": True,
+                "error": "",
+                "phase": "done",
+                "percent": 100,
+                "message": result.get("message") or "更新包已准备好。",
+            }
+        )
+        _update_state(**result)
+    except Exception as exc:
+        _update_state(running=False, ok=False, error=str(exc), phase="error", message=str(exc))
+
+
 def _download_latest_release() -> dict[str, Any]:
     release = _release_check()
     if not release.get("ok"):
         raise RuntimeError(release.get("message") or "暂时无法检查更新")
+    _update_state(phase="selecting", message="正在选择适合当前系统的安装包...", version=release.get("latest_version") or "")
     asset = _preferred_release_asset(release)
     url = str((asset or {}).get("url") or release.get("latest_url") or "").strip()
     if not asset or not url:
@@ -349,6 +419,7 @@ def _download_latest_release() -> dict[str, Any]:
     downloads = Path.home() / "Downloads"
     downloads.mkdir(parents=True, exist_ok=True)
     filename = _safe_download_filename(asset, url)
+    _update_state(phase="downloading", filename=filename, message=f"正在下载 {filename}...", percent=0, received=0, total=0)
     target = downloads / filename
     if target.exists():
         stem = target.stem
@@ -357,12 +428,19 @@ def _download_latest_release() -> dict[str, Any]:
 
     with requests.get(url, headers={"User-Agent": "ShuheRiji/0.1"}, stream=True, timeout=30, allow_redirects=True) as response:
         response.raise_for_status()
+        total = int(response.headers.get("Content-Length") or 0)
+        received = 0
+        _update_state(total=total)
         with target.open("wb") as file:
             for chunk in response.iter_content(chunk_size=1024 * 256):
                 if chunk:
                     file.write(chunk)
+                    received += len(chunk)
+                    percent = int(received * 100 / total) if total else 0
+                    _update_state(received=received, total=total, percent=min(percent, 99 if total else 0))
 
     if platform.system() == "Darwin" and target.suffix.lower() == ".zip":
+        _update_state(phase="installing", percent=100, message="下载完成，正在解压并准备覆盖安装...")
         install = _install_macos_app_zip(target, release.get("latest_version"))
         return {
             "ok": True,
@@ -2149,6 +2227,8 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send_json({"notifications": _notifications_snapshot(day)})
         elif parsed.path == "/api/release/check":
             self._send_json({"release_check": _release_check()})
+        elif parsed.path == "/api/release/download/status":
+            self._send_json({"download": _download_status()})
         elif parsed.path == "/api/model-config":
             self._send_json({"model_config": _model_config()})
         elif parsed.path == "/api/autostart":
@@ -2303,7 +2383,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
             self._send_json({"ok": True, "url": url})
         elif parsed.path == "/api/release/download":
             try:
-                self._send_json({"download": _download_latest_release()})
+                self._send_json({"download": _start_release_download()})
             except Exception as exc:
                 self._send_json({"ok": False, "error": str(exc)}, status=500)
         elif parsed.path == "/api/open-path":

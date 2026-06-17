@@ -5378,6 +5378,41 @@ select {
   margin: 0 0 14px;
 }
 
+.update-progress {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin: 22px 0 0;
+}
+
+.update-progress[hidden] {
+  display: none;
+}
+
+.update-progress-track {
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #dbeafe;
+}
+
+.update-progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2563eb, #0ea5a6);
+  transition: width 0.22s ease;
+}
+
+.update-progress span {
+  min-width: 52px;
+  color: #0f172a;
+  font-size: 16px;
+  font-weight: 800;
+  text-align: right;
+}
+
 .update-download-status {
   min-height: 26px;
   margin: 18px 0 0;
