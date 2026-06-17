@@ -639,10 +639,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.7";
+  const version = release?.version || "v0.1.8";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>macOS 授权身份修复</strong>
+      <p>安装包增加完整 App 签名和稳定标识，减少录屏授权反复提示的问题。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.7</span>
       <strong>更新下载进度条</strong>
       <p>应用内更新会显示下载百分比和安装阶段，覆盖安装只替换 App，不影响本地数据。</p>
     </div>

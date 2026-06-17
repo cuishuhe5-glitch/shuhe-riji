@@ -63,6 +63,7 @@ def build(output_dir: str | Path | None = None, mode: str = "desktop", portable:
         "ShuheRijiPortable": portable,
     }
     (contents / "Info.plist").write_bytes(plistlib.dumps(info, sort_keys=False))
+    _sign_app(app)
     return app
 
 
@@ -342,6 +343,24 @@ def _write_native_launcher(target: Path) -> None:
     )
     source.unlink(missing_ok=True)
     target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+
+
+def _sign_app(app: Path) -> None:
+    if shutil.which("codesign") is None:
+        return
+    subprocess.run(
+        [
+            "codesign",
+            "--force",
+            "--deep",
+            "--sign",
+            "-",
+            "--identifier",
+            BUNDLE_ID,
+            str(app),
+        ],
+        check=True,
+    )
 
 
 def _launcher_script(root: Path, mode: str, portable: bool = False) -> str:
