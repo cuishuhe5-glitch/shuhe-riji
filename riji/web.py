@@ -11,6 +11,7 @@ import re
 import shutil
 import shlex
 import subprocess
+import tempfile
 import threading
 import webbrowser
 import csv
@@ -242,14 +243,15 @@ def _preferred_release_asset(release: dict[str, Any]) -> dict[str, Any] | None:
     system = platform.system().lower()
 
     def matches(patterns: list[str]) -> dict[str, Any] | None:
-        for asset in assets:
-            name = f"{asset.get('filename') or ''} {asset.get('name') or ''}".lower()
-            if any(pattern in name for pattern in patterns):
-                return asset
+        for pattern in patterns:
+            for asset in assets:
+                name = f"{asset.get('filename') or ''} {asset.get('name') or ''}".lower()
+                if pattern in name:
+                    return asset
         return None
 
     if system == "darwin":
-        return matches(["macos.dmg", ".dmg", "macos-app", "mac"])
+        return matches(["macos-app", "shuhe-riji-macos-app.zip", "macos.dmg", ".dmg", "mac"])
     if system == "windows":
         return matches(["windows", "win"])
     return assets[0] if assets else None
@@ -286,6 +288,54 @@ def _open_downloaded_update(path: Path) -> None:
         return
 
 
+def _install_macos_app_zip(path: Path, version: str | None) -> dict[str, Any]:
+    install_root = Path(tempfile.mkdtemp(prefix="shuhe-riji-update-"))
+    with zipfile.ZipFile(path) as archive:
+        archive.extractall(install_root)
+    app_candidates = [item for item in install_root.iterdir() if item.suffix == ".app" and item.is_dir()]
+    if not app_candidates:
+        raise RuntimeError("更新包里没有找到书赫日报助手.app")
+    source_app = app_candidates[0]
+    target_app = Path(_desktop_app_status()["app_path"]).expanduser()
+    target_app.parent.mkdir(parents=True, exist_ok=True)
+    script_path = install_root / "install-update.zsh"
+    log_path = config.LOGS_DIR / "update-install.log"
+    config.ensure_dirs()
+    script_path.write_text(
+        "\n".join(
+            [
+                "#!/bin/zsh",
+                "set -e",
+                f"echo \"$(date '+%Y-%m-%d %H:%M:%S') installing {version or ''}\" >> {shlex.quote(str(log_path))}",
+                f"APP_SRC={shlex.quote(str(source_app))}",
+                f"APP_DST={shlex.quote(str(target_app))}",
+                f"APP_PID={os.getpid()}",
+                "osascript -e 'tell application \"书赫日报助手\" to quit' >/dev/null 2>&1 || true",
+                "for i in {1..80}; do",
+                "  if ! kill -0 \"$APP_PID\" >/dev/null 2>&1; then break; fi",
+                "  sleep 0.25",
+                "done",
+                "rm -rf \"$APP_DST\"",
+                "ditto \"$APP_SRC\" \"$APP_DST\"",
+                "xattr -dr com.apple.quarantine \"$APP_DST\" >/dev/null 2>&1 || true",
+                "open \"$APP_DST\"",
+                f"echo \"$(date '+%Y-%m-%d %H:%M:%S') installed\" >> {shlex.quote(str(log_path))}",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    script_path.chmod(0o755)
+    subprocess.Popen(["/bin/zsh", str(script_path)], start_new_session=True)
+    return {
+        "installing": True,
+        "path": str(target_app),
+        "filename": target_app.name,
+        "version": version,
+        "message": "更新包已解压，正在自动安装并重启应用。",
+    }
+
+
 def _download_latest_release() -> dict[str, Any]:
     release = _release_check()
     if not release.get("ok"):
@@ -311,6 +361,15 @@ def _download_latest_release() -> dict[str, Any]:
             for chunk in response.iter_content(chunk_size=1024 * 256):
                 if chunk:
                     file.write(chunk)
+
+    if platform.system() == "Darwin" and target.suffix.lower() == ".zip":
+        install = _install_macos_app_zip(target, release.get("latest_version"))
+        return {
+            "ok": True,
+            "downloaded": str(target),
+            "url": url,
+            **install,
+        }
 
     _open_downloaded_update(target)
     return {

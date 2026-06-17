@@ -638,10 +638,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.5";
+  const version = release?.version || "v0.1.6";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>macOS 自动安装更新</strong>
+      <p>更新包下载后自动解压、覆盖安装并重启应用，不再把 zip 压缩包交给用户处理。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.5</span>
       <strong>macOS Dock 身份优化</strong>
       <p>启动时把运行身份指回书赫日报助手 App，减少 Dock 显示 Python 图标的问题。</p>
     </div>
@@ -811,12 +816,18 @@ function formatReleaseNoteLine(line) {
 function preferredUpdateUrl(result) {
   const assets = result?.assets || [];
   const platform = `${navigator.platform || ""} ${navigator.userAgent || ""}`.toLowerCase();
-  const matchAsset = (patterns) => assets.find((asset) => {
-    const name = `${asset.filename || ""} ${asset.name || ""}`.toLowerCase();
-    return patterns.some((pattern) => name.includes(pattern));
-  });
+  const matchAsset = (patterns) => {
+    for (const pattern of patterns) {
+      const asset = assets.find((item) => {
+        const name = `${item.filename || ""} ${item.name || ""}`.toLowerCase();
+        return name.includes(pattern);
+      });
+      if (asset) return asset;
+    }
+    return null;
+  };
   if (platform.includes("mac")) {
-    return matchAsset(["macos.dmg", ".dmg", "macos-app", "mac"])?.url || result?.latest_url || state.data?.release?.url || "";
+    return matchAsset(["macos-app", "shuhe-riji-macos-app.zip", "macos.dmg", ".dmg", "mac"])?.url || result?.latest_url || state.data?.release?.url || "";
   }
   if (platform.includes("win")) {
     return matchAsset(["windows", "win"])?.url || result?.latest_url || state.data?.release?.url || "";
@@ -867,6 +878,11 @@ async function openUpdateDownload() {
     const data = await api("/api/release/download", { method: "POST", body: JSON.stringify({}) });
     const download = data.download || {};
     if (download.ok) {
+      if (download.installing) {
+        if (status) status.textContent = download.message || "更新包已解压，正在自动安装并重启应用。";
+        toast("正在自动安装更新");
+        return;
+      }
       if (status) status.textContent = `已下载到 ${download.filename || "Downloads"}，正在打开安装包。`;
       toast("更新包已下载");
       setTimeout(closeUpdateModal, 900);
