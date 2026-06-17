@@ -2,7 +2,7 @@
 
 下载页：
 
-https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.10
+https://github.com/cuishuhe5-glitch/shuhe-riji/releases/tag/v0.1.11
 
 ## macOS
 

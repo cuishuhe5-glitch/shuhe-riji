@@ -639,10 +639,15 @@ function renderProductModules(data) {
 function renderVersionList(release) {
   const list = $("#versionList");
   if (!list) return;
-  const version = release?.version || "v0.1.10";
+  const version = release?.version || "v0.1.11";
   list.innerHTML = `
     <div class="version-item">
       <span>${escapeHtml(version)}</span>
+      <strong>自动清理重复 App</strong>
+      <p>macOS 自动更新后会清理常见位置里的旧版同名副本，只保留正式安装位置的书赫日报助手。</p>
+    </div>
+    <div class="version-item">
+      <span>v0.1.10</span>
       <strong>自动安装入口加固</strong>
       <p>macOS 更新优先下载可自动覆盖安装的 App zip，避免把 DMG 或普通文件包交给用户手动处理。</p>
     </div>
